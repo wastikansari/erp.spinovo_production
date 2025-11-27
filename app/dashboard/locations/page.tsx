@@ -25,8 +25,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   AlertCircle,
   MapPin,
   Plus,
@@ -54,7 +54,7 @@ export default function LocationsPage() {
   const [error, setError] = useState<string>('');
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
   const [expandedCities, setExpandedCities] = useState<Set<string>>(new Set());
-  
+
   // Form states
   const [showStateForm, setShowStateForm] = useState(false);
   const [showCityForm, setShowCityForm] = useState(false);
@@ -64,7 +64,7 @@ export default function LocationsPage() {
   const [selectedArea, setSelectedArea] = useState<Area | null>(null);
   const [selectedStateId, setSelectedStateId] = useState<string>('');
   const [selectedCityId, setSelectedCityId] = useState<string>('');
-  
+
   // Delete confirmation states
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
@@ -80,9 +80,9 @@ export default function LocationsPage() {
     try {
       setLoading(true);
       setError('');
-      
+
       const response = await LocationApiService.getStates();
-      
+
       if (response.status && response.data) {
         setStates(response.data.data || []);
         toast({
@@ -211,7 +211,7 @@ export default function LocationsPage() {
   const confirmDelete = async () => {
     try {
       const { type, item, stateId, cityId } = deleteDialog;
-      
+
       let response;
       switch (type) {
         case 'state':
@@ -358,7 +358,7 @@ export default function LocationsPage() {
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit State
                               </DropdownMenuItem>
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 onClick={() => handleDeleteState(state)}
                                 className="text-destructive"
                               >
@@ -393,7 +393,7 @@ export default function LocationsPage() {
                                     <div>
                                       <h4 className="font-medium">{city.cityName}</h4>
                                       <p className="text-xs text-muted-foreground">
-                                        ID: {city.cityId} • Areas: {city.pincodes?.length || 0} • 
+                                        ID: {city.cityId} • Areas: {city.pincodes?.length || 0} •
                                         Handling: ₹{city.handlingCharge} • Platform: ₹{city.platformCharge}
                                       </p>
                                     </div>
@@ -419,7 +419,7 @@ export default function LocationsPage() {
                                           <Edit className="mr-2 h-3 w-3" />
                                           Edit City
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem 
+                                        <DropdownMenuItem
                                           onClick={() => handleDeleteCity(city, state._id)}
                                           className="text-destructive"
                                         >
@@ -456,7 +456,7 @@ export default function LocationsPage() {
                                               <Edit className="mr-2 h-3 w-3" />
                                               Edit Area
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem 
+                                            <DropdownMenuItem
                                               onClick={() => handleDeleteArea(area, state._id, city.cityId)}
                                               className="text-destructive"
                                             >

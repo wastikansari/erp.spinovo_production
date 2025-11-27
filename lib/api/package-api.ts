@@ -1,79 +1,101 @@
-// lib/api/package-api.ts
+// lib/api/package2-api.ts  ← REPLACE THIS FILE COMPLETELY
+
 const API_BASE = "https://api.spinovo.in";
 
 const getHeaders = () => ({
-    Authorization: `Bearer "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ4MTBhMjljODE4NTQ5NDdhZWM4NDIiLCJpYXQiOjE3NDk1NTMzMTQsImV4cCI6MTc4MTExMDkxNH0._wg9iXXPc0TzahS4vzkD7O6U_N4bepqH4aZyuvJ5VkE"`,
-    //   Authorization: `Bearer ${localStorage.getItem("token")}`,
-    "Content-Type": "application/json",
+  Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+  "Content-Type": "application/json",
 });
 
-export const getPackages = async () => {
-    const res = await fetch(`${API_BASE}/api/v1/admin/package/list`, { headers: getHeaders() });
-    return res.json();
+const handleResponse = async (response: Response) => {
+  console.log(`[API] ${response.url} → Status: ${response.status}`);
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error("[API ERROR] Raw response:", text);
+    throw new Error(`HTTP ${response.status}: ${text || "Network error"}`);
+  }
+
+  const text = await response.text();
+  if (!text) {
+    console.log("[API] Empty response body (DELETE success?)");
+    return { status: true, msg: "Operation successful" };
+  }
+
+  try {
+    const json = JSON.parse(text);
+    console.log("[API SUCCESS] Parsed JSON:", json);
+    return json;
+  } catch (e) {
+    console.error("[API] Failed to parse JSON:", text);
+    throw new Error("Invalid JSON response");
+  }
 };
 
-export const createPackage = async (name: string) => {
-    console.log(createPackage);
+export const packageApi = {
+  getAll: async () => {
+    console.log("[API] Fetching all packages...");
+     console.log("[API] Creating vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv:" , getHeaders());
+    const res = await fetch(`${API_BASE}/api/v1/admin/package/list`, {
+      headers: getHeaders(),
+    });
+    return handleResponse(res);
+  },
+
+  create: async (name: string) => {
+    console.log("[API] Creating package:", name , getHeaders());
     const res = await fetch(`${API_BASE}/api/v1/admin/package/create`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({ name }),
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ name }),
     });
-    console.log(res.json());
-    return res.json();
-};
+    return handleResponse(res);
+  },
 
-export const createValidityPlan = async (packageId: string, plan_id: number, validity: number) => {
+  addPlan: async (packageId: string, plan_id: number, validity: number) => {
+    console.log(`[API] Adding plan to package ${packageId}:`, { plan_id, validity });
     const res = await fetch(`${API_BASE}/api/v1/admin/package/create/${packageId}/validity`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({ plan_id, validity }),
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify({ plan_id, validity }),
     });
-    return res.json();
-};
+    return handleResponse(res);
+  },
 
-export const createSubPlan = async (
-    packageId: string,
-    planId: string,
-    data: {
-        sub_plan_id: number;
-        clothes: number;
-        discount_rate: number;
-        prices: number;
-        no_of_pickups: number;
-    }
-) => {
+  addSubPlan: async (packageId: string, planId: string, data: any) => {
+    console.log(`[API] Adding sub-plan to plan ${planId}:`, data);
+    const res = await fetch(`${API_BASE}/api/v1/admin/package/create/${packageId}/plan/${planId}/subplan`, {
+      method: "POST",
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(res);
+  },
+
+  deleteSubPlan: async (packageId: string, planId: string, subPlanId: number) => {
+    console.log(`[API] Deleting sub-plan ${subPlanId} from plan ${planId}`);
     const res = await fetch(
-        `${API_BASE}/api/v1/admin/package/create/${packageId}/plan/${planId}/subplan`,
-        {
-            method: "POST",
-            headers: getHeaders(),
-            body: JSON.stringify(data),
-        }
+      `${API_BASE}/api/v1/admin/package/delete/${packageId}/plan/${planId}/subplan/${subPlanId}`,
+      { method: "DELETE", headers: getHeaders() }
     );
-    return res.json();
-};
+    return handleResponse(res);
+  },
 
-export const deleteSubPlan = async (packageId: string, planId: string, subPlanId: string | number) => {
+  deletePlan: async (packageId: string, planId: string) => {
+    console.log(`[API] Deleting plan ${planId} from package ${packageId}`);
     const res = await fetch(
-        `${API_BASE}/api/v1/admin/package/delete/${packageId}/plan/${planId}/subplan/${subPlanId}`,
-        { method: "DELETE", headers: getHeaders() }
+      `${API_BASE}/api/v1/admin/package/delete/${packageId}/plan/${planId}`,
+      { method: "DELETE", headers: getHeaders() }
     );
-    return res.json();
-};
+    return handleResponse(res);
+  },
 
-export const deleteValidityPlan = async (packageId: string, planId: string) => {
-    const res = await fetch(
-        `${API_BASE}/api/v1/admin/package/delete/${packageId}/plan/${planId}`,
-        { method: "DELETE", headers: getHeaders() }
-    );
-    return res.json();
-};
-
-export const deletePackage = async (packageId: string) => {
+  deletePackage: async (packageId: string) => {
+    console.log(`[API] Deleting package ${packageId}`);
     const res = await fetch(`${API_BASE}/api/v1/admin/package/delete/${packageId}`, {
-        method: "DELETE",
-        headers: getHeaders(),
+      method: "DELETE",
+      headers: getHeaders(),
     });
-    return res.json();
+    return handleResponse(res);
+  },
 };

@@ -59,7 +59,7 @@ const navigation = [
   { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
   { name: 'Copilots', href: '/dashboard/copilots', icon: UserCog },
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
-  { name: 'Package', href: '/dashboard/package', icon: Store },
+  { name: 'Package', href: '/dashboard/package2', icon: Store },
   // { name: 'Wallet', href: '/dashboard/wallet', icon: Wallet },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
