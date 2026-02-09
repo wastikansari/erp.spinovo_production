@@ -3,12 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, } from '@/components/ui/dropdown-menu';
 import { RefreshCw, AlertCircle, Users, MoreHorizontal, Eye, Phone, User, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { CustomerApiService, Customer } from '@/lib/api';
@@ -17,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DataTable } from '@/components/ui/data-table';
 import { Pagination } from '@/components/ui/pagination';
+import { HeaderSection } from '@/components/ui/header-section';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -34,20 +30,20 @@ export default function CustomersPage() {
       setError('');
       console.log('=== FETCHING CUSTOMERS ===');
       console.log('Page:', page);
-      
+
       const response = await CustomerApiService.getCustomers(page, 20);
       console.log('=== API RESPONSE ===');
       console.log('Full response:', response);
-      
+
       if (response.status && response.data) {
         console.log('=== PROCESSING DATA ===');
         console.log('Customer list:', response.data.customerList);
-        
+
         setCustomers(response.data.customerList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalCustomers(response.data.totalCustomers || 0);
-        
+
         if (response.data.customerList && response.data.customerList.length > 0) {
           toast({
             title: 'Success',
@@ -67,7 +63,7 @@ export default function CustomersPage() {
     } catch (error) {
       console.error('=== FETCH ERROR ===');
       console.error('Error details:', error);
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -80,11 +76,6 @@ export default function CustomersPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log('=== COMPONENT MOUNTED ===');
-    fetchCustomers(currentPage);
-  }, [currentPage]);
 
   const formatDate = (dateString: string) => {
     try {
@@ -177,16 +168,18 @@ export default function CustomersPage() {
     </DropdownMenu>
   );
 
+  useEffect(() => {
+    console.log('=== COMPONENT MOUNTED ===');
+    fetchCustomers(currentPage);
+  }, [currentPage]);
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Customers</h1>
-        <Button onClick={handleRefresh} variant="outline" size="sm" disabled={loading}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
-      </div>
-
+      <HeaderSection
+        title="Customers"
+        handleRefresh={handleRefresh}
+        loading={loading}
+      />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
