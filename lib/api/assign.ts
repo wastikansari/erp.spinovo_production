@@ -1,10 +1,6 @@
+import { AssignBookingListData, AssignBookingRequest, AssignBookingResponse } from '../types/assign';
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
-import { 
-  AssignBookingListData, 
-  AssignBookingRequest, 
-  AssignBookingResponse 
-} from '../types/assign';
 
 export class AssignApiService extends BaseApiService {
   static async getAssignedBookings(page: number = 1, limit: number = 20): Promise<ApiResponse<AssignBookingListData>> {

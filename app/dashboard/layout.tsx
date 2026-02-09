@@ -61,7 +61,7 @@ const navigation = [
   { name: 'Venders', href: '/dashboard/venders', icon: Users },
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
   { name: 'Package', href: '/dashboard/package', icon: Store },
-  // { name: 'Wallet', href: '/dashboard/wallet', icon: Wallet },
+  { name: 'Services', href: '/dashboard/services', icon: Wallet },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
