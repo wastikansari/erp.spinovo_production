@@ -152,10 +152,10 @@ export default function BookingsPage() {
       header: 'Booking Time',
     },
     {
-      key: 'order_amount',
+      key: 'total_billing',
       header: 'Amount',
       render: (booking: Booking) => (
-        <span className="font-medium">₹{booking.order_amount}</span>
+        <span className="font-medium">₹{booking.total_billing}</span>
       ),
       searchable: false,
     },

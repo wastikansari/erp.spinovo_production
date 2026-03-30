@@ -6,12 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { 
-  ArrowLeft, 
-  Package, 
-  User, 
-  Phone, 
-  MapPin, 
+import {
+  ArrowLeft,
+  Package,
+  User,
+  Phone,
+  MapPin,
   Calendar,
   Clock,
   CreditCard,
@@ -40,20 +40,20 @@ export default function BookingDetailsPage() {
     try {
       setLoading(true);
       setError('');
-      
+
       console.log('=== BOOKING DETAILS PAGE ===');
       console.log('Booking ID from params:', bookingId);
-      
+
       if (!bookingId) {
         setError('Booking ID is missing');
         return;
       }
-      
+
       const response = await BookingApiService.getBookingDetails(bookingId);
-      
+
       console.log('=== BOOKING DETAILS RESPONSE ===');
       console.log('Response:', response);
-      
+
       if (response.status && response.data) {
         setBookingData(response.data);
         console.log('Booking details loaded successfully');
@@ -74,7 +74,7 @@ export default function BookingDetailsPage() {
     } catch (error) {
       console.error('=== BOOKING DETAILS ERROR ===');
       console.error('Error details:', error);
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -90,7 +90,7 @@ export default function BookingDetailsPage() {
   useEffect(() => {
     console.log('=== BOOKING DETAILS COMPONENT MOUNTED ===');
     console.log('Booking ID:', bookingId);
-    
+
     if (bookingId && bookingId !== 'undefined') {
       fetchBookingDetails();
     } else {
@@ -347,20 +347,24 @@ export default function BookingDetailsPage() {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Original Amount</span>
-                <span>₹{order.garment_original_amount}</span>
+                <span className="text-muted-foreground">Order Amount</span>
+                <span>₹{order.order_amount}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Handling charge</span>
+                <span>₹{order.handling_charges}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Delivery charge</span>
+                <span>₹{order.delivery_charge}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Slot Amount</span>
+                <span>₹{order.slot_charges}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Discount</span>
                 <span className="text-green-600">-₹{order.garment_discount_amount}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Service Charges</span>
-                <span>₹{order.service_charges}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Slot Charges</span>
-                <span>₹{order.slot_charges}</span>
               </div>
             </div>
 
@@ -368,19 +372,31 @@ export default function BookingDetailsPage() {
 
             <div className="flex justify-between text-lg font-semibold">
               <span>Total Amount</span>
-              <span>₹{order.order_amount}</span>
+              <span>₹{order.total_billing}</span>
             </div>
 
             <Separator />
 
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+            <div className="flex flex-1 justify-between">
+
               <div>
+                {/* <CreditCard className="h-4 w-4 text-muted-foreground" /> */}
                 <p className="text-sm text-muted-foreground">Transaction ID</p>
                 <p className="font-medium">{order.transaction_id}</p>
               </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Payment Status</p>
+                <p className="font-medium text-green-600">{order.payment_status}</p>
+
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Payment Method</p>
+                <p className="font-medium">{order.payment_mode}</p>
+              </div>
+
             </div>
           </CardContent>
+
         </Card>
 
         {/* Delivery Address */}
@@ -400,7 +416,7 @@ export default function BookingDetailsPage() {
                   <Badge variant="default" className="text-xs mt-1">Primary Address</Badge>
                 )}
               </div>
-              
+
               <div>
                 <p className="text-sm text-muted-foreground">Full Address</p>
                 <p className="font-medium">{address.format_address}</p>
@@ -433,6 +449,7 @@ export default function BookingDetailsPage() {
                   <p className="text-sm text-muted-foreground">Landmark</p>
                   <p className="font-medium">{address.landmark}</p>
                 </div>
+
               )}
             </div>
           </CardContent>
@@ -440,7 +457,7 @@ export default function BookingDetailsPage() {
       </div>
 
       {/* Debug Information (remove in production) */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* {process.env.NODE_ENV === 'development' && (
         <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs">
           <h4 className="font-semibold mb-2">Debug Info:</h4>
           <p>Booking ID: {bookingId}</p>
@@ -451,7 +468,7 @@ export default function BookingDetailsPage() {
           <p>Customer: {customer?.name || 'N/A'}</p>
           <p>Address: {address?.address_label || 'N/A'}</p>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
