@@ -187,6 +187,21 @@ export default function BookingDetailsPage() {
   }
 
   const { order, customer, address } = bookingData;
+  console.log('Parsed order_details:' + order.order_details);
+
+
+  // ✅ Parse order_details safely
+  let parsedOrderDetails: any[] = [];
+
+    // ✅ JSON Parse
+  try {
+    parsedOrderDetails = order.order_details ? JSON.parse(order.order_details) : [];
+    console.log('Parsed order_details:', parsedOrderDetails);
+  } catch (err) {
+    console.error('Invalid JSON', err);
+  }
+
+  console.log('Parsed order_details:' + parsedOrderDetails);
 
   return (
     <div className="space-y-6">
@@ -455,6 +470,95 @@ export default function BookingDetailsPage() {
           </CardContent>
         </Card>
       </div>
+      
+
+      {/* Order Details */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Package className="h-5 w-5" />
+            Order Details
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {parsedOrderDetails.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No order details available
+            </p>
+          ) : (
+            parsedOrderDetails.map((service: any, index: number) => (
+              <div key={index} className="space-y-4 border rounded-lg p-4">
+
+                {/* Service Info */}
+                <div>
+                  <p className="font-semibold text-lg">{service.service}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {service.description}
+                  </p>
+                  <p className="text-sm mt-1">
+                    <span className="font-medium">Duration:</span>{' '}
+                    {service.duration}
+                  </p>
+                </div>
+
+                <Separator />
+
+                {/* Categories */}
+                <div className="space-y-4">
+                  {service.categorys?.map((cat: any, i: number) => (
+                    <div key={i} className="border rounded-md p-3 space-y-2">
+
+                      {/* Category Header */}
+                      <div className="flex justify-between items-center">
+                        <p className="font-medium">{cat.category}</p>
+                        <Badge variant="secondary">
+                          ₹{cat.category_prices} × {cat.items}
+                        </Badge>
+                      </div>
+
+                      {/* Clothes Types */}
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Clothes Types:
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {cat.types_of_Clothes?.map(
+                            (cloth: string, idx: number) => (
+                              <Badge
+                                key={idx}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {cloth}
+                              </Badge>
+                            )
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Items */}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Items</span>
+                        <span className="font-medium">{cat.items}</span>
+                      </div>
+
+                      {/* Total per category */}
+                      <div className="flex justify-between text-sm font-medium">
+                        <span>Total</span>
+                        <span>₹{cat.category_prices * cat.items}</span>
+                      </div>
+
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
+
 
       {/* Debug Information (remove in production) */}
       {/* {process.env.NODE_ENV === 'development' && (
