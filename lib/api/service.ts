@@ -1,10 +1,14 @@
-const BASE_URL = 'https://api.spinovo.in/api/v1/admin';
+import { AuthService } from "../auth";
+import { API_URL } from "../config/constants";
+
 
 export async function getServiceCategories() {
+  const token = AuthService.getToken();
+  console.log(`SERVICE CATEGORY API 👉 ${token}`)
   try {
-    const res = await fetch(`${BASE_URL}/service/category`, {
+    const res = await fetch(`${API_URL.BASE_URL}/admin/service/category`, {
       headers: {
-        Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ4MTBhMjljODE4NTQ5NDdhZWM4NDIiLCJpYXQiOjE3NDk1NTMzMTQsImV4cCI6MTc4MTExMDkxNH0._wg9iXXPc0TzahS4vzkD7O6U_N4bepqH4aZyuvJ5VkE`,
+        Authorization: `Bearer ${token}`,
       },
     });
 

@@ -11,9 +11,8 @@ export default function ServicesPage() {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   async function load() {
-    const token = localStorage.getItem('token');
     setLoading(true);
-    const data = await getServiceCategories(token);
+    const data = await getServiceCategories();
     setServices(data);
     setLoading(false);
   }

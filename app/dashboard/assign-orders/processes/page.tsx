@@ -1,5 +1,6 @@
-'use client';
 
+
+'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,7 @@ import { logger } from '@/lib/utils/logger';
 import { errorHandler } from '@/lib/utils/error-handler';
 import { AssignBooking } from '@/lib/types/assign';
 
-export default function AssignOrdersPage() {
+export default function ProcessesAssignedPage() {
   const [assignedBookings, setAssignedBookings] = useState<AssignBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -266,7 +267,7 @@ export default function AssignOrdersPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Assigned Orders</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Processed Assigned</h1>
         </div>
         <Card>
           <CardContent className="flex items-center justify-center py-10">
@@ -281,7 +282,7 @@ export default function AssignOrdersPage() {
     <ErrorBoundary>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Assigned Orders</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Processes Assigned</h1>
           <Button onClick={handleRefresh} variant="outline" size="sm" disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -292,7 +293,7 @@ export default function AssignOrdersPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UserCheck className="h-5 w-5" />
-              Assigned Order Management
+            Processes Order Management
             </CardTitle>
             <div className="text-sm text-muted-foreground">
               Total Assigned Orders: {totalCount}

@@ -95,9 +95,9 @@ export function AssignBookingForm({ open, onOpenChange, booking, onSuccess }: As
 
     try {
       setLoading(true);
-      console.log('Assigning booking:', { booking_id: booking._id, copilot_id: data.copilot_id });
+      console.log('Pickup Assigning orders:', { booking_id: booking._id, copilot_id: data.copilot_id });
 
-      const response = await AssignApiService.assignBooking({
+      const response = await AssignApiService.asignPickupBooking({
         booking_id: booking._id,
         copilot_id: data.copilot_id,
       });

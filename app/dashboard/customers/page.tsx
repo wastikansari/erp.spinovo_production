@@ -139,6 +139,13 @@ export default function CustomersPage() {
         <span className="text-muted-foreground">{customer.city_id}</span>
       ),
     },
+    //     {
+    //   key: 'Device Type',
+    //   header: 'Device Type',
+    //   render: (customer: Customer) => (
+    //     <span className="text-muted-foreground">{customer.device_type || 'Not specified'  }</span>
+    //   ),
+    // },
     {
       key: 'createdAt',
       header: 'Created At',
