@@ -18,9 +18,13 @@ export function middleware(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
   // Content Security Policy
+  const isDev = process.env.NODE_ENV === 'development';
+  const connectSrc = isDev
+    ? "connect-src 'self' https://api.spinovo.in http://localhost:3003"
+    : "connect-src 'self' https://api.spinovo.in";
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.spinovo.in;"
+    `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; ${connectSrc};`
   );
 
   return response;

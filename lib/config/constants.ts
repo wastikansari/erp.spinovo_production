@@ -1,36 +1,49 @@
 export const APP_CONFIG = {
   name: process.env.NEXT_PUBLIC_APP_NAME || 'Spinovo Admin Panel',
   version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
-  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.spinovo.in/api/v1',
+  apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ||
+    "http://localhost:3003/api/v1",
+  // 'https://api.spinovo.in/api/v1',
   enableDebug: process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true',
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
+} as const;
+
+export const API_URL = {
+  BASE_URL:
+    // "https://api.spinovo.in/api/v1",
+    "http://localhost:3003/api/v1",
+
+  // Order related endpoints
+  PICKUP_ASSIGN: '/admin/order/pickup/assign',
+  PICKUP_LIST: '/admin/order/pickup/assigned/list',
+
 } as const;
 
 export const API_ENDPOINTS = {
   // Auth
   LOGIN: '/admin/auth/login',
   PROFILE: '/admin/profile',
-  
+
   // Dashboard
   DASHBOARD: '/admin/dashboard',
-  
+
   // Customers
   CUSTOMERS: '/admin/customer/list',
   CUSTOMER_DETAILS: '/admin/customer/details',
   CUSTOMER_TRANSACTIONS: '/admin/customer/transactions',
   CUSTOMER_OTP_REQUESTS: '/admin/customer/otpreques',
-  
+
   // Bookings
   BOOKINGS: '/admin/booking/list',
   BOOKING_DETAILS: '/admin/booking/details',
   BOOKING_ASSIGN: '/admin/booking/assign',
-  
+
   // Copilots
   COPILOTS: '/admin/copilot/list',
   COPILOT_DETAILS: '/admin/copilot/profile',
   COPILOT_CREATE: '/admin/copilot/create',
-  
+
   // Assignments
   ASSIGNMENTS: '/admin/assign/list',
 } as const;

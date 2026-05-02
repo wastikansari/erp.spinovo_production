@@ -6,7 +6,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
-  images: { 
+  images: {
     unoptimized: true,
     domains: ['api.spinovo.in'],
   },

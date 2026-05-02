@@ -1,12 +1,12 @@
 import { AuthService } from '../auth';
 import { ApiResponse } from '../types';
-import { APP_CONFIG, API_ENDPOINTS } from '../config/constants';
+import { APP_CONFIG, API_ENDPOINTS, API_URL } from '../config/constants';
 import { logger } from '../utils/logger';
 import { errorHandler, ApiError, NetworkError, AuthenticationError } from '../utils/error-handler';
 import { withRetry } from '../utils/retry';
 
 export class BaseApiService {
-  protected static readonly API_BASE_URL = APP_CONFIG.apiBaseUrl;
+  protected static readonly API_BASE_URL = API_URL.BASE_URL;
 
   protected static async makeRequest<T>(
     endpoint: string,
