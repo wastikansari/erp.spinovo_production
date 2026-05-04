@@ -281,7 +281,7 @@ export default function PickupAssignedPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Assigned Orders</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Pickup Assigned Orders</h1>
         </div>
         <Card>
           <CardContent className="flex items-center justify-center py-10">
@@ -300,7 +300,7 @@ export default function PickupAssignedPage() {
     <ErrorBoundary>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Assigned Orders</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Pickup Assigned</h1>
           <Button onClick={handleRefresh} variant="outline" size="sm" disabled={loading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -311,10 +311,10 @@ export default function PickupAssignedPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UserCheck className="h-5 w-5" />
-              Assigned Order Management
+              Pickup Order Management
             </CardTitle>
             <div className="text-sm text-muted-foreground">
-              Total Assigned Orders: {totalCount}
+              Total Pickup Orders: {totalCount}
             </div>
           </CardHeader>
           <CardContent>

@@ -3,6 +3,7 @@ import { ProcessAssignListData, ProcessAssignRequest, ProcessAssignResponse } fr
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
 import { API_URL } from '../config/constants';
+import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse } from '../types/delivery-assign';
 
 export class AssignApiService extends BaseApiService {
   static async getPickupAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<PickupAssignBookingListData>> {
@@ -36,6 +37,24 @@ export class AssignApiService extends BaseApiService {
     console.log('Data:', data);
 
     return this.makeRequest<ProcessAssignResponse>(API_URL.PROCESS_ASSIGN, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async getDeliveryAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<DeliveryAssignBookingListData>> {
+    console.log(`=== FETCHING DELIVERY ASSIGNED LIST ===`);
+    console.log(`Page: ${page}, Limit: ${limit}`);
+    return this.makeRequest<DeliveryAssignBookingListData>(`${API_URL.DELIVERY_LIST}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
+  static async deliveryAssign(data: DeliveryAssignBookingRequest): Promise<ApiResponse<DeliveryAssignBookingResponse>> {
+    console.log(`=== FETCHING DELIVERY ASSIGN ===`);
+    console.log('Data:', data);
+
+    return this.makeRequest<DeliveryAssignBookingResponse>(API_URL.DELIVERY_ASSIGN, {
       method: 'POST',
       body: JSON.stringify(data),
     });

@@ -296,7 +296,7 @@ export default function ProcessesAssignedPage() {
               Processes Order Management
             </CardTitle>
             <div className="text-sm text-muted-foreground">
-              Total Assigned Orders: {totalCount}
+              Total Processes Orders: {totalCount}
             </div>
           </CardHeader>
           <CardContent>
