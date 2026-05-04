@@ -3,7 +3,7 @@ import { Booking } from './booking';
 import { Copilot } from './copilot';
 import { Address } from './customer';
 
-export interface AssignBooking extends BaseEntity {
+export interface PickupAssignBooking extends BaseEntity {
   booking_id: string;
   copilot_id: string;
   status: number;
@@ -15,18 +15,18 @@ export interface AssignBooking extends BaseEntity {
   copilot_details: Copilot;
 }
 
-export interface AssignBookingListData {
+export interface PickupAssignBookingListData {
   totalCount: number;
   currentPage: number;
   totalPages: number;
-  assignList: AssignBooking[];
+  assignList: PickupAssignBooking[];
 }
 
-export interface AssignBookingRequest {
+export interface PickupAssignBookingRequest {
   booking_id: string;
   copilot_id: string;
 }
 
-export interface AssignBookingResponse {
+export interface PickupAssignBookingResponse {
   assign_id: string;
 }

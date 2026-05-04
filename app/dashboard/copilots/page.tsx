@@ -10,8 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   AlertCircle,
   Users,
   Plus,
@@ -47,21 +47,21 @@ export default function CopilotsPage() {
       setError('');
       console.log('=== FETCHING COPILOTS ===');
       console.log('Page:', page);
-      
+
       const response = await CopilotApiService.getCopilots(page, 20);
       console.log('=== API RESPONSE ===');
       console.log('Full response:', response);
-      
+
       if (response.status && response.data) {
         console.log('=== PROCESSING DATA ===');
         console.log('Copilot list:', response.data.copilotList);
         console.log('Total copilots:', response.data.copilotTotal);
-        
+
         setCopilots(response.data.copilotList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalCopilots(response.data.copilotTotal || 0);
-        
+
         if (response.data.copilotList && response.data.copilotList.length > 0) {
           toast({
             title: 'Success',
@@ -81,7 +81,7 @@ export default function CopilotsPage() {
     } catch (error) {
       console.error('=== FETCH ERROR ===');
       console.error('Error details:', error);
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -278,18 +278,7 @@ export default function CopilotsPage() {
             />
           </div>
 
-          {/* Debug Information (remove in production) */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs">
-              <h4 className="font-semibold mb-2">Debug Info:</h4>
-              <p>Loading: {loading.toString()}</p>
-              <p>Error: {error || 'None'}</p>
-              <p>Copilots Count: {copilots.length}</p>
-              <p>Total Copilots: {totalCopilots}</p>
-              <p>Current Page: {currentPage}</p>
-              <p>Total Pages: {totalPages}</p>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 

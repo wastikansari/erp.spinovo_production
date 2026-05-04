@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { VendorApiService } from '@/lib/api/vender';
+import { VendorApiService } from '@/lib/api/vendor';
 import { useToast } from '@/hooks/use-toast';
 
 /* ----- DUMMY STATE & CITY DATA ----- */

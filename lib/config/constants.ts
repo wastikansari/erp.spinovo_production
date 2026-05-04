@@ -17,6 +17,8 @@ export const API_URL = {
   // Order related endpoints
   PICKUP_ASSIGN: '/admin/order/pickup/assign',
   PICKUP_LIST: '/admin/order/pickup/assigned/list',
+  PROCESS_ASSIGN: '/admin/order/process/assign',
+  PROCESS_LIST: '/admin/order/process/assigned/list',
 
 } as const;
 

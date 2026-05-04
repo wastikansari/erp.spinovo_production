@@ -66,7 +66,7 @@ export function AssignBookingForm({ open, onOpenChange, booking, onSuccess }: As
     try {
       setLoadingCopilots(true);
       const response = await CopilotApiService.getCopilots(1, 100); // Get all copilots
-      
+
       if (response.status && response.data) {
         // Filter only active copilots
         const activeCopilots = response.data.copilotList.filter(copilot => copilot.status === 1);
@@ -97,7 +97,7 @@ export function AssignBookingForm({ open, onOpenChange, booking, onSuccess }: As
       setLoading(true);
       console.log('Pickup Assigning orders:', { booking_id: booking._id, copilot_id: data.copilot_id });
 
-      const response = await AssignApiService.asignPickupBooking({
+      const response = await AssignApiService.pickupAssign({
         booking_id: booking._id,
         copilot_id: data.copilot_id,
       });
@@ -141,7 +141,7 @@ export function AssignBookingForm({ open, onOpenChange, booking, onSuccess }: As
             Assign booking {booking?.order_display_no} to a copilot.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="copilot_id">Select Copilot</Label>

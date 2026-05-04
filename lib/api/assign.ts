@@ -1,24 +1,45 @@
-import { AssignBookingListData, AssignBookingRequest, AssignBookingResponse } from '../types/assign';
+import { PickupAssignBookingListData, PickupAssignBookingRequest, PickupAssignBookingResponse } from '../types/pickup-assign';
+import { ProcessAssignListData, ProcessAssignRequest, ProcessAssignResponse } from '../types/process-assign';
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
 import { API_URL } from '../config/constants';
 
 export class AssignApiService extends BaseApiService {
-  static async getAssignedBookings(page: number = 1, limit: number = 20): Promise<ApiResponse<AssignBookingListData>> {
-    console.log(`=== FETCHING ASSIGNED BOOKINGS ===`);
+  static async getPickupAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<PickupAssignBookingListData>> {
+    console.log(`=== FETCHING PICKUP ASSIGNED LIST ===`);
     console.log(`Page: ${page}, Limit: ${limit}`);
-    return this.makeRequest<AssignBookingListData>(`${API_URL.PICKUP_LIST}?page=${page}&limit=${limit}`, {
+    return this.makeRequest<PickupAssignBookingListData>(`${API_URL.PICKUP_LIST}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
 
-  static async asignPickupBooking(data: AssignBookingRequest): Promise<ApiResponse<AssignBookingResponse>> {
-    console.log(`=== PICKUPASSIGNING BOOKING ===`);
+  static async pickupAssign(data: PickupAssignBookingRequest): Promise<ApiResponse<PickupAssignBookingResponse>> {
+    console.log(`=== PICKUP ASSIGN ===`);
     console.log('Data:', data);
-    
-    return this.makeRequest<AssignBookingResponse>(API_URL.PICKUP_ASSIGN, {
+
+    return this.makeRequest<PickupAssignBookingResponse>(API_URL.PICKUP_ASSIGN, {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
+
+  static async getProcessAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<ProcessAssignListData>> {
+    console.log(`=== FETCHING PROCESS ASSIGNED LIST ===`);
+    console.log(`Page: ${page}, Limit: ${limit}`);
+    return this.makeRequest<ProcessAssignListData>(`${API_URL.PROCESS_LIST}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
+  static async processAssign(data: ProcessAssignRequest): Promise<ApiResponse<ProcessAssignResponse>> {
+    console.log(`=== FETCHING PROCESS ASSIGN ===`);
+    console.log('Data:', data);
+
+    return this.makeRequest<ProcessAssignResponse>(API_URL.PROCESS_ASSIGN, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
 }
+

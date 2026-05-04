@@ -11,8 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   AlertCircle,
   UserCheck,
   MoreHorizontal,
@@ -34,10 +34,10 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { logger } from '@/lib/utils/logger';
 import { errorHandler } from '@/lib/utils/error-handler';
-import { AssignBooking } from '@/lib/types/assign';
+import { ProcessAssignBooking } from '@/lib/types/process-assign';
 
 export default function ProcessesAssignedPage() {
-  const [assignedBookings, setAssignedBookings] = useState<AssignBooking[]>([]);
+  const [assignedBookings, setAssignedBookings] = useState<ProcessAssignBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -50,21 +50,21 @@ export default function ProcessesAssignedPage() {
     try {
       setLoading(true);
       setError('');
-      
-      logger.info('Fetching assigned bookings', { page }, 'AssignOrdersPage');
-      
-      const response = await AssignApiService.getAssignedBookings(page, 20);
-      
+
+      logger.info('Fetching process assigned orders', { page }, 'ProcessAssignOrdersPage');
+
+      const response = await AssignApiService.getProcessAssignedList(page, 20);
+
       if (response.status && response.data) {
         setAssignedBookings(response.data.assignList || []);
         setTotalPages(response.data.totalPages || 1);
         setCurrentPage(response.data.currentPage || 1);
         setTotalCount(response.data.totalCount || 0);
-        
-        logger.info('Assigned bookings loaded successfully', { 
-          count: response.data.assignList?.length || 0 
+
+        logger.info('Assigned bookings loaded successfully', {
+          count: response.data.assignList?.length || 0
         }, 'AssignOrdersPage');
-        
+
         if (response.data.assignList && response.data.assignList.length > 0) {
           toast({
             title: 'Success',
@@ -136,8 +136,8 @@ export default function ProcessesAssignedPage() {
     router.push(`/dashboard/bookings/${bookingId}`);
   };
 
-  const handleViewCopilotDetails = (copilotId: string) => {
-    router.push(`/dashboard/copilots/${copilotId}`);
+  const handleViewVendorDetails = (vendorId: string) => {
+    router.push(`/dashboard/vendors/${vendorId}`);
   };
 
   const handleRefresh = () => {
@@ -149,28 +149,28 @@ export default function ProcessesAssignedPage() {
     {
       key: 'order_display_no',
       header: 'Order ID',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <span className="font-medium">{assignBooking.order_details.order_display_no}</span>
       ),
     },
     {
       key: 'service_name',
       header: 'Service',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <span>{assignBooking.order_details.service_name}</span>
       ),
     },
     {
-      key: 'copilot_name',
-      header: 'Assigned Copilot',
-      render: (assignBooking: AssignBooking) => (
+      key: 'vendor_name',
+      header: 'Assigned Vendor',
+      render: (assignBooking: ProcessAssignBooking) => (
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <div>
-            <p className="font-medium">{assignBooking.copilot_details.name}</p>
+            <p className="font-medium">{assignBooking.vendor_details.name}</p>
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Phone className="h-3 w-3" />
-              {assignBooking.copilot_details.mobile}
+              {assignBooking.vendor_details.mobile}
             </p>
           </div>
         </div>
@@ -180,7 +180,7 @@ export default function ProcessesAssignedPage() {
     {
       key: 'order_amount',
       header: 'Amount',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <span className="font-medium">₹{assignBooking.order_details.order_amount}</span>
       ),
       searchable: false,
@@ -188,7 +188,7 @@ export default function ProcessesAssignedPage() {
     {
       key: 'booking_date',
       header: 'Booking Date & Time',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <div className="text-sm">
           <p>{assignBooking.order_details.booking_date}</p>
           <p className="text-muted-foreground">{assignBooking.order_details.booking_time}</p>
@@ -199,7 +199,7 @@ export default function ProcessesAssignedPage() {
     {
       key: 'address',
       header: 'Address',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <div className="flex items-start gap-2 max-w-[200px]">
           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div className="text-sm">
@@ -213,7 +213,7 @@ export default function ProcessesAssignedPage() {
     {
       key: 'ord_status',
       header: 'Order Status',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <Badge className={getStatusColor(assignBooking.order_details.ord_status)}>
           {assignBooking.order_details.ord_status}
         </Badge>
@@ -223,9 +223,9 @@ export default function ProcessesAssignedPage() {
     {
       key: 'assign_status',
       header: 'Assign Status',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <Badge className={getAssignStatusColor(assignBooking.status)}>
-          {assignBooking.status === 1 ? 'Active' : 'Inactive'}
+          {assignBooking.status === 0 ? "cancelled" : assignBooking.status === 1 ? "Assigned" : assignBooking.status === 2 ? "Started" : assignBooking.status === 3 ? "Completed" : "Pending"}
         </Badge>
       ),
       searchable: false,
@@ -233,7 +233,7 @@ export default function ProcessesAssignedPage() {
     {
       key: 'createdAt',
       header: 'Assigned At',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: ProcessAssignBooking) => (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">{formatDateTime(assignBooking.createdAt)}</span>
@@ -243,7 +243,7 @@ export default function ProcessesAssignedPage() {
     },
   ];
 
-  const renderActions = (assignBooking: AssignBooking) => (
+  const renderActions = (assignBooking: ProcessAssignBooking) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -255,10 +255,10 @@ export default function ProcessesAssignedPage() {
           <Package className="mr-2 h-4 w-4" />
           View Booking
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleViewCopilotDetails(assignBooking.copilot_id)}>
+        {/* <DropdownMenuItem onClick={() => handleViewCopilotDetails(assignBooking.vendor_id)}>
           <User className="mr-2 h-4 w-4" />
-          View Copilot
-        </DropdownMenuItem>
+          View Vendor
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -293,7 +293,7 @@ export default function ProcessesAssignedPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <UserCheck className="h-5 w-5" />
-            Processes Order Management
+              Processes Order Management
             </CardTitle>
             <div className="text-sm text-muted-foreground">
               Total Assigned Orders: {totalCount}

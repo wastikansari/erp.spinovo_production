@@ -26,8 +26,8 @@ export interface Booking extends BaseEntity {
   payment_status: string;
   handling_charges: number;
   order_details: string;
-  
-  
+
+
 }
 
 export interface BookingListData {

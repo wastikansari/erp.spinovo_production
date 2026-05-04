@@ -7,10 +7,12 @@ export { CopilotApiService } from './copilot';
 export { DashboardApiService } from './dashboard';
 export { AssignApiService } from './assign';
 export { LocationApiService } from './location';
+export { VendorApiService } from './vendor';
+
 
 // Export types
 
-export * from '../types/assign';
+export * from '../types/pickup-assign';
 export * from '../types/booking';
 export * from '../types/copilot';
 export * from '../types/customer';
@@ -19,3 +21,4 @@ export * from '../types/index';
 export * from '../types/location';
 export * from '../types/otp';
 export * from '../types/transaction';
+export * from '../types/vendor';

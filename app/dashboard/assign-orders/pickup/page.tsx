@@ -9,8 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   AlertCircle,
   UserCheck,
   MoreHorizontal,
@@ -32,10 +32,13 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { logger } from '@/lib/utils/logger';
 import { errorHandler } from '@/lib/utils/error-handler';
-import { AssignBooking } from '@/lib/types/assign';
+import { PickupAssignBooking } from '@/lib/types/pickup-assign';
+import { BookingApiService, Booking } from '@/lib/api'
+import { AssignBookingForm } from '@/components/forms/assign-booking-form';
+import { ProcessAssignForm } from '@/components/forms/process-assign-form';
 
 export default function PickupAssignedPage() {
-  const [assignedBookings, setAssignedBookings] = useState<AssignBooking[]>([]);
+  const [assignedBookings, setAssignedBookings] = useState<PickupAssignBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -43,26 +46,28 @@ export default function PickupAssignedPage() {
   const [error, setError] = useState<string>('');
   const router = useRouter();
   const { toast } = useToast();
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [showAssignForm, setShowAssignForm] = useState(false);
 
   const fetchAssignedBookings = async (page: number) => {
     try {
       setLoading(true);
       setError('');
-      
+
       logger.info('Fetching assigned bookings', { page }, 'AssignOrdersPage');
-      
-      const response = await AssignApiService.getAssignedBookings(page, 20);
-      
+
+      const response = await AssignApiService.getPickupAssignedList(page, 20);
+
       if (response.status && response.data) {
         setAssignedBookings(response.data.assignList || []);
         setTotalPages(response.data.totalPages || 1);
         setCurrentPage(response.data.currentPage || 1);
         setTotalCount(response.data.totalCount || 0);
-        
-        logger.info('Assigned bookings loaded successfully', { 
-          count: response.data.assignList?.length || 0 
+
+        logger.info('Assigned bookings loaded successfully', {
+          count: response.data.assignList?.length || 0
         }, 'AssignOrdersPage');
-        
+
         if (response.data.assignList && response.data.assignList.length > 0) {
           toast({
             title: 'Success',
@@ -138,6 +143,11 @@ export default function PickupAssignedPage() {
     router.push(`/dashboard/copilots/${copilotId}`);
   };
 
+  const handleAssignBooking = (booking: Booking) => {
+    setSelectedBooking(booking);
+    setShowAssignForm(true);
+  };
+
   const handleRefresh = () => {
     logger.info('Manual refresh triggered', undefined, 'AssignOrdersPage');
     fetchAssignedBookings(currentPage);
@@ -147,21 +157,21 @@ export default function PickupAssignedPage() {
     {
       key: 'order_display_no',
       header: 'Order ID',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <span className="font-medium">{assignBooking.order_details.order_display_no}</span>
       ),
     },
     {
       key: 'service_name',
       header: 'Service',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <span>{assignBooking.order_details.service_name}</span>
       ),
     },
     {
       key: 'copilot_name',
       header: 'Assigned Copilot',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <div>
@@ -178,7 +188,7 @@ export default function PickupAssignedPage() {
     {
       key: 'order_amount',
       header: 'Amount',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <span className="font-medium">₹{assignBooking.order_details.order_amount}</span>
       ),
       searchable: false,
@@ -186,7 +196,7 @@ export default function PickupAssignedPage() {
     {
       key: 'booking_date',
       header: 'Booking Date & Time',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <div className="text-sm">
           <p>{assignBooking.order_details.booking_date}</p>
           <p className="text-muted-foreground">{assignBooking.order_details.booking_time}</p>
@@ -197,7 +207,7 @@ export default function PickupAssignedPage() {
     {
       key: 'address',
       header: 'Address',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <div className="flex items-start gap-2 max-w-[200px]">
           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div className="text-sm">
@@ -211,7 +221,7 @@ export default function PickupAssignedPage() {
     {
       key: 'ord_status',
       header: 'Order Status',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <Badge className={getStatusColor(assignBooking.order_details.ord_status)}>
           {assignBooking.order_details.ord_status}
         </Badge>
@@ -221,9 +231,9 @@ export default function PickupAssignedPage() {
     {
       key: 'assign_status',
       header: 'Assign Status',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <Badge className={getAssignStatusColor(assignBooking.status)}>
-          {assignBooking.status === 1 ? 'Active' : 'Inactive'}
+          {assignBooking.status === 0 ? "cancelled" : assignBooking.status === 1 ? "Assigned" : assignBooking.status === 2 ? "Started" : assignBooking.status === 3 ? "Completed" : "Pending"}
         </Badge>
       ),
       searchable: false,
@@ -231,7 +241,7 @@ export default function PickupAssignedPage() {
     {
       key: 'createdAt',
       header: 'Assigned At',
-      render: (assignBooking: AssignBooking) => (
+      render: (assignBooking: PickupAssignBooking) => (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">{formatDateTime(assignBooking.createdAt)}</span>
@@ -241,7 +251,7 @@ export default function PickupAssignedPage() {
     },
   ];
 
-  const renderActions = (assignBooking: AssignBooking) => (
+  const renderActions = (assignBooking: PickupAssignBooking) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -257,6 +267,12 @@ export default function PickupAssignedPage() {
           <User className="mr-2 h-4 w-4" />
           View Copilot
         </DropdownMenuItem>
+        {assignBooking.order_details.order_stage_id === 5 && (
+          <DropdownMenuItem onClick={() => handleAssignBooking(assignBooking.order_details)}>
+            <UserCheck className="mr-2 h-4 w-4" />
+            Assign processing
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -274,6 +290,10 @@ export default function PickupAssignedPage() {
         </Card>
       </div>
     );
+  }
+
+  function handleAssignSuccess(): void {
+    throw new Error('Function not implemented.');
   }
 
   return (
@@ -324,6 +344,12 @@ export default function PickupAssignedPage() {
             </div>
           </CardContent>
         </Card>
+        <ProcessAssignForm
+          open={showAssignForm}
+          onOpenChange={setShowAssignForm}
+          booking={selectedBooking}
+          onSuccess={handleAssignSuccess}
+        />
       </div>
     </ErrorBoundary>
   );
