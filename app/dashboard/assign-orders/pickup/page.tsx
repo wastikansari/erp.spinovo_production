@@ -350,6 +350,7 @@ export default function PickupAssignedPage() {
           booking={selectedBooking}
           onSuccess={handleAssignSuccess}
         />
+
       </div>
     </ErrorBoundary>
   );

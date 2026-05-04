@@ -36,6 +36,7 @@ import { logger } from '@/lib/utils/logger';
 import { errorHandler } from '@/lib/utils/error-handler';
 import { ProcessAssignBooking } from '@/lib/types/process-assign';
 import { ProcessCompletedForm } from '@/components/forms/process-complited-form';
+import { DeliveryAssignForm } from '@/components/forms/delivery-assign-form';
 
 
 export default function ProcessesAssignedPage() {
@@ -49,6 +50,8 @@ export default function ProcessesAssignedPage() {
   const { toast } = useToast();
   const [showComplitedForm, setShowComplitedForm] = useState(false);
   const [processId, setProcessId] = useState<string | null>(null);
+  const [showDeliveryAssignForm, setShowDeliveryAssignForm] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   const fetchAssignedBookings = async (page: number) => {
     try {
@@ -150,8 +153,8 @@ export default function ProcessesAssignedPage() {
   };
 
   const handleAssignDeliveryBooking = (booking: Booking) => {
-    // setSelectedBooking(booking);
-    // setShowAssignForm(true);
+    setSelectedBooking(booking);
+    setShowDeliveryAssignForm(true);
   };
 
   const handleRefresh = () => {
@@ -363,6 +366,15 @@ export default function ProcessesAssignedPage() {
           processId={processId}
           onSuccess={handleAssignSuccess}
         />
+
+        <DeliveryAssignForm
+          open={showDeliveryAssignForm}
+          onOpenChange={setShowDeliveryAssignForm}
+          booking={selectedBooking}
+          onSuccess={handleAssignSuccess}
+        />
+
+
       </div>
     </ErrorBoundary>
   );

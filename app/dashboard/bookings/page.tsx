@@ -35,15 +35,15 @@ export default function BookingsPage() {
     try {
       setLoading(true);
       setError('');
-      
+
       const response = await BookingApiService.getBookings(page, 20);
-      
+
       if (response.status && response.data) {
         setBookings(response.data.bookingList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalOrders(response.data.totalOrders || 0);
-        
+
         if (response.data.bookingList && response.data.bookingList.length > 0) {
           toast({
             title: 'Success',
