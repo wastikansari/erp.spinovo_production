@@ -222,19 +222,6 @@ export default function CustomersPage() {
               loading={loading}
             />
           </div>
-
-          {/* Debug Information (remove in production) */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs">
-              <h4 className="font-semibold mb-2">Debug Info:</h4>
-              <p>Loading: {loading.toString()}</p>
-              <p>Error: {error || 'None'}</p>
-              <p>Customers Count: {customers.length}</p>
-              <p>Total Customers: {totalCustomers}</p>
-              <p>Current Page: {currentPage}</p>
-              <p>Total Pages: {totalPages}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

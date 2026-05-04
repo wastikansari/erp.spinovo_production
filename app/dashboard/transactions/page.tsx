@@ -10,8 +10,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   AlertCircle,
   CreditCard,
   ArrowUpRight,
@@ -44,20 +44,20 @@ export default function TransactionsPage() {
       setError('');
       console.log('=== FETCHING TRANSACTIONS ===');
       console.log('Page:', page);
-      
+
       const response = await TransactionApiService.getTransactions(page, 20);
       console.log('=== API RESPONSE ===');
       console.log('Full response:', response);
-      
+
       if (response.status && response.data) {
         console.log('=== PROCESSING DATA ===');
         console.log('Transaction list:', response.data.transactionList);
-        
+
         setTransactions(response.data.transactionList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalTransactions(response.data.totalTransaction || 0);
-        
+
         if (response.data.transactionList && response.data.transactionList.length > 0) {
           toast({
             title: 'Success',
@@ -77,7 +77,7 @@ export default function TransactionsPage() {
     } catch (error) {
       console.error('=== FETCH ERROR ===');
       console.error('Error details:', error);
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -105,7 +105,7 @@ export default function TransactionsPage() {
   };
 
   const getTransactionTypeColor = (type: string) => {
-    return type === 'credit' 
+    return type === 'credit'
       ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
       : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
   };
@@ -272,19 +272,6 @@ export default function TransactionsPage() {
               loading={loading}
             />
           </div>
-
-          {/* Debug Information (remove in production) */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs">
-              <h4 className="font-semibold mb-2">Debug Info:</h4>
-              <p>Loading: {loading.toString()}</p>
-              <p>Error: {error || 'None'}</p>
-              <p>Transactions Count: {transactions.length}</p>
-              <p>Total Transactions: {totalTransactions}</p>
-              <p>Current Page: {currentPage}</p>
-              <p>Total Pages: {totalPages}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  RefreshCw, 
+import {
+  RefreshCw,
   AlertCircle,
   MessageSquare,
   Phone,
@@ -35,20 +35,20 @@ export default function OTPRequestsPage() {
       setError('');
       console.log('=== FETCHING OTP REQUESTS ===');
       console.log('Page:', page);
-      
+
       const response = await OTPApiService.getOTPRequests(page, 20);
       console.log('=== API RESPONSE ===');
       console.log('Full response:', response);
-      
+
       if (response.status && response.data) {
         console.log('=== PROCESSING DATA ===');
         console.log('OTP list:', response.data.otpList);
-        
+
         setOtpRequests(response.data.otpList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalOtpRequests(response.data.totalOtpRequest || 0);
-        
+
         if (response.data.otpList && response.data.otpList.length > 0) {
           toast({
             title: 'Success',
@@ -68,7 +68,7 @@ export default function OTPRequestsPage() {
     } catch (error) {
       console.error('=== FETCH ERROR ===');
       console.error('Error details:', error);
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -222,18 +222,6 @@ export default function OTPRequestsPage() {
             />
           </div>
 
-          {/* Debug Information (remove in production) */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs">
-              <h4 className="font-semibold mb-2">Debug Info:</h4>
-              <p>Loading: {loading.toString()}</p>
-              <p>Error: {error || 'None'}</p>
-              <p>OTP Requests Count: {otpRequests.length}</p>
-              <p>Total OTP Requests: {totalOtpRequests}</p>
-              <p>Current Page: {currentPage}</p>
-              <p>Total Pages: {totalPages}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
