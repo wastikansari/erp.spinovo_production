@@ -267,7 +267,7 @@ export default function PickupAssignedPage() {
           <User className="mr-2 h-4 w-4" />
           View Copilot
         </DropdownMenuItem>
-        {assignBooking.order_details.order_stage_id === 5 && (
+        {assignBooking.order_details.order_stage_id === 4 && (
           <DropdownMenuItem onClick={() => handleAssignBooking(assignBooking.order_details)}>
             <UserCheck className="mr-2 h-4 w-4" />
             Assign processing

@@ -6,33 +6,24 @@ export interface Vendor extends BaseEntity {
     mobile: number;
     alternativeMobile: number;
     email: string;
-
     accountIsActive: boolean;
     walletBalance: number;
-
     gender: string;
     dob: string;
-
     profilePic: string;
     idProofPic: string;
     idProofName: string;
-
     cityName: string;
     cityId: number;
     stateName: string;
     stateId: number;
-
     accessToken: string;
-
     address: string;
-
     orderCapacity: number;
     garmentCapacity: number;
     currentGarmentLoad: number;
     currentLoad: number;
-
     areaCover: any[];
-
     can_pickup: number;
     can_process: number;
     can_deliver: number;
@@ -42,9 +33,7 @@ export interface Vendor extends BaseEntity {
     can_wash_and_ironing: number;
     can_tailoring: number;
     can_stream_ironing: number;
-
     bankDetails: any[];
-
     createdAt: string;
     updatedAt: string;
 }

@@ -42,6 +42,15 @@ export class AssignApiService extends BaseApiService {
     });
   }
 
+  static async processAssignCompleted(booking_id: string,): Promise<ApiResponse<ProcessAssignResponse>> {
+    console.log(`=== FETCHING PROCESS ASSIGN COMPLETED ===`);
+    console.log('Data:', booking_id);
+
+    return this.makeRequest<ProcessAssignResponse>(`${API_URL.PROCESS_COMPLETED}/${booking_id}`, {
+      method: 'GET',
+    });
+  }
+
   static async getDeliveryAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<DeliveryAssignBookingListData>> {
     console.log(`=== FETCHING DELIVERY ASSIGNED LIST ===`);
     console.log(`Page: ${page}, Limit: ${limit}`);

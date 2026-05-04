@@ -24,7 +24,7 @@ import {
   Phone
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { AssignApiService } from '@/lib/api';
+import { AssignApiService, Booking } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, } from '@/components/ui/alert';
@@ -35,6 +35,8 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { logger } from '@/lib/utils/logger';
 import { errorHandler } from '@/lib/utils/error-handler';
 import { ProcessAssignBooking } from '@/lib/types/process-assign';
+import { ProcessCompletedForm } from '@/components/forms/process-complited-form';
+
 
 export default function ProcessesAssignedPage() {
   const [assignedBookings, setAssignedBookings] = useState<ProcessAssignBooking[]>([]);
@@ -45,6 +47,8 @@ export default function ProcessesAssignedPage() {
   const [error, setError] = useState<string>('');
   const router = useRouter();
   const { toast } = useToast();
+  const [showComplitedForm, setShowComplitedForm] = useState(false);
+  const [processId, setProcessId] = useState<string | null>(null);
 
   const fetchAssignedBookings = async (page: number) => {
     try {
@@ -137,7 +141,17 @@ export default function ProcessesAssignedPage() {
   };
 
   const handleViewVendorDetails = (vendorId: string) => {
-    router.push(`/dashboard/vendors/${vendorId}`);
+    router.push(`/dashboard/vendor/${vendorId}`);
+  };
+
+  const handleProcessOrder = (process_id: string) => {
+    setProcessId(process_id);
+    setShowComplitedForm(true);
+  };
+
+  const handleAssignDeliveryBooking = (booking: Booking) => {
+    // setSelectedBooking(booking);
+    // setShowAssignForm(true);
   };
 
   const handleRefresh = () => {
@@ -255,10 +269,23 @@ export default function ProcessesAssignedPage() {
           <Package className="mr-2 h-4 w-4" />
           View Booking
         </DropdownMenuItem>
-        {/* <DropdownMenuItem onClick={() => handleViewCopilotDetails(assignBooking.vendor_id)}>
+        <DropdownMenuItem onClick={() => handleViewVendorDetails(assignBooking.vendor_id)}>
           <User className="mr-2 h-4 w-4" />
           View Vendor
-        </DropdownMenuItem> */}
+        </DropdownMenuItem>
+        {assignBooking.order_details.order_stage_id === 5 && (
+          <DropdownMenuItem onClick={() => handleProcessOrder(assignBooking._id)}>
+            <UserCheck className="mr-2 h-4 w-4" />
+            Mark as Processed
+          </DropdownMenuItem>
+        )}
+        {assignBooking.order_details.order_stage_id === 7 && (
+          <DropdownMenuItem onClick={() => handleAssignDeliveryBooking(assignBooking.order_details)}>
+            <UserCheck className="mr-2 h-4 w-4" />
+            Assign delivery
+          </DropdownMenuItem>
+        )}
+
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -276,6 +303,10 @@ export default function ProcessesAssignedPage() {
         </Card>
       </div>
     );
+  }
+
+  function handleAssignSuccess(): void {
+    throw new Error('Function not implemented.');
   }
 
   return (
@@ -326,6 +357,12 @@ export default function ProcessesAssignedPage() {
             </div>
           </CardContent>
         </Card>
+        <ProcessCompletedForm
+          open={showComplitedForm}
+          onOpenChange={setShowComplitedForm}
+          processId={processId}
+          onSuccess={handleAssignSuccess}
+        />
       </div>
     </ErrorBoundary>
   );

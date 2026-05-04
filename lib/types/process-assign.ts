@@ -4,6 +4,7 @@ import { Address } from './customer';
 import { Vendor } from './vendor';
 
 export interface ProcessAssignBooking extends BaseEntity {
+  _id: string,
   booking_id: string;
   vendor_id: string;
   status: number;

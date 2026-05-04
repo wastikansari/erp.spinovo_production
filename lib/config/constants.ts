@@ -19,6 +19,7 @@ export const API_URL = {
   PICKUP_LIST: '/admin/order/pickup/assigned/list',
   PROCESS_ASSIGN: '/admin/order/process/assign',
   PROCESS_LIST: '/admin/order/process/assigned/list',
+  PROCESS_COMPLETED: '/admin/order/process/completed',
   DELIVERY_ASSIGN: '/admin/order/delivery/assign',
   DELIVERY_LIST: '/admin/order/delivery/assigned/list',
 
