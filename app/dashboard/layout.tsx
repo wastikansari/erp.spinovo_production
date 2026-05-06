@@ -60,7 +60,7 @@ const navigation = [
   { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
   { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
   { name: 'Copilots', href: '/dashboard/copilots', icon: UserCog },
-  { name: 'Venders', href: '/dashboard/venders', icon: Users },
+  { name: 'Vendors', href: '/dashboard/vendor', icon: Users },
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
   { name: 'Package', href: '/dashboard/package', icon: Store },
   { name: 'Services', href: '/dashboard/services', icon: Wallet },
