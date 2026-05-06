@@ -64,6 +64,7 @@ const navigation = [
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
   { name: 'Package', href: '/dashboard/package', icon: Store },
   { name: 'Services', href: '/dashboard/services', icon: Wallet },
+  { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
   // { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -177,15 +178,15 @@ export default function DashboardLayout({
                 key={item.name}
                 href={item.href}
                 className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === item.href
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:bg-muted'
                   }`}
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <item.icon
                   className={`mr-3 h-5 w-5 ${pathname === item.href
-                      ? 'text-primary-foreground'
-                      : 'text-muted-foreground'
+                    ? 'text-primary-foreground'
+                    : 'text-muted-foreground'
                     }`}
                 />
                 {item.name}
@@ -208,14 +209,14 @@ export default function DashboardLayout({
                   key={item.name}
                   href={item.href}
                   className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === item.href
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted'
                     }`}
                 >
                   <item.icon
                     className={`mr-3 h-5 w-5 ${pathname === item.href
-                        ? 'text-primary-foreground'
-                        : 'text-muted-foreground'
+                      ? 'text-primary-foreground'
+                      : 'text-muted-foreground'
                       }`}
                   />
                   {item.name}

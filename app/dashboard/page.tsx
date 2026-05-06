@@ -57,9 +57,9 @@ export default function DashboardPage() {
       setLoading(true);
       setError('');
       console.log('Fetching dashboard data...');
-      
+
       const response = await DashboardApiService.getDashboard();
-      
+
       if (response.status && response.data) {
         setDashboardData(response.data);
         console.log('Dashboard data loaded:', response.data);
