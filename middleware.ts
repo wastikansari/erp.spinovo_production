@@ -4,23 +4,24 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   // Security headers
   const response = NextResponse.next();
-  
+
   // Prevent clickjacking
   response.headers.set('X-Frame-Options', 'DENY');
-  
+
   // Prevent MIME type sniffing
   response.headers.set('X-Content-Type-Options', 'nosniff');
-  
+
   // XSS Protection
   response.headers.set('X-XSS-Protection', '1; mode=block');
-  
+
   // Referrer Policy
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
+
   // Content Security Policy
   const isDev = process.env.NODE_ENV === 'development';
   const connectSrc = isDev
-    ? "connect-src 'self' https://api.spinovo.in http://localhost:3003"
+    ? "connect-src 'self' https://api.spinovo.in "
+    // http://localhost:3003"
     : "connect-src 'self' https://api.spinovo.in";
   response.headers.set(
     'Content-Security-Policy',
