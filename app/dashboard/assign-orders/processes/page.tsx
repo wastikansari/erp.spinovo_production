@@ -143,6 +143,10 @@ export default function ProcessesAssignedPage() {
     router.push(`/dashboard/bookings/${bookingId}`);
   };
 
+  const handleGarmmentUpdateDetails = (bookingId: string) => {
+    router.push(`/dashboard/assign-orders/processes/garment-update/${bookingId}`);
+  };
+
   const handleViewVendorDetails = (vendorId: string) => {
     router.push(`/dashboard/vendor/${vendorId}`);
   };
@@ -271,6 +275,10 @@ export default function ProcessesAssignedPage() {
         <DropdownMenuItem onClick={() => handleViewBookingDetails(assignBooking.booking_id)}>
           <Package className="mr-2 h-4 w-4" />
           View Booking
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => handleGarmmentUpdateDetails(assignBooking.booking_id)}>
+          <Package className="mr-2 h-4 w-4" />
+          Update Garment
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => handleViewVendorDetails(assignBooking.vendor_id)}>
           <User className="mr-2 h-4 w-4" />
