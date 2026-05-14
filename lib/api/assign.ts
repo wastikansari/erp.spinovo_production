@@ -6,6 +6,7 @@ import { API_URL } from '../config/constants';
 import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse } from '../types/delivery-assign';
 
 export class AssignApiService extends BaseApiService {
+  
   static async getPickupAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<PickupAssignBookingListData>> {
     console.log(`=== FETCHING PICKUP ASSIGNED LIST ===`);
     console.log(`Page: ${page}, Limit: ${limit}`);

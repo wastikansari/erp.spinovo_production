@@ -12,9 +12,15 @@ export interface SubOrder extends BaseEntity {
   order_stage_id: number;
   booking_date: string;
   booking_time: string;
+  service_duration_hours: number;
+  expected_delivery_date: string;
+  expected_delivery_time: string;
   garment_details: string;
   garment_qty: number;
   garment_amount: number;
+  no_of_bag: number;
+  no_of_bag_outward: number;
+  no_of_bag_return: number;
   ord_status: string;
 }
 
@@ -43,6 +49,9 @@ export interface Booking extends BaseEntity {
   payment_mode: string;
   payment_status: string;
   handling_charges: number;
+  offer_code: string;
+  offer_id: string;
+  offer_amount: number;
   order_details: any;
 
   sub_orders?: SubOrder[];
