@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Loader2, UserCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { AssignApiService, VendorApiService, Vendor, Booking } from '@/lib/api';
+import { AssignApiService, VendorApiService, Vendor } from '@/lib/api';
 
 const assignSchema = z.object({
     vendor_id: z.string().min(1, 'Please select a vendor'),
@@ -34,11 +34,12 @@ type AssignFormData = z.infer<typeof assignSchema>;
 interface ProcessAssignFormProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    booking: Booking | null;
+    orderId: string | null;
+    subOrderId: string | null;
     onSuccess: () => void;
 }
 
-export function ProcessAssignForm({ open, onOpenChange, booking, onSuccess }: ProcessAssignFormProps) {
+export function ProcessAssignForm({ open, onOpenChange, orderId, subOrderId, onSuccess }: ProcessAssignFormProps) {
     const [loading, setLoading] = useState(false);
     const [vendors, setVendors] = useState<Vendor[]>([]);
     const [loadingVendors, setLoadingVendors] = useState(false);
@@ -91,14 +92,14 @@ export function ProcessAssignForm({ open, onOpenChange, booking, onSuccess }: Pr
     };
 
     const onSubmit = async (data: AssignFormData) => {
-        if (!booking) return;
+        if (!orderId || !subOrderId) return;
 
         try {
             setLoading(true);
-            console.log('Process Assigning orders:', { booking_id: booking._id, vendor_id: data.vendor_id });
 
             const response = await AssignApiService.processAssign({
-                booking_id: booking._id,
+                order_id: orderId,
+                sub_order_id: subOrderId,
                 vendor_id: data.vendor_id,
             });
 
@@ -135,10 +136,10 @@ export function ProcessAssignForm({ open, onOpenChange, booking, onSuccess }: Pr
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <UserCheck className="h-5 w-5" />
-                        Assign Booking
+                        Assign Process
                     </DialogTitle>
                     <DialogDescription>
-                        Assign booking {booking?.order_display_no} to a vendor.
+                        Assign this sub-order to a vendor for processing.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -176,16 +177,9 @@ export function ProcessAssignForm({ open, onOpenChange, booking, onSuccess }: Pr
                         )}
                     </div>
 
-                    {booking && (
-                        <div className="bg-muted p-3 rounded-lg space-y-2">
-                            <h4 className="font-medium">Booking Details</h4>
-                            <div className="text-sm space-y-1">
-                                <p><span className="font-medium">Order ID:</span> {booking.order_display_no}</p>
-                                <p><span className="font-medium">Service:</span> {booking.service_name}</p>
-                                <p><span className="font-medium">Amount:</span> ₹{booking.order_amount}</p>
-                                <p><span className="font-medium">Date:</span> {booking.booking_date}</p>
-                                <p><span className="font-medium">Time:</span> {booking.booking_time}</p>
-                            </div>
+                    {subOrderId && (
+                        <div className="bg-muted p-3 rounded-lg space-y-1 text-sm">
+                            <p><span className="font-medium">Sub-Order ID:</span> <span className="font-mono text-xs">{subOrderId}</span></p>
                         </div>
                     )}
 

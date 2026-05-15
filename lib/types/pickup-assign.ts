@@ -1,18 +1,30 @@
 import { BaseEntity } from './index';
-import { Booking } from './booking';
-import { Copilot } from './copilot';
-import { Address } from './customer';
+import { Booking, SubOrder } from './booking';
+
+export interface PickupCopilotDetails {
+  _id: string;
+  name: string;
+  mobile: string;
+  email: string;
+  profile_pic: string;
+  city_id: number;
+  role: number;
+  status: number;
+  is_deleted: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface PickupAssignBooking extends BaseEntity {
-  booking_id: string;
+  order_id: string;
   copilot_id: string;
   status: number;
-  bookingObjectId: string;
+  isStarted: number;
+  orderObjectId: string;
   copilotObjectId: string;
-  customerObjectId: string;
   order_details: Booking;
-  address_details: Address;
-  copilot_details: Copilot;
+  sub_orders: SubOrder[];
+  copilot_details: PickupCopilotDetails;
 }
 
 export interface PickupAssignBookingListData {
@@ -23,7 +35,7 @@ export interface PickupAssignBookingListData {
 }
 
 export interface PickupAssignBookingRequest {
-  booking_id: string;
+  order_id: string;
   copilot_id: string;
 }
 

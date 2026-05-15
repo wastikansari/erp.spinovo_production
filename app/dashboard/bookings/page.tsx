@@ -790,6 +790,15 @@ export default function BookingsPage() {
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View Details
                                                     </DropdownMenuItem>
+                                                    <DropdownMenuItem
+
+                                                        onClick={() => toggleRow(booking._id)}
+                                                        className=" text-primary hover:underline text-sm"
+
+                                                    >
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        View Sub-Orders
+                                                    </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     {booking.order_stage_id == 1 && (
                                                         <DropdownMenuItem

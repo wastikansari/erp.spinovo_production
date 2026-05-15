@@ -24,7 +24,8 @@ export interface ProcessAssignListData {
 }
 
 export interface ProcessAssignRequest {
-  booking_id: string;
+  order_id: string;
+  sub_order_id: string;
   vendor_id: string;
 }
 
