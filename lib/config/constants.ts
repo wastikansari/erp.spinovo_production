@@ -20,8 +20,10 @@ export const API_URL = {
   PROCESS_ASSIGN: '/admin/order/process/assign',
   PROCESS_LIST: '/admin/order/process/assigned/list',
   PROCESS_COMPLETED: '/admin/order/process/completed',
+  PROCESS_SUBORDER_PENDING: '/admin/order/process/suborder/pending',
   DELIVERY_ASSIGN: '/admin/order/delivery/assign',
   DELIVERY_LIST: '/admin/order/delivery/assigned/list',
+  DELIVERY_SUBORDER_PENDING: '/admin/order/delivery/suborder/pending',
 
 } as const;
 

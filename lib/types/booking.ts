@@ -53,7 +53,9 @@ export interface Booking extends BaseEntity {
   offer_id: string;
   offer_amount: number;
   order_details: any;
-
+  no_of_garemtn_picked: number;
+  no_of_garemtn_processed: number;
+  no_of_garemtn_delivered: number;
   sub_orders?: SubOrder[];
 }
 

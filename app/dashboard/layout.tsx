@@ -53,10 +53,17 @@ import { AuthService } from '@/lib/auth';
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
-  { name: 'Bookings', href: '/dashboard/bookings', icon: Package },
-  { name: 'Pickup assigned', href: '/dashboard/assign-orders/pickup', icon: UserCheck },
-  { name: 'Processes assigned', href: '/dashboard/assign-orders/processes', icon: UserCheck },
-  { name: 'Delivery assigned', href: '/dashboard/assign-orders/delivery', icon: UserCheck },
+
+  { name: 'Orders', href: '/dashboard/orders', icon: Package },
+  { name: 'Pickup Assigned', href: '/dashboard/orders/pickup-assigned', icon: UserCheck },
+
+  { name: 'Process Pending', href: '/dashboard/orders/process-pending', icon: UserCheck },
+  { name: 'Process Assigned', href: '/dashboard/orders/process-assigned', icon: UserCheck },
+
+  { name: 'Delivery Pending', href: '/dashboard/orders/delivery-pending', icon: UserCheck },
+  { name: 'Delivery Assigned', href: '/dashboard/orders/delivery-assigned', icon: UserCheck },
+
+
   { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
   { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
   { name: 'Copilots', href: '/dashboard/copilots', icon: UserCog },

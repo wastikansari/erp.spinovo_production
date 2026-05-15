@@ -247,12 +247,12 @@ function SubOrderCard({ sub, onViewDetails, showAssignButton, onAssignProcess }:
           <Eye className="mr-1.5 h-3.5 w-3.5" />
           Details
         </Button>
-        {showAssignButton && (
+        {/* {showAssignButton && (
           <Button size="sm" variant="outline" className="rounded-lg h-8 text-xs" onClick={() => onAssignProcess?.(sub._id)}>
             <UserCheck className="mr-1.5 h-3.5 w-3.5" />
             Assign Process
           </Button>
-        )}
+        )} */}
       </div>
     </div>
   );
@@ -469,10 +469,12 @@ export default function PickupAssignedPage() {
           <div className="hidden lg:grid grid-cols-9 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             <div>Order ID</div>
             <div>Copilot</div>
-            <div>Qty</div>
+            <div>Order Qty</div>
+
             <div>Pickup Date</div>
             <div>Pickup Time</div>
-            <div>Amount</div>
+            <div>Pickup Qty</div>
+            {/* <div>Amount</div> */}
             <div>Order Status</div>
             <div>Assign Status</div>
             <div className="text-right">Actions</div>
@@ -530,6 +532,8 @@ export default function PickupAssignedPage() {
                     {/* QTY */}
                     <div className="font-medium text-sm">{item.order_details.garment_qty}</div>
 
+
+
                     {/* PICKUP DATE */}
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5 shrink-0" />
@@ -542,11 +546,14 @@ export default function PickupAssignedPage() {
                       {item.order_details.booking_time}
                     </div>
 
+                    {/* PICKUP QTY */}
+                    <div className="font-medium text-sm">{item.order_details.no_of_garemtn_picked}</div>
+
                     {/* AMOUNT */}
-                    <div className="font-semibold text-sm flex items-center gap-0.5">
+                    {/* <div className="font-semibold text-sm flex items-center gap-0.5">
                       <IndianRupee className="h-3.5 w-3.5" />
                       {item.order_details.total_billing?.toLocaleString('en-IN')}
-                    </div>
+                    </div> */}
 
                     {/* ORDER STATUS */}
                     <div>
@@ -584,66 +591,66 @@ export default function PickupAssignedPage() {
                             <Eye className="mr-2 h-4 w-4" />
                             {isExpanded ? 'Hide Sub-Orders' : 'View Sub-Orders'}
                           </DropdownMenuItem>
-                          {item.order_details.order_stage_id === 4 && item.sub_orders?.length > 0 && (
+                          {/* {item.order_details.order_stage_id === 4 && item.sub_orders?.length > 0 && (
                             <DropdownMenuItem onClick={() => toggleRow(item._id)}>
                               <UserCheck className="mr-2 h-4 w-4" />
                               Assign Processing
                             </DropdownMenuItem>
-                          )}
+                          )} */}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
                   </div>
 
                   {/* EXPANDED PANEL */}
-                  {/* {isExpanded && ( */}
-                  <div className="bg-muted/10 border-t px-5 py-5 space-y-5">
-                    {/* Copilot Detail */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="h-6 w-1 rounded-full bg-primary" />
-                        <h3 className="font-semibold text-sm">Assigned Copilot</h3>
+                  {isExpanded && (
+                    <div className="bg-muted/10 border-t px-5 py-5 space-y-5">
+                      {/* Copilot Detail */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="h-6 w-1 rounded-full bg-primary" />
+                          <h3 className="font-semibold text-sm">Assigned Copilot</h3>
+                        </div>
+                        <div className="max-w-sm">
+                          <CopilotCard copilot={item.copilot_details} />
+                        </div>
                       </div>
-                      <div className="max-w-sm">
-                        <CopilotCard copilot={item.copilot_details} />
-                      </div>
-                    </div>
 
-                    {/* Sub Orders */}
-                    <div>
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="h-6 w-1 rounded-full bg-primary" />
-                        <h3 className="font-semibold text-sm">Sub Orders</h3>
-                        {subCount > 0 && (
-                          <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">{subCount}</span>
+                      {/* Sub Orders */}
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="h-6 w-1 rounded-full bg-primary" />
+                          <h3 className="font-semibold text-sm">Sub Orders</h3>
+                          {subCount > 0 && (
+                            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">{subCount}</span>
+                          )}
+                        </div>
+                        {subCount > 0 ? (
+                          <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+                            {item.sub_orders.map((sub) => (
+                              <SubOrderCard
+                                key={sub._id}
+                                sub={sub}
+                                onViewDetails={(id) => router.push(`/dashboard/bookings/sub-order/${id}`)}
+                                showAssignButton={item.order_details.order_stage_id === 4}
+                                onAssignProcess={(subOrderId) => {
+                                  setSelectedOrderId(item.order_id);
+                                  setSelectedSubOrderId(subOrderId);
+                                  setShowAssignForm(true);
+                                }}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 border rounded-xl bg-background">
+                            <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                            <p className="text-sm font-medium">No Sub Orders</p>
+                            <p className="text-xs text-muted-foreground">Sub orders will appear here once created</p>
+                          </div>
                         )}
                       </div>
-                      {subCount > 0 ? (
-                        <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
-                          {item.sub_orders.map((sub) => (
-                            <SubOrderCard
-                              key={sub._id}
-                              sub={sub}
-                              onViewDetails={(id) => router.push(`/dashboard/bookings/sub-order/${id}`)}
-                              showAssignButton={item.order_details.order_stage_id === 4}
-                              onAssignProcess={(subOrderId) => {
-                                setSelectedOrderId(item.order_id);
-                                setSelectedSubOrderId(subOrderId);
-                                setShowAssignForm(true);
-                              }}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8 border rounded-xl bg-background">
-                          <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                          <p className="text-sm font-medium">No Sub Orders</p>
-                          <p className="text-xs text-muted-foreground">Sub orders will appear here once created</p>
-                        </div>
-                      )}
                     </div>
-                  </div>
-                  {/* )} */}
+                  )}
                 </div>
               );
             })

@@ -52,6 +52,7 @@ export default function ProcessesAssignedPage() {
   const [processId, setProcessId] = useState<string | null>(null);
   const [showDeliveryAssignForm, setShowDeliveryAssignForm] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedDeliverySubOrderId, setSelectedDeliverySubOrderId] = useState<string | null>(null);
 
   const fetchAssignedBookings = async (page: number) => {
     try {
@@ -156,8 +157,9 @@ export default function ProcessesAssignedPage() {
     setShowComplitedForm(true);
   };
 
-  const handleAssignDeliveryBooking = (booking: Booking) => {
+  const handleAssignDeliveryBooking = (booking: Booking, subOrderId: string) => {
     setSelectedBooking(booking);
+    setSelectedDeliverySubOrderId(subOrderId);
     setShowDeliveryAssignForm(true);
   };
 
@@ -272,11 +274,11 @@ export default function ProcessesAssignedPage() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleViewBookingDetails(assignBooking.booking_id)}>
+        <DropdownMenuItem onClick={() => handleViewBookingDetails(assignBooking.order_id)}>
           <Package className="mr-2 h-4 w-4" />
           View Booking
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => handleGarmmentUpdateDetails(assignBooking.booking_id)}>
+        <DropdownMenuItem onClick={() => handleGarmmentUpdateDetails(assignBooking.order_id)}>
           <Package className="mr-2 h-4 w-4" />
           Update Garment
         </DropdownMenuItem>
@@ -291,7 +293,7 @@ export default function ProcessesAssignedPage() {
           </DropdownMenuItem>
         )}
         {assignBooking.order_details.order_stage_id === 7 && (
-          <DropdownMenuItem onClick={() => handleAssignDeliveryBooking(assignBooking.order_details)}>
+          <DropdownMenuItem onClick={() => handleAssignDeliveryBooking(assignBooking.order_details, assignBooking.sub_order_id)}>
             <UserCheck className="mr-2 h-4 w-4" />
             Assign delivery
           </DropdownMenuItem>
@@ -379,6 +381,7 @@ export default function ProcessesAssignedPage() {
           open={showDeliveryAssignForm}
           onOpenChange={setShowDeliveryAssignForm}
           booking={selectedBooking}
+          subOrderId={selectedDeliverySubOrderId}
           onSuccess={handleAssignSuccess}
         />
 

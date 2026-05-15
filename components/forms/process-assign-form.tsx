@@ -106,7 +106,7 @@ export function ProcessAssignForm({ open, onOpenChange, orderId, subOrderId, onS
             if (response.status) {
                 toast({
                     title: 'Success',
-                    description: 'Booking assigned successfully',
+                    description: 'Process assigned successfully',
                 });
                 reset();
                 onOpenChange(false);
@@ -145,7 +145,7 @@ export function ProcessAssignForm({ open, onOpenChange, orderId, subOrderId, onS
 
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div className="space-y-2">
-                        <Label htmlFor="copilot_id">Select Copilot</Label>
+                        <Label htmlFor="vendor_id">Select Vendor</Label>
                         {loadingVendors ? (
                             <div className="flex items-center justify-center py-4">
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -201,7 +201,7 @@ export function ProcessAssignForm({ open, onOpenChange, orderId, subOrderId, onS
                             ) : (
                                 <>
                                     <UserCheck className="mr-2 h-4 w-4" />
-                                    Assign Booking
+                                    Assign Process
                                 </>
                             )}
                         </Button>

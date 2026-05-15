@@ -1,9 +1,9 @@
 import { PickupAssignBookingListData, PickupAssignBookingRequest, PickupAssignBookingResponse } from '../types/pickup-assign';
-import { ProcessAssignListData, ProcessAssignRequest, ProcessAssignResponse } from '../types/process-assign';
+import { ProcessAssignListData, ProcessAssignRequest, ProcessAssignResponse, PendingSubOrderListData } from '../types/process-assign';
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
 import { API_URL } from '../config/constants';
-import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse } from '../types/delivery-assign';
+import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse, DeliveryPendingSubOrderListData } from '../types/delivery-assign';
 
 export class AssignApiService extends BaseApiService {
   
@@ -43,6 +43,12 @@ export class AssignApiService extends BaseApiService {
     });
   }
 
+  static async getPendingProcessSuborders(page: number = 1, limit: number = 20): Promise<ApiResponse<PendingSubOrderListData>> {
+    return this.makeRequest<PendingSubOrderListData>(`${API_URL.PROCESS_SUBORDER_PENDING}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
   static async processAssignCompleted(booking_id: string,): Promise<ApiResponse<ProcessAssignResponse>> {
     console.log(`=== FETCHING PROCESS ASSIGN COMPLETED ===`);
     console.log('Data:', booking_id);
@@ -56,6 +62,12 @@ export class AssignApiService extends BaseApiService {
     console.log(`=== FETCHING DELIVERY ASSIGNED LIST ===`);
     console.log(`Page: ${page}, Limit: ${limit}`);
     return this.makeRequest<DeliveryAssignBookingListData>(`${API_URL.DELIVERY_LIST}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
+  static async getDeliveryPendingSuborders(page: number = 1, limit: number = 20): Promise<ApiResponse<DeliveryPendingSubOrderListData>> {
+    return this.makeRequest<DeliveryPendingSubOrderListData>(`${API_URL.DELIVERY_SUBORDER_PENDING}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }

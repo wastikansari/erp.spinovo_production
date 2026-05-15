@@ -35,10 +35,11 @@ interface AssignBookingFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   booking: Booking | null;
+  subOrderId: string | null;
   onSuccess: () => void;
 }
 
-export function DeliveryAssignForm({ open, onOpenChange, booking, onSuccess }: AssignBookingFormProps) {
+export function DeliveryAssignForm({ open, onOpenChange, booking, subOrderId, onSuccess }: AssignBookingFormProps) {
   const [loading, setLoading] = useState(false);
   const [copilots, setCopilots] = useState<Copilot[]>([]);
   const [loadingCopilots, setLoadingCopilots] = useState(false);
@@ -95,10 +96,9 @@ export function DeliveryAssignForm({ open, onOpenChange, booking, onSuccess }: A
 
     try {
       setLoading(true);
-      console.log('Delivery Assigning orders:', { booking_id: booking._id, copilot_id: data.copilot_id });
-
       const response = await AssignApiService.deliveryAssign({
-        booking_id: booking._id,
+        order_id: booking._id,
+        sub_order_id: subOrderId ?? '',
         copilot_id: data.copilot_id,
       });
 
