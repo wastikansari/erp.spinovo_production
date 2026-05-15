@@ -560,7 +560,7 @@ export default function BookingsPage() {
             {/* PAGE HEADER */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Booking Management</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Orders Management</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
                         Manage orders, sub-orders and assignments
                     </p>

@@ -248,7 +248,7 @@ export default function ProcessAssignPage() {
             {/* HEADER */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Process Assign</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Process Pending</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
                         Assign pickup-completed sub-orders to vendors for processing
                     </p>
