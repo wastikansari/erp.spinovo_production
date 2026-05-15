@@ -560,7 +560,7 @@ export default function PickupAssignedPage() {
                       <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium w-fit ${assignStatus.cls}`}>
                         {assignStatus.label}
                       </span>
-                      {item.isStarted === 1 && (
+                      {item.status === 1 && (
                         <span className="flex items-center gap-1 text-xs text-blue-600">
                           <CheckCircle2 className="h-3 w-3" /> Started
                         </span>
@@ -596,54 +596,54 @@ export default function PickupAssignedPage() {
                   </div>
 
                   {/* EXPANDED PANEL */}
-                  {isExpanded && (
-                    <div className="bg-muted/10 border-t px-5 py-5 space-y-5">
-                      {/* Copilot Detail */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="h-6 w-1 rounded-full bg-primary" />
-                          <h3 className="font-semibold text-sm">Assigned Copilot</h3>
-                        </div>
-                        <div className="max-w-sm">
-                          <CopilotCard copilot={item.copilot_details} />
-                        </div>
+                  {/* {isExpanded && ( */}
+                  <div className="bg-muted/10 border-t px-5 py-5 space-y-5">
+                    {/* Copilot Detail */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="h-6 w-1 rounded-full bg-primary" />
+                        <h3 className="font-semibold text-sm">Assigned Copilot</h3>
                       </div>
-
-                      {/* Sub Orders */}
-                      <div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="h-6 w-1 rounded-full bg-primary" />
-                          <h3 className="font-semibold text-sm">Sub Orders</h3>
-                          {subCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">{subCount}</span>
-                          )}
-                        </div>
-                        {subCount > 0 ? (
-                          <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
-                            {item.sub_orders.map((sub) => (
-                              <SubOrderCard
-                                key={sub._id}
-                                sub={sub}
-                                onViewDetails={(id) => router.push(`/dashboard/bookings/sub-order/${id}`)}
-                                showAssignButton={item.order_details.order_stage_id === 4}
-                                onAssignProcess={(subOrderId) => {
-                                  setSelectedOrderId(item.order_id);
-                                  setSelectedSubOrderId(subOrderId);
-                                  setShowAssignForm(true);
-                                }}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-center py-8 border rounded-xl bg-background">
-                            <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                            <p className="text-sm font-medium">No Sub Orders</p>
-                            <p className="text-xs text-muted-foreground">Sub orders will appear here once created</p>
-                          </div>
-                        )}
+                      <div className="max-w-sm">
+                        <CopilotCard copilot={item.copilot_details} />
                       </div>
                     </div>
-                  )}
+
+                    {/* Sub Orders */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="h-6 w-1 rounded-full bg-primary" />
+                        <h3 className="font-semibold text-sm">Sub Orders</h3>
+                        {subCount > 0 && (
+                          <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">{subCount}</span>
+                        )}
+                      </div>
+                      {subCount > 0 ? (
+                        <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+                          {item.sub_orders.map((sub) => (
+                            <SubOrderCard
+                              key={sub._id}
+                              sub={sub}
+                              onViewDetails={(id) => router.push(`/dashboard/bookings/sub-order/${id}`)}
+                              showAssignButton={item.order_details.order_stage_id === 4}
+                              onAssignProcess={(subOrderId) => {
+                                setSelectedOrderId(item.order_id);
+                                setSelectedSubOrderId(subOrderId);
+                                setShowAssignForm(true);
+                              }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 border rounded-xl bg-background">
+                          <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm font-medium">No Sub Orders</p>
+                          <p className="text-xs text-muted-foreground">Sub orders will appear here once created</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* )} */}
                 </div>
               );
             })
