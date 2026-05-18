@@ -50,6 +50,11 @@ export interface PendingSubOrder {
   ord_status: string;
   createdAt: string;
   updatedAt: string;
+  pickup_qty: number;
+  no_of_garments_picked: number;
+  no_of_garments_processed: number;
+  no_of_garments_delivered: number;
+  extra_garments_amount: number;
 }
 
 export interface PendingSubOrderListData {

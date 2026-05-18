@@ -201,7 +201,7 @@ function PaginationBar({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const COL_STYLE = 'grid gap-x-3 px-5 items-center' as const;
-const COL_TEMPLATE = { gridTemplateColumns: '1.8fr 1.4fr 72px 64px 90px 130px 110px 130px 48px' } as const;
+const COL_TEMPLATE = { gridTemplateColumns: '1.8fr 1.4fr 72px 72px 80px 64px 130px 110px 130px 120px 48px' } as const;
 
 export default function ProcessAssignPage() {
     const [subOrders, setSubOrders] = useState<PendingSubOrder[]>([]);
@@ -317,7 +317,9 @@ export default function ProcessAssignPage() {
                     >
                         <div>Sub Order Id</div>
                         <div>Order Id</div>
-                        <div>Garment QTY</div>
+                        <div>Order QTY</div>
+                        <div>Pickup QTY</div>
+                        <div>Extra Amount</div>
                         <div>Bag</div>
                         <div>Service time</div>
                         <div>Delivery Date</div>
@@ -366,6 +368,12 @@ export default function ProcessAssignPage() {
 
                                         {/* Garment QTY */}
                                         <div className="text-sm font-semibold">{sub.garment_qty}</div>
+
+                                        {/* Pickup QTY */}
+                                        <div className="text-sm font-semibold">{sub.no_of_garments_picked}</div>
+
+                                        {/*Extra Amount*/}
+                                        <div className="text-sm font-semibold">{sub.extra_garments_amount}</div>
 
                                         {/* Bag */}
                                         <div className="text-sm text-muted-foreground">{sub.no_of_bag > 0 ? sub.no_of_bag : '—'}</div>
