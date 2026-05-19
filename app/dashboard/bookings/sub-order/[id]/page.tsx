@@ -280,21 +280,19 @@ function OrderTimeline({ stageId }: { stageId: number }) {
                                 )}
                                 {/* Dot */}
                                 <div
-                                    className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 border-2 transition-colors ${
-                                        done
+                                    className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 border-2 transition-colors ${done
                                             ? 'bg-primary border-primary text-primary-foreground'
                                             : active
-                                            ? 'bg-primary/10 border-primary text-primary'
-                                            : 'bg-muted border-border text-muted-foreground'
-                                    }`}
+                                                ? 'bg-primary/10 border-primary text-primary'
+                                                : 'bg-muted border-border text-muted-foreground'
+                                        }`}
                                 >
                                     {stage.icon}
                                 </div>
                                 <div className="pb-8">
                                     <p
-                                        className={`text-sm font-medium leading-tight ${
-                                            active ? 'text-primary' : done ? 'text-foreground' : 'text-muted-foreground'
-                                        }`}
+                                        className={`text-sm font-medium leading-tight ${active ? 'text-primary' : done ? 'text-foreground' : 'text-muted-foreground'
+                                            }`}
                                     >
                                         {stage.label}
                                     </p>
