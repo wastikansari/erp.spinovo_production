@@ -22,6 +22,12 @@ export interface SubOrder extends BaseEntity {
   no_of_bag_outward: number;
   no_of_bag_return: number;
   ord_status: string;
+  no_of_garments_picked: number;
+  no_of_garments_processed: number;
+  no_of_garments_delivered: number;
+  extra_garments_amount: number;
+
+
 }
 
 export interface Booking extends BaseEntity {

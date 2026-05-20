@@ -281,10 +281,10 @@ function OrderTimeline({ stageId }: { stageId: number }) {
                                 {/* Dot */}
                                 <div
                                     className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 border-2 transition-colors ${done
-                                            ? 'bg-primary border-primary text-primary-foreground'
-                                            : active
-                                                ? 'bg-primary/10 border-primary text-primary'
-                                                : 'bg-muted border-border text-muted-foreground'
+                                        ? 'bg-primary border-primary text-primary-foreground'
+                                        : active
+                                            ? 'bg-primary/10 border-primary text-primary'
+                                            : 'bg-muted border-border text-muted-foreground'
                                         }`}
                                 >
                                     {stage.icon}
@@ -320,10 +320,6 @@ export default function SubOrderDetailsPage() {
 
     const subOrderId = params?.id as string;
 
-    useEffect(() => {
-        if (subOrderId) fetchDetails();
-    }, [subOrderId]);
-
     const fetchDetails = async () => {
         try {
             setLoading(true);
@@ -341,6 +337,11 @@ export default function SubOrderDetailsPage() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (subOrderId) fetchDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [subOrderId]);
 
     if (loading) {
         return (
@@ -405,7 +406,7 @@ export default function SubOrderDetailsPage() {
             </div>
 
             {/* ── STAT CARDS ── */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <Card className="rounded-2xl shadow-sm">
                     <CardContent className="p-4 flex items-center gap-3">
                         <div className={`h-10 w-10 rounded-xl ${theme.iconBg} flex items-center justify-center shrink-0`}>
@@ -424,8 +425,19 @@ export default function SubOrderDetailsPage() {
                             <Shirt className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Garments</p>
+                            <p className="text-xs text-muted-foreground">Order Garments</p>
                             <p className="text-2xl font-bold mt-0.5">{subOrder?.garment_qty}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="rounded-2xl shadow-sm">
+                    <CardContent className="p-4 flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                            <Shirt className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Pickup Garments</p>
+                            <p className="text-2xl font-bold mt-0.5">{subOrder?.no_of_garments_picked}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -637,6 +649,46 @@ export default function SubOrderDetailsPage() {
                                     </div>
                                 </div>
                             )}
+                            {/* Extra garment pickup summary */}
+                            {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-red-50 border border-red-600">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-red-700">
+                                        <Shirt className="h-4 w-4 text-red-600" />
+                                        Extra — {(subOrder?.garment_qty ?? 0) - (subOrder?.no_of_garments_picked ?? 0)} garments pickup. <div className='text-white'>( Please check and update the correct category for extra garments.)</div>
+                                    </div>
+                                    <div className="font-bold flex items-center gap-0.5 text-red-700">
+                                        <IndianRupee className="h-4 w-4" />
+                                        {(subOrder?.extra_garments_amount ?? 0).toLocaleString('en-IN')}
+                                    </div>
+                                </div>
+                            )}
+                            {/* Garment total summary */}
+                            {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-red-50 border border-red-600">
+                                    <div className="flex items-center gap-2 text-sm font-medium text-red-700">
+                                        <Shirt className="h-4 w-4 text-red-600" />
+                                        Total — {(subOrder?.no_of_garments_picked ?? 0)} garments pickup
+                                    </div>
+                                    <div className="font-bold flex items-center gap-0.5 text-red-700">
+                                        <IndianRupee className="h-4 w-4" />
+                                        {((subOrder?.garment_amount ?? 0) + (subOrder?.extra_garments_amount ?? 0)).toLocaleString('en-IN')}
+                                    </div>
+                                </div>
+                            )}
+
+                            {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                                <Button
+                                    variant="outline"
+                                    className="w-full border-red-600 text-red-600 hover:bg-red-800 hover:text-red-100 bg-red-600 text-white"
+                                    onClick={() => { }}
+                                >
+                                    <Shirt className="h-4 w-4 mr-2" />
+                                    Update Garment
+                                </Button>
+                            )}
+
+
+
                         </CardContent>
                     </Card>
 
