@@ -5,7 +5,10 @@ import {
   BookingDetailsData,
   SubOrderDetailsData,
   ServiceCategoryData,
+  UpdateGarmentRequest,
 } from '../types/booking';
+import { API_URL } from '../config/constants';
+import { AuthService } from '../auth';
 
 export class BookingApiService extends BaseApiService {
   // ORDER LIST V2
@@ -61,6 +64,51 @@ export class BookingApiService extends BaseApiService {
       `/admin/order/update/category/${serviceId}`,
       { method: 'GET' }
     );
+  }
+
+  // UPDATE SUB-ORDER GARMENT DETAILS
+  // Sends multipart/form-data (not JSON) — this endpoint requires form fields.
+  static async updateSubOrderGarment(
+    payload: UpdateGarmentRequest
+  ): Promise<ApiResponse<SubOrderDetailsData>> {
+    const token = AuthService.getToken();
+    if (!token) throw new Error('No authentication token found');
+
+    // const form = new FormData();
+    // form.append('sub_order_id', payload.sub_order_id);
+    // form.append('garment_details', payload.garment_details);
+    // form.append('unpaid_amount', String(payload.unpaid_amount));
+
+const response = await fetch(
+  `${this.API_BASE_URL}${API_URL.GARMENT_UPDATE}`,
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sub_order_id: String(payload.sub_order_id),
+      garment_details: payload.garment_details,
+      unpaid_amount: Number(payload.unpaid_amount),
+    }),
+  }
+);
+
+    let data: ApiResponse<SubOrderDetailsData>;
+    try {
+      data = await response.json();
+      console.log(data, "<=========== Update Sub Order Garment")
+    } catch (error) {
+      console.log(error, "<=========== Update Sub Order Garment Error")
+      throw new Error(`Server returned an invalid response (HTTP ${response.status})`);
+    }
+
+    if (!data.status) {
+      throw new Error(data.msg || 'Failed to update garment details');
+    }
+
+    return data;
   }
 }
 

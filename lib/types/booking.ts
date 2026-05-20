@@ -90,6 +90,12 @@ export interface SubOrderDetailsData {
   deliveryAssignment: any;
 }
 
+export interface UpdateGarmentRequest {
+  sub_order_id: string;
+  garment_details: string;
+  unpaid_amount: number;
+}
+
 export interface CategoryItem {
   _id: string;
   category_id: number;

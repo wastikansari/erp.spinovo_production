@@ -37,7 +37,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { BookingApiService, AssignApiService, SubOrderDetailsData, CategoryItem } from '@/lib/api';
+import { BookingApiService, AssignApiService, SubOrderDetailsData, CategoryItem, UpdateGarmentRequest } from '@/lib/api';
 
 type ServiceColorKey =
     | 'quick-ironing'
@@ -212,6 +212,9 @@ export default function SubOrderDetailsPage() {
     const [qualityCheckLoading, setQualityCheckLoading] = useState(false);
     const [qualityCheckError, setQualityCheckError] = useState('');
     const [showQCConfirm, setShowQCConfirm] = useState(false);
+    const [showSaveConfirm, setShowSaveConfirm] = useState(false);
+    const [saveLoading, setSaveLoading] = useState(false);
+    const [saveError, setSaveError] = useState('');
 
     const subOrderId = params?.id as string;
 
@@ -276,10 +279,57 @@ export default function SubOrderDetailsPage() {
             } else {
                 setQualityCheckError(res.msg || 'Failed to complete quality check');
             }
-        } catch {
-            setQualityCheckError('Network error occurred');
+        } catch (err: any) {
+            setQualityCheckError(err?.message || 'Failed to complete quality check');
         } finally {
             setQualityCheckLoading(false);
+        }
+    };
+
+    const handleSaveGarmentUpdate = async () => {
+        const subOrder = data?.subOrder;
+        const garment = parseGarmentDetails(subOrder?.garment_details ?? '');
+        const updatedCategorys = categories
+            .filter((cat) => (garmentEdits[cat.category_id] ?? 0) > 0)
+            .map((cat) => ({
+                category_id: cat.category_id,
+                category: cat.category,
+                types_of_Clothes: cat.types_of_Clothes,
+                category_prices: cat.price,
+                items: garmentEdits[cat.category_id],
+            }));
+        const updatedGarmentDetails = JSON.stringify({
+            service_id: garment?.service_id,
+            service: garment?.service,
+            duration: garment?.duration,
+            description: garment?.description,
+            categorys: updatedCategorys,
+        });
+        const newTotal = categories.reduce(
+            (s, c) => s + (garmentEdits[c.category_id] ?? 0) * Number(c.price),
+            0
+        );
+        const unpaid_amount = Math.max(0, newTotal - (subOrder?.garment_amount ?? 0));
+        try {
+            setSaveLoading(true);
+            setSaveError('');
+            console.log('ressssssssss vvvvvvvx', subOrderId, unpaid_amount, updatedGarmentDetails);
+            const res = await BookingApiService.updateSubOrderGarment({
+                sub_order_id: subOrderId,
+                garment_details: updatedGarmentDetails,
+                unpaid_amount,
+            });
+            if (res.status) {
+                setShowSaveConfirm(false);
+                setShowUpdatePanel(false);
+                setCategories([]);
+                setGarmentEdits({});
+                await fetchDetails();
+            }
+        } catch (err: any) {
+            setSaveError(err?.message || 'Failed to update garment details');
+        } finally {
+            setSaveLoading(false);
         }
     };
 
@@ -601,18 +651,94 @@ export default function SubOrderDetailsPage() {
                                     })()}
 
                                     {/* Actions */}
+                                    {saveError && (
+                                        <Alert variant="destructive">
+                                            <AlertCircle className="h-4 w-4" />
+                                            <AlertDescription>{saveError}</AlertDescription>
+                                        </Alert>
+                                    )}
                                     <div className="flex gap-3 pt-1">
                                         <Button
                                             variant="outline"
                                             className="flex-1"
+                                            disabled={saveLoading}
                                             onClick={() => setShowUpdatePanel(false)}
                                         >
                                             Cancel
                                         </Button>
-                                        <Button className="flex-1" onClick={() => { /* phase 2: submit */ }}>
+                                        <Button
+                                            className="flex-1"
+                                            disabled={saveLoading}
+                                            onClick={() => setShowSaveConfirm(true)}
+                                        >
+                                            <Shirt className="h-4 w-4 mr-2" />
                                             Save Changes
                                         </Button>
                                     </div>
+
+                                    <AlertDialog open={showSaveConfirm} onOpenChange={setShowSaveConfirm}>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle className="flex items-center gap-2">
+                                                    <Shirt className="h-5 w-5 text-primary" />
+                                                    Confirm Garment Update
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription asChild>
+                                                    <div className="space-y-3 text-sm text-muted-foreground">
+                                                        <p>
+                                                            You are about to save updated garment categories for sub-order{' '}
+                                                            <span className="font-semibold text-foreground">{data?.subOrder?.sub_order_no}</span>.
+                                                        </p>
+                                                        {(() => {
+                                                            const totalQty = Object.values(garmentEdits).reduce((s, q) => s + q, 0);
+                                                            const totalAmt = categories.reduce(
+                                                                (s, c) => s + (garmentEdits[c.category_id] ?? 0) * Number(c.price),
+                                                                0
+                                                            );
+                                                            const unpaid = Math.max(0, totalAmt - (data?.subOrder?.garment_amount ?? 0));
+                                                            return (
+                                                                <div className="rounded-xl border bg-muted/30 px-4 py-3 space-y-1.5">
+                                                                    <div className="flex justify-between text-xs">
+                                                                        <span>Total garments</span>
+                                                                        <span className="font-semibold text-foreground">{totalQty}</span>
+                                                                    </div>
+                                                                    <div className="flex justify-between text-xs">
+                                                                        <span>Total amount</span>
+                                                                        <span className="font-semibold text-foreground">₹{totalAmt.toLocaleString('en-IN')}</span>
+                                                                    </div>
+                                                                    {unpaid > 0 && (
+                                                                        <div className="flex justify-between text-xs border-t pt-1.5">
+                                                                            <span className="text-orange-600">Additional unpaid amount</span>
+                                                                            <span className="font-bold text-orange-600">₹{unpaid.toLocaleString('en-IN')}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                        <p className="font-medium text-foreground">
+                                                            Please verify the category breakdown is correct before saving.
+                                                        </p>
+                                                    </div>
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel disabled={saveLoading}>
+                                                    Cancel
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    disabled={saveLoading}
+                                                    onClick={handleSaveGarmentUpdate}
+                                                >
+                                                    {saveLoading ? (
+                                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                    ) : (
+                                                        <Shirt className="h-4 w-4 mr-2" />
+                                                    )}
+                                                    Yes, Save Changes
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </>
                             )}
                         </CardContent>
@@ -716,7 +842,7 @@ export default function SubOrderDetailsPage() {
                             </div>
                         )}
                         {/* Extra garment pickup summary */}
-                        {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                        {(subOrder?.no_of_garments_picked ?? 0) - (subOrder?.garment_qty ?? 0) > 0 && (
                             <div className="flex flex-col gap-1.5 px-4 py-3 rounded-xl bg-red-50 border border-red-600">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2 text-sm font-medium text-red-700">
@@ -725,14 +851,14 @@ export default function SubOrderDetailsPage() {
                                     </div>
                                     <div className="font-bold flex items-center gap-0.5 text-red-700">
                                         <IndianRupee className="h-4 w-4" />
-                                        {(subOrder?.extra_garments_amount ?? 0).toLocaleString('en-IN')}
+                                        {/* {(subOrder?.extra_garments_amount ?? 0).toLocaleString('en-IN')} */}
                                     </div>
                                 </div>
                                 <p className="text-xs text-red-500">Please check and update the correct category for extra garments.</p>
                             </div>
                         )}
                         {/* Garment total summary */}
-                        {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                        {(subOrder?.no_of_garments_picked ?? 0) - (subOrder?.garment_qty ?? 0) > 0 && (
                             <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-red-50 border border-red-600">
                                 <div className="flex items-center gap-2 text-sm font-medium text-red-700">
                                     <Shirt className="h-4 w-4 text-red-600" />
@@ -740,7 +866,7 @@ export default function SubOrderDetailsPage() {
                                 </div>
                                 <div className="font-bold flex items-center gap-0.5 text-red-700">
                                     <IndianRupee className="h-4 w-4" />
-                                    {((subOrder?.garment_amount ?? 0) + (subOrder?.extra_garments_amount ?? 0)).toLocaleString('en-IN')}
+                                    {/* {((subOrder?.garment_amount ?? 0) + (subOrder?.extra_garments_amount ?? 0)).toLocaleString('en-IN')} */}
                                 </div>
                             </div>
                         )}

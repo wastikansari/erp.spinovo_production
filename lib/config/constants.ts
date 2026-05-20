@@ -26,6 +26,7 @@ export const API_URL = {
   DELIVERY_LIST: '/admin/order/delivery/assigned/list',
   DELIVERY_SUBORDER_PENDING: '/admin/order/delivery/suborder/pending',
   QUALITY_CHECK_COMPLETED: '/admin/order/quality-check/suborder/completed',
+  GARMENT_UPDATE: '/admin/suborder/garment/update',
 
 
 } as const;
