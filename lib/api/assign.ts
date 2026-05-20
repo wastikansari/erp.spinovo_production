@@ -25,6 +25,12 @@ export class AssignApiService extends BaseApiService {
     });
   }
 
+  static async getPendingQualityCheckSuborders(page: number = 1, limit: number = 20): Promise<ApiResponse<PendingSubOrderListData>> {
+    return this.makeRequest<PendingSubOrderListData>(`${API_URL.QUALITY_CHECK_LIST}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
   static async getProcessAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<ProcessAssignListData>> {
     console.log(`=== FETCHING PROCESS ASSIGNED LIST ===`);
     console.log(`Page: ${page}, Limit: ${limit}`);
@@ -54,6 +60,12 @@ export class AssignApiService extends BaseApiService {
     console.log('Data:', booking_id);
 
     return this.makeRequest<ProcessAssignResponse>(`${API_URL.PROCESS_COMPLETED}/${booking_id}`, {
+      method: 'GET',
+    });
+  }
+
+  static async qualityCheckCompleted(subOrderId: string): Promise<ApiResponse<unknown>> {
+    return this.makeRequest<unknown>(`${API_URL.QUALITY_CHECK_COMPLETED}/${subOrderId}`, {
       method: 'GET',
     });
   }

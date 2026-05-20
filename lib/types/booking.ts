@@ -90,6 +90,26 @@ export interface SubOrderDetailsData {
   deliveryAssignment: any;
 }
 
+export interface CategoryItem {
+  _id: string;
+  category_id: number;
+  category: string;
+  description: string;
+  price: string;
+  types_of_Clothes: string[];
+}
+
+export interface ServiceCategoryData {
+  service: {
+    _id: string;
+    service_id: number;
+    service: string;
+    description: string;
+    duration: string;
+    category_list: CategoryItem[];
+  };
+}
+
 // import { BaseEntity } from './index';
 
 // export interface Booking extends BaseEntity {

@@ -4,6 +4,7 @@ import {
   BookingListData,
   BookingDetailsData,
   SubOrderDetailsData,
+  ServiceCategoryData,
 } from '../types/booking';
 
 export class BookingApiService extends BaseApiService {
@@ -49,6 +50,16 @@ export class BookingApiService extends BaseApiService {
       {
         method: 'GET',
       }
+    );
+  }
+
+  // CATEGORY LIST FOR GARMENT UPDATE
+  static async getCategoryList(
+    serviceId: string
+  ): Promise<ApiResponse<ServiceCategoryData>> {
+    return this.makeRequest<ServiceCategoryData>(
+      `/admin/order/update/category/${serviceId}`,
+      { method: 'GET' }
     );
   }
 }

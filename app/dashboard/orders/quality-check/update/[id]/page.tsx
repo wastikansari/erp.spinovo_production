@@ -20,11 +20,24 @@ import {
     Sparkles,
     BaggageClaim,
     Hash,
+    X,
+    Plus,
+    Minus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { BookingApiService, SubOrderDetailsData } from '@/lib/api';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { BookingApiService, AssignApiService, SubOrderDetailsData, CategoryItem } from '@/lib/api';
 
 type ServiceColorKey =
     | 'quick-ironing'
@@ -192,6 +205,14 @@ export default function SubOrderDetailsPage() {
     const [error, setError] = useState('');
     const [data, setData] = useState<SubOrderDetailsData | null>(null);
 
+    const [showUpdatePanel, setShowUpdatePanel] = useState(false);
+    const [catLoading, setCatLoading] = useState(false);
+    const [categories, setCategories] = useState<CategoryItem[]>([]);
+    const [garmentEdits, setGarmentEdits] = useState<Record<number, number>>({});
+    const [qualityCheckLoading, setQualityCheckLoading] = useState(false);
+    const [qualityCheckError, setQualityCheckError] = useState('');
+    const [showQCConfirm, setShowQCConfirm] = useState(false);
+
     const subOrderId = params?.id as string;
 
     const fetchDetails = async () => {
@@ -216,6 +237,58 @@ export default function SubOrderDetailsPage() {
         if (subOrderId) fetchDetails();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [subOrderId]);
+
+    const openUpdatePanel = async () => {
+        setShowUpdatePanel(true);
+        if (categories.length > 0) return;
+        setCatLoading(true);
+        try {
+            const res = await BookingApiService.getCategoryList(data?.subOrder?.service_id ?? '');
+            if (res.status && res.data) {
+                const cats = res.data.service.category_list;
+                setCategories(cats);
+                const currentGarment = parseGarmentDetails(data?.subOrder?.garment_details ?? '');
+                const edits: Record<number, number> = {};
+                if (currentGarment?.categorys?.length > 0) {
+                    cats.forEach((cat) => {
+                        const existing = currentGarment.categorys.find(
+                            (c: any) => c.category === cat.category
+                        );
+                        if (existing) edits[cat.category_id] = Number(existing.items);
+                    });
+                }
+                setGarmentEdits(edits);
+            }
+        } catch {
+            // silently fail — panel shows empty state
+        } finally {
+            setCatLoading(false);
+        }
+    };
+
+    const handleQualityCheckDone = async () => {
+        try {
+            setQualityCheckLoading(true);
+            setQualityCheckError('');
+            const res = await AssignApiService.qualityCheckCompleted(subOrderId);
+            if (res.status) {
+                router.push('/dashboard/orders/quality-check');
+            } else {
+                setQualityCheckError(res.msg || 'Failed to complete quality check');
+            }
+        } catch {
+            setQualityCheckError('Network error occurred');
+        } finally {
+            setQualityCheckLoading(false);
+        }
+    };
+
+    const adjustQty = (categoryId: number, delta: number) => {
+        setGarmentEdits((prev) => ({
+            ...prev,
+            [categoryId]: Math.max(0, (prev[categoryId] ?? 0) + delta),
+        }));
+    };
 
     if (loading) {
         return (
@@ -350,7 +423,7 @@ export default function SubOrderDetailsPage() {
             <div className="xl:col-span-2 space-y-5">
 
                 {/* Order Info */}
-                <Card className="rounded-2xl shadow-sm">
+                {/* <Card className="rounded-2xl shadow-sm">
                     <CardHeader className="pb-3 border-b">
                         <CardTitle className="flex items-center gap-2 text-base">
                             <Hash className="h-4 w-4 text-muted-foreground" />
@@ -422,7 +495,129 @@ export default function SubOrderDetailsPage() {
                             value={formatDateTime(subOrder?.createdAt ?? '')}
                         />
                     </CardContent>
-                </Card>
+                </Card> */}
+                {/* ── UPDATE GARMENT PANEL ── */}
+                {showUpdatePanel && (
+                    <Card className="rounded-2xl shadow-sm border-primary/40">
+                        <CardHeader className="pb-3 border-b">
+                            <CardTitle className="flex items-center justify-between text-base">
+                                <span className="flex items-center gap-2">
+                                    <Shirt className="h-4 w-4 text-primary" />
+                                    Update Garment Categories
+                                </span>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7"
+                                    onClick={() => setShowUpdatePanel(false)}
+                                >
+                                    <X className="h-4 w-4" />
+                                </Button>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4 space-y-4">
+                            {catLoading ? (
+                                <div className="flex flex-col items-center justify-center py-10 gap-2">
+                                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                    <p className="text-sm text-muted-foreground">Loading categories…</p>
+                                </div>
+                            ) : categories.length === 0 ? (
+                                <div className="text-center py-8 text-sm text-muted-foreground">
+                                    No categories available.
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="space-y-3">
+                                        {categories.map((cat) => {
+                                            const qty = garmentEdits[cat.category_id] ?? 0;
+                                            return (
+                                                <div
+                                                    key={cat._id}
+                                                    className={`border rounded-xl overflow-hidden transition-colors ${qty > 0 ? 'border-primary' : 'border-border'}`}
+                                                >
+                                                    <div className="p-3 flex items-center justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <p className="font-semibold text-sm">{cat.category}</p>
+                                                            <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-0.5">
+                                                                <IndianRupee className="h-3 w-3" />{cat.price}/item
+                                                            </p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <Button
+                                                                size="icon"
+                                                                variant="outline"
+                                                                className="h-7 w-7 rounded-lg"
+                                                                disabled={qty === 0}
+                                                                onClick={() => adjustQty(cat.category_id, -1)}
+                                                            >
+                                                                <Minus className="h-3 w-3" />
+                                                            </Button>
+                                                            <span className="w-8 text-center font-bold text-sm">{qty}</span>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="outline"
+                                                                className="h-7 w-7 rounded-lg"
+                                                                onClick={() => adjustQty(cat.category_id, 1)}
+                                                            >
+                                                                <Plus className="h-3 w-3" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="px-3 pb-3 flex flex-wrap gap-1.5">
+                                                        {cat.types_of_Clothes.map((cloth) => (
+                                                            <span
+                                                                key={cloth}
+                                                                className="px-2.5 py-0.5 rounded-full bg-muted text-xs border"
+                                                            >
+                                                                {cloth}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Running total */}
+                                    {(() => {
+                                        const totalQty = Object.values(garmentEdits).reduce((s, q) => s + q, 0);
+                                        const totalAmt = categories.reduce(
+                                            (s, c) => s + (garmentEdits[c.category_id] ?? 0) * Number(c.price),
+                                            0
+                                        );
+                                        if (totalQty === 0) return null;
+                                        return (
+                                            <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
+                                                <div className="flex items-center gap-2 text-sm font-medium">
+                                                    <Shirt className="h-4 w-4 text-primary" />
+                                                    Total — {totalQty} garments
+                                                </div>
+                                                <div className="font-bold flex items-center gap-0.5">
+                                                    <IndianRupee className="h-4 w-4" />
+                                                    {totalAmt.toLocaleString('en-IN')}
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+
+                                    {/* Actions */}
+                                    <div className="flex gap-3 pt-1">
+                                        <Button
+                                            variant="outline"
+                                            className="flex-1"
+                                            onClick={() => setShowUpdatePanel(false)}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <Button className="flex-1" onClick={() => { /* phase 2: submit */ }}>
+                                            Save Changes
+                                        </Button>
+                                    </div>
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Garment Details */}
                 <Card className="rounded-2xl shadow-sm">
@@ -553,17 +748,91 @@ export default function SubOrderDetailsPage() {
                         {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
                             <Button
                                 className="w-full bg-red-600 text-white hover:bg-red-700 border border-red-600"
-                                onClick={() => { }}
+                                onClick={openUpdatePanel}
                             >
                                 <Shirt className="h-4 w-4 mr-2" />
                                 Update Garment
                             </Button>
                         )}
+                        {garment?.categorys?.length > 0 && (
+                            <>
+                                {qualityCheckError && (
+                                    <Alert variant="destructive">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertDescription>{qualityCheckError}</AlertDescription>
+                                    </Alert>
+                                )}
+                                <Button
+                                    className="w-full bg-green-600 text-white hover:bg-green-700 border border-green-600"
+                                    onClick={() => setShowQCConfirm(true)}
+                                    disabled={qualityCheckLoading}
+                                >
+                                    {qualityCheckLoading ? (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <Shirt className="h-4 w-4 mr-2" />
+                                    )}
+                                    Garment Check Done
+                                </Button>
 
-
+                                <AlertDialog open={showQCConfirm} onOpenChange={setShowQCConfirm}>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle className="flex items-center gap-2">
+                                                <Shirt className="h-5 w-5 text-green-600" />
+                                                Confirm Quality Check Completion
+                                            </AlertDialogTitle>
+                                            <AlertDialogDescription asChild>
+                                                <div className="space-y-3 text-sm text-muted-foreground">
+                                                    <p>
+                                                        Please confirm you have thoroughly verified the following before marking this sub-order as quality checked:
+                                                    </p>
+                                                    <ul className="space-y-1.5 pl-1">
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="mt-0.5 h-4 w-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold shrink-0">✓</span>
+                                                            <span>Garment <strong>quantity</strong> matches the pickup count</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="mt-0.5 h-4 w-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold shrink-0">✓</span>
+                                                            <span>Garment <strong>quality</strong> has been inspected for damage or stains</span>
+                                                        </li>
+                                                        <li className="flex items-start gap-2">
+                                                            <span className="mt-0.5 h-4 w-4 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold shrink-0">✓</span>
+                                                            <span><strong>Category breakdown</strong> is correctly updated</span>
+                                                        </li>
+                                                    </ul>
+                                                    <p className="font-medium text-foreground border-t pt-3">
+                                                        Once confirmed, this order will move to <span className="text-green-700">Processing</span> and cannot be reverted.
+                                                    </p>
+                                                </div>
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel disabled={qualityCheckLoading}>
+                                                Cancel
+                                            </AlertDialogCancel>
+                                            <AlertDialogAction
+                                                className="bg-green-600 hover:bg-green-700 text-white"
+                                                disabled={qualityCheckLoading}
+                                                onClick={handleQualityCheckDone}
+                                            >
+                                                {qualityCheckLoading ? (
+                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                ) : (
+                                                    <Shirt className="h-4 w-4 mr-2" />
+                                                )}
+                                                Yes, Quality Check Done
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </>
+                        )}
 
                     </CardContent>
                 </Card>
+
+
 
             </div>
         </div>

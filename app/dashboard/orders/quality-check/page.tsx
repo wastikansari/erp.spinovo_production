@@ -203,7 +203,7 @@ function PaginationBar({
 const COL_STYLE = 'grid gap-x-3 px-5 items-center' as const;
 const COL_TEMPLATE = { gridTemplateColumns: '1.8fr 1.4fr 72px 72px 80px 64px 130px 110px 130px 120px 48px' } as const;
 
-export default function ProcessAssignPage() {
+export default function QualityCheckPendingPage() {
     const [subOrders, setSubOrders] = useState<PendingSubOrder[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -221,7 +221,7 @@ export default function ProcessAssignPage() {
         try {
             setLoading(true);
             setError('');
-            const response = await AssignApiService.getPendingProcessSuborders(page, 20);
+            const response = await AssignApiService.getPendingQualityCheckSuborders(page, 20);
             if (response.status && response.data) {
                 setSubOrders(response.data.subOrders || []);
                 setTotalPages(response.data.totalPages || 1);
@@ -267,12 +267,12 @@ export default function ProcessAssignPage() {
                             <Hash className="h-5 w-5 text-primary" />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Pending Sub-Orders</p>
+                            <p className="text-xs text-muted-foreground">Pending Quality Check</p>
                             <p className="text-2xl font-bold mt-0.5">{totalCount}</p>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="rounded-2xl border shadow-sm">
+                {/* <Card className="rounded-2xl border shadow-sm">
                     <CardContent className="p-4 flex items-center gap-4">
                         <div className="h-11 w-11 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
                             <CheckCircle2 className="h-5 w-5 text-blue-600" />
@@ -282,7 +282,7 @@ export default function ProcessAssignPage() {
                             <p className="text-2xl font-bold mt-0.5">{subOrders.filter(s => s.ord_status?.toLowerCase() === 'pickup completed').length}</p>
                         </div>
                     </CardContent>
-                </Card>
+                </Card> */}
             </div>
 
             {/* SERVICE LEGEND */}
@@ -418,7 +418,7 @@ export default function ProcessAssignPage() {
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => router.push(`/dashboard/orders/quality-check/update/${sub._id}`)}>
                                                         <Eye className="mr-2 h-4 w-4" />
-                                                        Garment Update
+                                                        Garment Check
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     {/* <DropdownMenuItem
