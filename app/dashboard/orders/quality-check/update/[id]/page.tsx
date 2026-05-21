@@ -853,15 +853,15 @@ export default function SubOrderDetailsPage() {
                             </div>
                         )}
 
-                        {/* {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && ( */}
-                        <Button
-                            className="w-full bg-red-600 text-white hover:bg-red-700 border border-red-600"
-                            onClick={openUpdatePanel}
-                        >
-                            <Shirt className="h-4 w-4 mr-2" />
-                            Update Garment
-                        </Button>
-                        {/* )} */}
+                        {(subOrder?.no_of_garments_picked ?? 0) - (subOrder?.garment_qty ?? 0) > 0 && (
+                            <Button
+                                className="w-full bg-red-600 text-white hover:bg-red-700 border border-red-600"
+                                onClick={openUpdatePanel}
+                            >
+                                <Shirt className="h-4 w-4 mr-2" />
+                                Update Garment
+                            </Button>
+                        )}
                         {garment?.categorys?.length > 0 && (
                             <>
                                 {qualityCheckError && (

@@ -27,23 +27,21 @@ export default function LoginPage() {
     setError('');
 
     try {
-      console.log('Attempting login with:', { mobile: formData.mobile });
       const response = await AuthService.login(formData);
-      console.log('Login response:', response);
-      
+
       if (response.status) {
         toast({
           title: 'Login successful',
           description: 'Welcome back to Spinovo Admin Panel',
         });
         router.push('/dashboard');
+        // Keep loading=true during navigation; component will unmount
       } else {
         setError(response.msg || 'Login failed');
+        setLoading(false);
       }
     } catch (err) {
-      console.error('Login error:', err);
       setError('Network error. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
