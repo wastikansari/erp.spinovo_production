@@ -334,10 +334,15 @@ export default function SubOrderDetailsPage() {
     };
 
     const adjustQty = (categoryId: number, delta: number) => {
-        setGarmentEdits((prev) => ({
-            ...prev,
-            [categoryId]: Math.max(0, (prev[categoryId] ?? 0) + delta),
-        }));
+        const pickedLimit = subOrder?.no_of_garments_picked ?? 0;
+        setGarmentEdits((prev) => {
+            const currentCatQty = prev[categoryId] ?? 0;
+            const newCatQty = Math.max(0, currentCatQty + delta);
+            const currentTotal = Object.values(prev).reduce((s, q) => s + q, 0);
+            const newTotal = currentTotal - currentCatQty + newCatQty;
+            if (newTotal > pickedLimit) return prev;
+            return { ...prev, [categoryId]: newCatQty };
+        });
     };
 
     if (loading) {
@@ -577,9 +582,31 @@ export default function SubOrderDetailsPage() {
                                 </div>
                             ) : (
                                 <>
+                                    {/* Quota indicator */}
+                                    {(() => {
+                                        const pickedLimit = subOrder?.no_of_garments_picked ?? 0;
+                                        const totalQty = Object.values(garmentEdits).reduce((s, q) => s + q, 0);
+                                        const remaining = pickedLimit - totalQty;
+                                        const isFull = remaining <= 0;
+                                        return (
+                                            <div className={`flex items-center justify-between px-4 py-2.5 rounded-xl border text-sm font-medium ${isFull ? 'bg-green-50 border-green-300 text-green-700' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
+                                                <span className="flex items-center gap-1.5">
+                                                    <Shirt className="h-4 w-4" />
+                                                    Garments assigned: <span className="font-bold">{totalQty}</span> / <span className="font-bold">{pickedLimit}</span>
+                                                </span>
+                                                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${isFull ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                                                    {isFull ? 'Quota full' : `${remaining} remaining`}
+                                                </span>
+                                            </div>
+                                        );
+                                    })()}
+
                                     <div className="space-y-3">
                                         {categories.map((cat) => {
                                             const qty = garmentEdits[cat.category_id] ?? 0;
+                                            const pickedLimit = subOrder?.no_of_garments_picked ?? 0;
+                                            const totalQty = Object.values(garmentEdits).reduce((s, q) => s + q, 0);
+                                            const isAtLimit = totalQty >= pickedLimit;
                                             return (
                                                 <div
                                                     key={cat._id}
@@ -607,6 +634,8 @@ export default function SubOrderDetailsPage() {
                                                                 size="icon"
                                                                 variant="outline"
                                                                 className="h-7 w-7 rounded-lg"
+                                                                disabled={isAtLimit}
+                                                                title={isAtLimit ? `Maximum ${pickedLimit} garments allowed (matches pickup count)` : undefined}
                                                                 onClick={() => adjustQty(cat.category_id, 1)}
                                                             >
                                                                 <Plus className="h-3 w-3" />
@@ -657,6 +686,21 @@ export default function SubOrderDetailsPage() {
                                             <AlertDescription>{saveError}</AlertDescription>
                                         </Alert>
                                     )}
+                                    {(() => {
+                                        const pickedLimit = subOrder?.no_of_garments_picked ?? 0;
+                                        const totalQty = Object.values(garmentEdits).reduce((s, q) => s + q, 0);
+                                        if (totalQty > pickedLimit) {
+                                            return (
+                                                <Alert variant="destructive">
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    <AlertDescription>
+                                                        Total garments ({totalQty}) exceeds the number of garments picked up ({pickedLimit}). Please reduce quantities before saving.
+                                                    </AlertDescription>
+                                                </Alert>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
                                     <div className="flex gap-3 pt-1">
                                         <Button
                                             variant="outline"
@@ -668,7 +712,7 @@ export default function SubOrderDetailsPage() {
                                         </Button>
                                         <Button
                                             className="flex-1"
-                                            disabled={saveLoading}
+                                            disabled={saveLoading || Object.values(garmentEdits).reduce((s, q) => s + q, 0) > (subOrder?.no_of_garments_picked ?? 0)}
                                             onClick={() => setShowSaveConfirm(true)}
                                         >
                                             <Shirt className="h-4 w-4 mr-2" />
