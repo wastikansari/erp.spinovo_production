@@ -477,80 +477,7 @@ export default function SubOrderDetailsPage() {
             {/* ── MAIN GRID ── */}
             <div className="xl:col-span-2 space-y-5">
 
-                {/* Order Info */}
-                {/* <Card className="rounded-2xl shadow-sm">
-                    <CardHeader className="pb-3 border-b">
-                        <CardTitle className="flex items-center gap-2 text-base">
-                            <Hash className="h-4 w-4 text-muted-foreground" />
-                            Order Information
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4 grid grid-cols-2 sm:grid-cols-3 gap-5">
-                        <InfoRow label="Sub Order No" value={subOrder?.sub_order_no} />
-                        <InfoRow label="Main Order No" value={subOrder?.order_no} />
-                        <InfoRow
-                            label="Service"
-                            value={
-                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
-                                    {theme.icon}
-                                    {subOrder?.service_name}
-                                </span>
-                            }
-                        />
-                        <InfoRow
-                            label="Pickup Date"
-                            value={
-                                <span className="flex items-center gap-1.5">
-                                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {formatDate(subOrder?.booking_date ?? '')}
-                                </span>
-                            }
-                        />
-                        <InfoRow
-                            label="Pickup Time"
-                            value={
-                                <span className="flex items-center gap-1.5">
-                                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {subOrder?.booking_time}
-                                </span>
-                            }
-                        />
-                        <InfoRow label="Service Duration" value={`${subOrder?.service_duration_hours ?? '—'} hours`} />
-                        <InfoRow
-                            label="Expected Delivery"
-                            value={
-                                <span className="flex items-center gap-1.5">
-                                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {formatDate(subOrder?.expected_delivery_date ?? '')}
-                                </span>
-                            }
-                        />
-                        <InfoRow
-                            label="Delivery Time"
-                            value={
-                                <span className="flex items-center gap-1.5">
-                                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {subOrder?.expected_delivery_time}
-                                </span>
-                            }
-                        />
-                        <InfoRow
-                            label="Bags"
-                            value={
-                                <span className="flex items-center gap-1.5">
-                                    <BaggageClaim className="h-3.5 w-3.5 text-muted-foreground" />
-                                    {subOrder?.no_of_bag ?? 0} bags
-                                </span>
-                            }
-                        />
-                        <InfoRow label="Bags Outward" value={subOrder?.no_of_bag_outward ?? 0} />
-                        <InfoRow label="Bags Return" value={subOrder?.no_of_bag_return ?? 0} />
-                        <InfoRow
-                            label="Created At"
-                            value={formatDateTime(subOrder?.createdAt ?? '')}
-                        />
-                    </CardContent>
-                </Card> */}
+
                 {/* ── UPDATE GARMENT PANEL ── */}
                 {showUpdatePanel && (
                     <Card className="rounded-2xl shadow-sm border-primary/40">
@@ -915,15 +842,15 @@ export default function SubOrderDetailsPage() {
                             </div>
                         )}
 
-                        {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
-                            <Button
-                                className="w-full bg-red-600 text-white hover:bg-red-700 border border-red-600"
-                                onClick={openUpdatePanel}
-                            >
-                                <Shirt className="h-4 w-4 mr-2" />
-                                Update Garment
-                            </Button>
-                        )}
+                        {/* {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && ( */}
+                        <Button
+                            className="w-full bg-red-600 text-white hover:bg-red-700 border border-red-600"
+                            onClick={openUpdatePanel}
+                        >
+                            <Shirt className="h-4 w-4 mr-2" />
+                            Update Garment
+                        </Button>
+                        {/* )} */}
                         {garment?.categorys?.length > 0 && (
                             <>
                                 {qualityCheckError && (
@@ -999,6 +926,80 @@ export default function SubOrderDetailsPage() {
                             </>
                         )}
 
+                    </CardContent>
+                </Card>
+                {/* Order Info */}
+                <Card className="rounded-2xl shadow-sm">
+                    <CardHeader className="pb-3 border-b">
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <Hash className="h-4 w-4 text-muted-foreground" />
+                            Order Information
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4 grid grid-cols-2 sm:grid-cols-3 gap-5">
+                        <InfoRow label="Sub Order No" value={subOrder?.sub_order_no} />
+                        <InfoRow label="Main Order No" value={subOrder?.order_no} />
+                        <InfoRow
+                            label="Service"
+                            value={
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
+                                    {theme.icon}
+                                    {subOrder?.service_name}
+                                </span>
+                            }
+                        />
+                        <InfoRow
+                            label="Pickup Date"
+                            value={
+                                <span className="flex items-center gap-1.5">
+                                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {formatDate(subOrder?.booking_date ?? '')}
+                                </span>
+                            }
+                        />
+                        <InfoRow
+                            label="Pickup Time"
+                            value={
+                                <span className="flex items-center gap-1.5">
+                                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {subOrder?.booking_time}
+                                </span>
+                            }
+                        />
+                        <InfoRow label="Service Duration" value={`${subOrder?.service_duration_hours ?? '—'} hours`} />
+                        <InfoRow
+                            label="Expected Delivery"
+                            value={
+                                <span className="flex items-center gap-1.5">
+                                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {formatDate(subOrder?.expected_delivery_date ?? '')}
+                                </span>
+                            }
+                        />
+                        <InfoRow
+                            label="Delivery Time"
+                            value={
+                                <span className="flex items-center gap-1.5">
+                                    <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {subOrder?.expected_delivery_time}
+                                </span>
+                            }
+                        />
+                        <InfoRow
+                            label="Bags"
+                            value={
+                                <span className="flex items-center gap-1.5">
+                                    <BaggageClaim className="h-3.5 w-3.5 text-muted-foreground" />
+                                    {subOrder?.no_of_bag ?? 0} bags
+                                </span>
+                            }
+                        />
+                        {/* <InfoRow label="Bags Outward" value={subOrder?.no_of_bag_outward ?? 0} /> */}
+                        {/* <InfoRow label="Bags Return" value={subOrder?.no_of_bag_return ?? 0} /> */}
+                        <InfoRow
+                            label="Created At"
+                            value={formatDateTime(subOrder?.createdAt ?? '')}
+                        />
                     </CardContent>
                 </Card>
 
