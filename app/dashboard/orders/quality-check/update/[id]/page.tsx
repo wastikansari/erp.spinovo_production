@@ -625,21 +625,32 @@ export default function SubOrderDetailsPage() {
                                                     </AlertDescription>
                                                 </Alert>
                                             );
+                                        } else if (totalQty < pickedLimit) {
+                                            return (
+                                                <Alert variant="destructive">
+                                                    <AlertCircle className="h-4 w-4" />
+                                                    <AlertDescription>
+                                                        Total garments ({totalQty}) is less than the number of garments picked up ({pickedLimit}). Please increase quantities before saving.
+                                                    </AlertDescription>
+                                                </Alert>
+                                            );
                                         }
+
                                         return null;
                                     })()}
                                     <div className="flex gap-3 pt-1">
                                         <Button
                                             variant="outline"
                                             className="flex-1"
-                                            disabled={saveLoading}
+                                            disabled={false}
                                             onClick={() => setShowUpdatePanel(false)}
                                         >
                                             Cancel
                                         </Button>
                                         <Button
                                             className="flex-1"
-                                            disabled={saveLoading || Object.values(garmentEdits).reduce((s, q) => s + q, 0) > (subOrder?.no_of_garments_picked ?? 0)}
+                                            disabled={Object.values(garmentEdits).reduce((s, q) => s + q, 0) != (subOrder?.no_of_garments_picked ?? 0)}
+                                            //saveLoading || Object.values(garmentEdits).reduce((s, q) => s + q, 0) != (subOrder?.no_of_garments_picked ?? 0)} 
                                             onClick={() => setShowSaveConfirm(true)}
                                         >
                                             <Shirt className="h-4 w-4 mr-2" />
