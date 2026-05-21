@@ -4,8 +4,17 @@ import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
 import { API_URL } from '../config/constants';
 import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse, DeliveryPendingSubOrderListData } from '../types/delivery-assign';
+import { BookingListData } from '../types/booking';
 
 export class AssignApiService extends BaseApiService {
+
+
+    static async getPickupPendingList(page: number = 1, limit: number = 20): Promise<ApiResponse<BookingListData>> {
+      return this.makeRequest<BookingListData>(`${API_URL.PICKUP_PENDING}?page=${page}&limit=${limit}`, {
+        method: 'GET',
+        }
+      );
+    }
   
   static async getPickupAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<PickupAssignBookingListData>> {
     console.log(`=== FETCHING PICKUP ASSIGNED LIST ===`);

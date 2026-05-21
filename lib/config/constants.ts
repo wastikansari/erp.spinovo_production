@@ -15,6 +15,7 @@ export const API_URL = {
   // "http://localhost:3003/api/v1",
 
   // Order related endpoints
+  PICKUP_PENDING: '/admin/order/pickup/pending',
   PICKUP_ASSIGN: '/admin/order/pickup/assign',
   PICKUP_LIST: '/admin/order/pickup/assigned/list',
   QUALITY_CHECK_LIST: '/admin/order/quality-check/suborder/pending',

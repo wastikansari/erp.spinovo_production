@@ -27,7 +27,7 @@ import {
     Clock
 } from 'lucide-react';
 
-import { BookingApiService, Booking, SubOrder } from '@/lib/api';
+import { BookingApiService, Booking, SubOrder, AssignApiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,7 +39,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-// import { AssignBookingForm } from '@/components/forms/assign-booking-form';
+import { AssignBookingForm } from '@/components/forms/assign-booking-form';
 
 // ─── Service Color System ────────────────────────────────────────────────────
 
@@ -492,8 +492,8 @@ export default function BookingsPage() {
     const [totalOrders, setTotalOrders] = useState(0);
     const [error, setError] = useState('');
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
-    // const [showAssignForm, setShowAssignForm] = useState(false);
-    // const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+    const [showAssignForm, setShowAssignForm] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -506,7 +506,7 @@ export default function BookingsPage() {
         try {
             setLoading(true);
             setError('');
-            const response = await BookingApiService.getBookings(page, 20);
+            const response = await AssignApiService.getPickupPendingList(page, 20);
             if (response.status && response.data) {
                 setBookings(response.data.bookingList || []);
                 setTotalPages(response.data.total_pages || 1);
@@ -560,9 +560,9 @@ export default function BookingsPage() {
             {/* PAGE HEADER */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Orders Management</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Pickup Pending Orders</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                        Manage orders, sub-orders and assignments
+                        Orders ready to be picked up by copilot partners
                     </p>
                 </div>
                 <Button
@@ -800,7 +800,7 @@ export default function BookingsPage() {
                                                         View Sub-Orders
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    {/* {booking.order_stage_id == 1 && (
+                                                    {booking.order_stage_id == 1 && (
                                                         <DropdownMenuItem
                                                             onClick={() => {
                                                                 setSelectedBooking(booking);
@@ -810,7 +810,7 @@ export default function BookingsPage() {
                                                             <UserCheck className="mr-2 h-4 w-4" />
                                                             Assign Main Order for Pickup
                                                         </DropdownMenuItem>
-                                                    )} */}
+                                                    )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -875,12 +875,12 @@ export default function BookingsPage() {
             </Card>
 
             {/* ASSIGN FORM */}
-            {/* <AssignBookingForm
+            <AssignBookingForm
                 open={showAssignForm}
                 onOpenChange={setShowAssignForm}
                 booking={selectedBooking}
                 onSuccess={() => fetchBookings(currentPage)}
-            /> */}
+            />
         </div>
     );
 }
