@@ -5,6 +5,7 @@ A professional, production-ready admin panel for Spinovo laundry services built 
 ## 🚀 Features
 
 ### Core Functionality
+
 - **Dashboard Overview** - Real-time metrics and analytics
 - **Customer Management** - Comprehensive customer profiles and history
 - **Booking Management** - Order tracking and assignment system
@@ -13,6 +14,7 @@ A professional, production-ready admin panel for Spinovo laundry services built 
 - **OTP Request Tracking** - SMS verification monitoring
 
 ### Production Features
+
 - **Security** - JWT authentication, CSRF protection, secure headers
 - **Error Handling** - Comprehensive error boundaries and logging
 - **Performance** - Optimized builds, lazy loading, caching
@@ -35,22 +37,26 @@ A professional, production-ready admin panel for Spinovo laundry services built 
 ## 📦 Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd spinovo-admin-panel
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Environment Setup**
+
    ```bash
    cp .env.example .env.local
    ```
-   
+
    Update the environment variables:
+
    ```env
    NEXT_PUBLIC_API_BASE_URL=https://api.spinovo.in/api/v1
    NEXT_PUBLIC_APP_NAME=Spinovo Admin Panel
@@ -131,10 +137,12 @@ NEXT_PUBLIC_ENABLE_DEBUG=false
 ## 📊 API Integration
 
 ### Authentication
+
 - **Login**: `POST /admin/auth/login`
 - **Profile**: `GET /admin/profile`
 
 ### Core Endpoints
+
 - **Dashboard**: `GET /admin/dashboard`
 - **Customers**: `GET /admin/customer/list`
 - **Bookings**: `GET /admin/booking/list`
@@ -142,6 +150,7 @@ NEXT_PUBLIC_ENABLE_DEBUG=false
 - **Transactions**: `GET /admin/customer/transactions`
 
 ### Error Handling
+
 - Automatic retry for network failures
 - Graceful degradation for API errors
 - User-friendly error messages

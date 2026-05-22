@@ -160,6 +160,17 @@ export default function TransactionsPage() {
       ),
       searchable: false,
     },
+
+    {
+      key: 'Last Balance',
+      header: 'Last Balance',
+      render: (transaction: Transaction) => (
+        <span className={'text-gray-600'}>
+          ₹{transaction.last_amount}
+        </span>
+      ),
+      searchable: false,
+    },
     {
       key: 'wallet_type',
       header: 'Wallet Type',

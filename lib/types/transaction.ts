@@ -5,6 +5,7 @@ export interface Transaction extends BaseEntity {
   transaction_id: string;
   wallet_type: string;
   amount: number;
+  last_amount: number;
   transaction_type: string;
   gateway_response: string;
   reason: string;

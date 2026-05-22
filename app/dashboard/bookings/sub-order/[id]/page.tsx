@@ -650,7 +650,7 @@ export default function SubOrderDetailsPage() {
                                 </div>
                             )}
                             {/* Extra garment pickup summary */}
-                            {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                            {/* {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
                                 <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-red-50 border border-red-600">
                                     <div className="flex items-center gap-2 text-sm font-medium text-red-700">
                                         <Shirt className="h-4 w-4 text-red-600" />
@@ -661,9 +661,9 @@ export default function SubOrderDetailsPage() {
                                         {(subOrder?.extra_garments_amount ?? 0).toLocaleString('en-IN')}
                                     </div>
                                 </div>
-                            )}
+                            )} */}
                             {/* Garment total summary */}
-                            {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                            {/* {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
                                 <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-red-50 border border-red-600">
                                     <div className="flex items-center gap-2 text-sm font-medium text-red-700">
                                         <Shirt className="h-4 w-4 text-red-600" />
@@ -674,9 +674,9 @@ export default function SubOrderDetailsPage() {
                                         {((subOrder?.garment_amount ?? 0) + (subOrder?.extra_garments_amount ?? 0)).toLocaleString('en-IN')}
                                     </div>
                                 </div>
-                            )}
+                            )} */}
 
-                            {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
+                            {/* {(subOrder?.extra_garments_amount ?? 0) > 0 && garment?.categorys?.length > 0 && (
                                 <Button
                                     variant="outline"
                                     className="w-full border-red-600 text-red-600 hover:bg-red-800 hover:text-red-100 bg-red-600 text-white"
@@ -685,7 +685,7 @@ export default function SubOrderDetailsPage() {
                                     <Shirt className="h-4 w-4 mr-2" />
                                     Update Garment
                                 </Button>
-                            )}
+                            )} */}
 
 
 
