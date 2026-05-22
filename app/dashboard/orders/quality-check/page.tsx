@@ -6,7 +6,6 @@ import {
     AlertCircle,
     Calendar,
     Eye,
-    MoreHorizontal,
     Package,
     RefreshCw,
     UserCheck,
@@ -25,13 +24,6 @@ import { AssignApiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PendingSubOrder } from '@/lib/types/process-assign';
 import { ProcessAssignForm } from '@/components/forms/process-assign-form';
@@ -201,7 +193,7 @@ function PaginationBar({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const COL_STYLE = 'grid gap-x-3 px-5 items-center' as const;
-const COL_TEMPLATE = { gridTemplateColumns: '1.8fr 1.4fr 72px 72px 80px 64px 130px 110px 130px 120px 48px' } as const;
+const COL_TEMPLATE = { gridTemplateColumns: '1.6fr 1fr 80px 80px 100px 60px 120px 130px 210px' } as const;
 
 export default function QualityCheckPendingPage() {
     const [subOrders, setSubOrders] = useState<PendingSubOrder[]>([]);
@@ -325,7 +317,7 @@ export default function QualityCheckPendingPage() {
                         {/* <div>Delivery Date</div> */}
                         {/* <div>Delivery Time</div> */}
                         <div>Status</div>
-                        <div className="text-right">Action</div>
+                        <div className="text-right pr-1">Action</div>
                     </div>
 
                     {/* LOADING */}
@@ -373,7 +365,7 @@ export default function QualityCheckPendingPage() {
                                         <div className="text-sm font-semibold">{sub.no_of_garments_picked}</div>
 
                                         {/*Extra Amount*/}
-                                        <div className="text-sm font-semibold">{sub.extra_garments_amount}</div>
+                                        <div className="text-sm font-semibold">{sub.extra_garments_amount ? Number(sub.extra_garments_amount).toFixed(2) : '—'}</div>
 
                                         {/* Bag */}
                                         <div className="text-sm text-muted-foreground">{sub.no_of_bag > 0 ? sub.no_of_bag : '—'}</div>
@@ -404,36 +396,13 @@ export default function QualityCheckPendingPage() {
                                         </div>
 
                                         {/* Action */}
-                                        <div className="flex justify-end">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end" className="w-48">
-                                                    <DropdownMenuItem onClick={() => router.push(`/dashboard/bookings/${sub.order_id}`)}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        Order Details
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => router.push(`/dashboard/orders/quality-check/update/${sub._id}`)}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        Garment Check
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    {/* <DropdownMenuItem
-                                                        className="text-primary font-medium"
-                                                        onClick={() => {
-                                                            setSelectedOrderId(sub.order_id);
-                                                            setSelectedSubOrderId(sub._id);
-                                                            setShowAssignForm(true);
-                                                        }}
-                                                    >
-                                                        <UserCheck className="mr-2 h-4 w-4" />
-                                                        Assign Process
-                                                    </DropdownMenuItem> */}
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                        <div className="flex justify-end gap-1">
+                                            <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]" onClick={() => router.push(`/dashboard/bookings/${sub.order_id}`)}>
+                                                <Eye className="mr-1 h-2.5 w-2.5" /> Order Details
+                                            </Button>
+                                            <Button size="sm" variant="default" className="h-6 px-2 text-[10px]" onClick={() => router.push(`/dashboard/orders/quality-check/update/${sub._id}`)}>
+                                                <Eye className="mr-1 h-2.5 w-2.5" /> Garment Check
+                                            </Button>
                                         </div>
                                     </div>
 
