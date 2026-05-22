@@ -373,7 +373,7 @@ export default function QualityCheckPendingPage() {
                                         {/* Service time */}
                                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                             <Clock className="h-3.5 w-3.5 shrink-0" />
-                                            {sub.booking_time || '—'}
+                                            {sub.service_duration_hours || '—'}
                                         </div>
 
                                         {/* Delivery Date */}
