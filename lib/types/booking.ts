@@ -26,8 +26,7 @@ export interface SubOrder extends BaseEntity {
   no_of_garments_processed: number;
   no_of_garments_delivered: number;
   extra_garments_amount: number;
-
-
+  quality_check: boolean;
 }
 
 export interface Booking extends BaseEntity {
@@ -63,6 +62,52 @@ export interface Booking extends BaseEntity {
   no_of_garemtn_processed: number;
   no_of_garemtn_delivered: number;
   sub_orders?: SubOrder[];
+}
+
+export interface PendingQCOrder {
+  _id: string;
+  customer_id: string;
+  order_no: number;
+  order_display_no: string;
+  order_stage_id: number;
+  order_type: string;
+  service_id: number;
+  service_name: string;
+  garment_qty: number;
+  garment_original_amount: number;
+  garment_discount_amount: number;
+  delivery_charge: number;
+  offer_code: string;
+  offer_id: string;
+  offer_amount: number;
+  order_amount: number;
+  order_details: any;
+  slot_charges: number;
+  handling_charges: number;
+  service_charges: number;
+  tip_amount: number;
+  total_billing: number;
+  unpaid_amount: number;
+  quality_check: boolean;
+  payment_mode: string;
+  payment_status: string;
+  transaction_id: string;
+  booking_date: string;
+  booking_time: string;
+  address_id: string;
+  no_of_garments_picked: number;
+  no_of_garments_processed: number;
+  no_of_garments_delivered: number;
+  ord_status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PendingQCListData {
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  Orders: PendingQCOrder[];
 }
 
 export interface BookingListData {
@@ -114,6 +159,29 @@ export interface ServiceCategoryData {
     duration: string;
     category_list: CategoryItem[];
   };
+}
+
+export interface FullServiceCategory {
+  _id: string;
+  service_id: number;
+  service: string;
+  min_qty: number;
+  original: number;
+  discounted: number;
+  service_duration_hours: number;
+  duration: string;
+  description: string;
+  prices_by_qty: { qty: number }[];
+  category_list: CategoryItem[];
+}
+
+export interface ServiceCategoryListData {
+  service: FullServiceCategory[];
+}
+
+export interface MainOrderDetailsData {
+  order: PendingQCOrder;
+  subOrders: SubOrder[];
 }
 
 // import { BaseEntity } from './index';

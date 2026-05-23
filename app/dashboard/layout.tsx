@@ -59,7 +59,9 @@ const navigation = [
   { name: 'Pickup Pending', href: '/dashboard/orders/pickup-pending', icon: UserCheck },
   { name: 'Pickup Assigned', href: '/dashboard/orders/pickup-assigned', icon: UserCheck },
 
-  { name: 'Quality Check (Pickup Completed)', href: '/dashboard/orders/quality-check', icon: UserCheck },
+  { name: 'Quality Check (V2)', href: '/dashboard/orders/quality-check/v2', icon: UserCheck },
+
+  { name: 'Quality Check', href: '/dashboard/orders/quality-check', icon: UserCheck },
 
   { name: 'Process Pending', href: '/dashboard/orders/process-pending', icon: UserCheck },
   { name: 'Process Assigned', href: '/dashboard/orders/process-assigned', icon: UserCheck },

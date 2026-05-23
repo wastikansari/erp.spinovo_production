@@ -5,7 +5,10 @@ import {
   BookingDetailsData,
   SubOrderDetailsData,
   ServiceCategoryData,
+  ServiceCategoryListData,
+  MainOrderDetailsData,
   UpdateGarmentRequest,
+  PendingQCListData,
 } from '../types/booking';
 import { API_URL } from '../config/constants';
 import { AuthService } from '../auth';
@@ -21,6 +24,17 @@ export class BookingApiService extends BaseApiService {
       {
         method: 'GET',
       }
+    );
+  }
+
+  // PENDING QUALITY CHECK MAIN ORDERS
+  static async getPendingQualityCheckOrders(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<ApiResponse<PendingQCListData>> {
+    return this.makeRequest<PendingQCListData>(
+      `/admin/order/quality-check/mainorder/pending?page=${page}&limit=${limit}`,
+      { method: 'GET' }
     );
   }
 
@@ -53,6 +67,25 @@ export class BookingApiService extends BaseApiService {
       {
         method: 'GET',
       }
+    );
+  }
+
+  // FULL SERVICE + CATEGORY LIST
+  static async getServiceCategoryList(): Promise<ApiResponse<ServiceCategoryListData>> {
+    return this.makeRequest<ServiceCategoryListData>(
+      '/admin/service/category',
+      { method: 'GET' }
+    );
+  }
+
+  // MAIN ORDER DETAILS (order + subOrders)
+  static async getMainOrderDetails(
+    orderId: string
+  ): Promise<ApiResponse<MainOrderDetailsData>> {
+    if (!orderId) throw new Error('Invalid order id');
+    return this.makeRequest<MainOrderDetailsData>(
+      `/admin/order/details/${orderId}`,
+      { method: 'GET' }
     );
   }
 

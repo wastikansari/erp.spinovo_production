@@ -309,7 +309,8 @@ export default function SubOrderDetailsPage() {
             (s, c) => s + (garmentEdits[c.category_id] ?? 0) * Number(c.price),
             0
         );
-        const unpaid_amount = Math.max(0, newTotal - (subOrder?.garment_amount ?? 0));
+        // negative = wallet credit back to customer, positive = customer owes more
+        const unpaid_amount = newTotal - (subOrder?.garment_amount ?? 0);
         try {
             setSaveLoading(true);
             setSaveError('');
@@ -677,7 +678,7 @@ export default function SubOrderDetailsPage() {
                                                                 (s, c) => s + (garmentEdits[c.category_id] ?? 0) * Number(c.price),
                                                                 0
                                                             );
-                                                            const unpaid = Math.max(0, totalAmt - (data?.subOrder?.garment_amount ?? 0));
+                                                            const unpaid = totalAmt - (data?.subOrder?.garment_amount ?? 0);
                                                             return (
                                                                 <div className="rounded-xl border bg-muted/30 px-4 py-3 space-y-1.5">
                                                                     <div className="flex justify-between text-xs">
@@ -692,6 +693,12 @@ export default function SubOrderDetailsPage() {
                                                                         <div className="flex justify-between text-xs border-t pt-1.5">
                                                                             <span className="text-orange-600">Additional unpaid amount</span>
                                                                             <span className="font-bold text-orange-600">₹{unpaid.toLocaleString('en-IN')}</span>
+                                                                        </div>
+                                                                    )}
+                                                                    {unpaid < 0 && (
+                                                                        <div className="flex justify-between text-xs border-t pt-1.5">
+                                                                            <span className="text-green-600 font-medium">Wallet credit (refund)</span>
+                                                                            <span className="font-bold text-green-600">₹{Math.abs(unpaid).toLocaleString('en-IN')}</span>
                                                                         </div>
                                                                     )}
                                                                 </div>
