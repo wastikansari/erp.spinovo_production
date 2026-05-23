@@ -29,6 +29,9 @@ import {
     Truck,
     Zap,
     Wallet,
+    Trash2,
+    PlusCircle,
+    X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -168,6 +171,12 @@ function QCUpdateContent() {
     const [qcError, setQcError] = useState('');
     const [showQcConfirm, setShowQcConfirm] = useState(false);
 
+    const [showAddServicePanel, setShowAddServicePanel] = useState(false);
+    const [addingServiceId, setAddingServiceId] = useState<number | null>(null);
+    const [removingSubOrder, setRemovingSubOrder] = useState<SubOrder | null>(null);
+    const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+    const [removeLoading, setRemoveLoading] = useState(false);
+
     const fetchData = useCallback(async () => {
         if (!orderId) {
             setError('No order ID provided');
@@ -226,7 +235,12 @@ function QCUpdateContent() {
     const activeEdits: Record<number, number> = garmentEdits[activeServiceId ?? -1] ?? {};
     const totalActiveQty = Object.values(activeEdits).reduce((s, q) => s + q, 0);
     const pickedLimit = activeSubOrder?.no_of_garments_picked ?? 0;
-    const isFull = totalActiveQty === pickedLimit;
+    const isFull = totalActiveQty === pickedLimit; // display-only, does not gate saves
+
+    // Services from the catalogue not yet added to this order
+    const availableServices = serviceList.filter(
+        (svc) => !orderData?.subOrders.some((sub) => parseInt(sub.service_id) === svc.service_id)
+    );
 
     const adjustQty = (categoryId: number, delta: number) => {
         if (activeServiceId === null) return;
@@ -234,10 +248,6 @@ function QCUpdateContent() {
             const serviceEdits = prev[activeServiceId] ?? {};
             const current = serviceEdits[categoryId] ?? 0;
             const newQty = Math.max(0, current + delta);
-            const totalWithout = Object.entries(serviceEdits)
-                .filter(([k]) => parseInt(k) !== categoryId)
-                .reduce((s, [, q]) => s + q, 0);
-            if (totalWithout + newQty > pickedLimit) return prev;
             return { ...prev, [activeServiceId]: { ...serviceEdits, [categoryId]: newQty } };
         });
     };
@@ -245,6 +255,35 @@ function QCUpdateContent() {
     const removeAll = () => {
         if (activeServiceId === null) return;
         setGarmentEdits((prev) => ({ ...prev, [activeServiceId]: {} }));
+    };
+
+    const handleAddService = async (serviceId: number) => {
+        if (!order) return;
+        setAddingServiceId(serviceId);
+        try {
+            // TODO: wire up actual endpoint — e.g. BookingApiService.addServiceToOrder(order._id, serviceId)
+            toast({ title: 'Feature coming soon', description: 'Connect the add-service API endpoint.' });
+        } catch (err: any) {
+            toast({ variant: 'destructive', title: 'Error', description: err.message });
+        } finally {
+            setAddingServiceId(null);
+            setShowAddServicePanel(false);
+        }
+    };
+
+    const handleRemoveService = async () => {
+        if (!removingSubOrder) return;
+        setRemoveLoading(true);
+        try {
+            // TODO: wire up actual endpoint — e.g. BookingApiService.removeSubOrder(removingSubOrder._id)
+            toast({ title: 'Feature coming soon', description: 'Connect the remove-service API endpoint.' });
+            setShowRemoveConfirm(false);
+            setRemovingSubOrder(null);
+        } catch (err: any) {
+            toast({ variant: 'destructive', title: 'Error', description: err.message });
+        } finally {
+            setRemoveLoading(false);
+        }
     };
 
     const handleSave = async () => {
@@ -355,9 +394,9 @@ function QCUpdateContent() {
 
     const saveNewTotal = activeService
         ? activeService.category_list.reduce(
-              (s, c) => s + (activeEdits[c.category_id] ?? 0) * Number(c.price),
-              0
-          )
+            (s, c) => s + (activeEdits[c.category_id] ?? 0) * Number(c.price),
+            0
+        )
         : 0;
     const saveUnpaid = saveNewTotal - (activeSubOrder?.garment_amount ?? 0);
 
@@ -610,20 +649,17 @@ function QCUpdateContent() {
                         </div>
 
                         {/* Unpaid */}
-                        <div className={`px-5 py-2.5 flex items-center justify-between border-t ${
-                            (order?.unpaid_amount ?? 0) > 0
+                        <div className={`px-5 py-2.5 flex items-center justify-between border-t ${(order?.unpaid_amount ?? 0) > 0
                                 ? 'bg-red-50'
                                 : 'bg-muted/10'
-                        }`}>
-                            <span className={`text-xs font-medium flex items-center gap-2 ${
-                                (order?.unpaid_amount ?? 0) > 0 ? 'text-red-600' : 'text-muted-foreground'
                             }`}>
+                            <span className={`text-xs font-medium flex items-center gap-2 ${(order?.unpaid_amount ?? 0) > 0 ? 'text-red-600' : 'text-muted-foreground'
+                                }`}>
                                 <Wallet className="h-3.5 w-3.5" />
                                 Unpaid Amount
                             </span>
-                            <span className={`text-xs font-bold flex items-center gap-0.5 ${
-                                (order?.unpaid_amount ?? 0) > 0 ? 'text-red-600' : 'text-muted-foreground'
-                            }`}>
+                            <span className={`text-xs font-bold flex items-center gap-0.5 ${(order?.unpaid_amount ?? 0) > 0 ? 'text-red-600' : 'text-muted-foreground'
+                                }`}>
                                 <IndianRupee className="h-3 w-3" />
                                 {order?.unpaid_amount?.toLocaleString('en-IN') ?? 0}
                             </span>
@@ -638,11 +674,29 @@ function QCUpdateContent() {
                 {/* ── Left: Service Panel ── */}
                 <Card className="rounded-2xl shadow-sm xl:sticky xl:top-4">
                     <CardHeader className="pb-3 border-b">
-                        <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                            Services
-                        </CardTitle>
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                                Services
+                            </CardTitle>
+                            {availableServices.length > 0 && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2 text-xs text-primary hover:text-primary"
+                                    onClick={() => setShowAddServicePanel((v) => !v)}
+                                >
+                                    {showAddServicePanel ? (
+                                        <X className="h-3.5 w-3.5 mr-1" />
+                                    ) : (
+                                        <PlusCircle className="h-3.5 w-3.5 mr-1" />
+                                    )}
+                                    {showAddServicePanel ? 'Close' : 'Add'}
+                                </Button>
+                            )}
+                        </div>
                     </CardHeader>
                     <CardContent className="p-2">
+                        {/* Existing sub-orders */}
                         {orderData?.subOrders.map((sub) => {
                             const sid = parseInt(sub.service_id);
                             const isActive = sid === activeServiceId;
@@ -651,54 +705,104 @@ function QCUpdateContent() {
                             const assignedQty = Object.values(edits).reduce((s, q) => s + q, 0);
 
                             return (
-                                <button
-                                    key={sid}
-                                    onClick={() => {
-                                        setActiveServiceId(sid);
-                                        setSaveError('');
-                                        setQcError('');
-                                    }}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors group ${
-                                        isActive
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'hover:bg-muted/60 text-foreground'
-                                    }`}
-                                >
-                                    <span
-                                        className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                            isActive ? 'bg-white/20' : `${meta.bg}`
-                                        }`}
+                                <div key={sid} className="flex items-center group">
+                                    <button
+                                        onClick={() => {
+                                            setActiveServiceId(sid);
+                                            setSaveError('');
+                                            setQcError('');
+                                        }}
+                                        className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${isActive
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'hover:bg-muted/60 text-foreground'
+                                            }`}
                                     >
-                                        <span className={isActive ? 'text-white' : meta.color}>
-                                            {meta.icon}
-                                        </span>
-                                    </span>
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`text-sm font-medium truncate ${isActive ? 'text-primary-foreground' : ''}`}>
-                                            {sub.service_name}
-                                        </p>
-                                        <p className={`text-xs truncate ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                                            {sub.no_of_garments_picked} picked
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                        {sub.quality_check ? (
-                                            <CheckCircle2 className={`h-4 w-4 ${isActive ? 'text-green-300' : 'text-green-500'}`} />
-                                        ) : assignedQty > 0 ? (
-                                            <span
-                                                className={`h-5 min-w-5 px-1 rounded-full text-xs font-bold flex items-center justify-center ${
-                                                    isActive
-                                                        ? 'bg-white/20 text-white'
-                                                        : 'bg-primary/10 text-primary'
+                                        <span
+                                            className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : meta.bg
                                                 }`}
-                                            >
-                                                {assignedQty}
+                                        >
+                                            <span className={isActive ? 'text-white' : meta.color}>
+                                                {meta.icon}
                                             </span>
-                                        ) : null}
-                                    </div>
-                                </button>
+                                        </span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-medium truncate ${isActive ? 'text-primary-foreground' : ''}`}>
+                                                {sub.service_name}
+                                            </p>
+                                            <p className={`text-xs truncate ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                                                {sub.no_of_garments_picked} picked
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            {sub.quality_check ? (
+                                                <CheckCircle2 className={`h-4 w-4 ${isActive ? 'text-green-300' : 'text-green-500'}`} />
+                                            ) : assignedQty > 0 ? (
+                                                <span className={`h-5 min-w-5 px-1 rounded-full text-xs font-bold flex items-center justify-center ${isActive ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
+                                                    }`}>
+                                                    {assignedQty}
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                    </button>
+                                    {/* Remove service button */}
+                                    {!sub.quality_check && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 ml-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setRemovingSubOrder(sub);
+                                                setShowRemoveConfirm(true);
+                                            }}
+                                        >
+                                            <Trash2 className="h-3.5 w-3.5" />
+                                        </Button>
+                                    )}
+                                </div>
                             );
                         })}
+
+                        {/* Add Service panel */}
+                        {showAddServicePanel && availableServices.length > 0 && (
+                            <div className="mt-2 border-t pt-2 space-y-1">
+                                <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                                    Available to Add
+                                </p>
+                                {availableServices.map((svc) => {
+                                    const meta = SERVICE_META[resolveServiceKey(svc.service)];
+                                    const isAdding = addingServiceId === svc.service_id;
+                                    return (
+                                        <div
+                                            key={svc.service_id}
+                                            className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-muted/40"
+                                        >
+                                            <span className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${meta.bg}`}>
+                                                <span className={meta.color}>{meta.icon}</span>
+                                            </span>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium truncate">{svc.service}</p>
+                                                <p className="text-xs text-muted-foreground truncate">{svc.duration}</p>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-7 px-2 text-xs shrink-0"
+                                                disabled={isAdding}
+                                                onClick={() => handleAddService(svc.service_id)}
+                                            >
+                                                {isAdding ? (
+                                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                                ) : (
+                                                    <PlusCircle className="h-3 w-3 mr-1" />
+                                                )}
+                                                Add
+                                            </Button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
 
@@ -740,17 +844,11 @@ function QCUpdateContent() {
                                         Garment Categories
                                     </CardTitle>
                                     <div className="flex items-center gap-3">
-                                        {/* Quota pill */}
-                                        <span
-                                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-                                                isFull
-                                                    ? 'bg-green-50 text-green-700 border-green-200'
-                                                    : 'bg-amber-50 text-amber-700 border-amber-200'
-                                            }`}
-                                        >
+                                        {/* Quota pill — informational only */}
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border bg-muted/50 text-muted-foreground border-border">
                                             <Shirt className="h-3 w-3" />
-                                            {totalActiveQty} / {pickedLimit}
-                                            {isFull && <CheckCircle2 className="h-3 w-3" />}
+                                            {totalActiveQty} assigned
+                                            {isFull && <CheckCircle2 className="h-3 w-3 text-green-600" />}
                                         </span>
                                         <Button
                                             variant="ghost"
@@ -776,15 +874,13 @@ function QCUpdateContent() {
                             <CardContent className="p-0">
                                 {activeService.category_list.map((cat: CategoryItem, idx: number) => {
                                     const qty = activeEdits[cat.category_id] ?? 0;
-                                    const isAtLimit = totalActiveQty >= pickedLimit;
                                     const rowAmount = qty * Number(cat.price);
 
                                     return (
                                         <div
                                             key={cat.category_id}
-                                            className={`grid grid-cols-1 sm:grid-cols-[1fr_80px_120px_100px] gap-4 items-center px-5 py-3.5 border-b last:border-b-0 transition-colors ${
-                                                qty > 0 ? 'bg-primary/3' : ''
-                                            } ${idx % 2 === 0 && qty === 0 ? 'bg-muted/10' : ''}`}
+                                            className={`grid grid-cols-1 sm:grid-cols-[1fr_80px_120px_100px] gap-4 items-center px-5 py-3.5 border-b last:border-b-0 transition-colors ${qty > 0 ? 'bg-primary/3' : ''
+                                                } ${idx % 2 === 0 && qty === 0 ? 'bg-muted/10' : ''}`}
                                         >
                                             {/* Category info */}
                                             <div className="min-w-0">
@@ -814,9 +910,8 @@ function QCUpdateContent() {
                                                     <Minus className="h-3 w-3" />
                                                 </Button>
                                                 <span
-                                                    className={`w-8 text-center font-bold text-sm ${
-                                                        qty > 0 ? 'text-primary' : 'text-muted-foreground'
-                                                    }`}
+                                                    className={`w-8 text-center font-bold text-sm ${qty > 0 ? 'text-primary' : 'text-muted-foreground'
+                                                        }`}
                                                 >
                                                     {qty}
                                                 </span>
@@ -824,7 +919,6 @@ function QCUpdateContent() {
                                                     variant="outline"
                                                     size="icon"
                                                     className="h-7 w-7 rounded-lg shrink-0"
-                                                    disabled={isAtLimit}
                                                     onClick={() => adjustQty(cat.category_id, 1)}
                                                 >
                                                     <Plus className="h-3 w-3" />
@@ -891,20 +985,11 @@ function QCUpdateContent() {
                                     </Alert>
                                 )}
 
-                                {!isFull && (
-                                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-sm">
-                                        <AlertCircle className="h-4 w-4 shrink-0" />
-                                        {totalActiveQty < pickedLimit
-                                            ? `Assign ${pickedLimit - totalActiveQty} more garment${pickedLimit - totalActiveQty !== 1 ? 's' : ''} to enable actions (${totalActiveQty}/${pickedLimit})`
-                                            : `Too many garments — reduce by ${totalActiveQty - pickedLimit}`}
-                                    </div>
-                                )}
-
                                 <div className="flex flex-col sm:flex-row gap-2">
                                     <Button
                                         variant="outline"
                                         className="flex-1"
-                                        disabled={!isFull || saving}
+                                        disabled={saving}
                                         onClick={() => setShowSaveConfirm(true)}
                                     >
                                         {saving ? (
@@ -916,7 +1001,7 @@ function QCUpdateContent() {
                                     </Button>
                                     <Button
                                         className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                                        disabled={!isFull || qcLoading}
+                                        disabled={qcLoading}
                                         onClick={() => setShowQcConfirm(true)}
                                     >
                                         {qcLoading ? (
@@ -983,6 +1068,48 @@ function QCUpdateContent() {
                         <AlertDialogAction disabled={saving} onClick={handleSave}>
                             {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                             Save
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* ── Remove Service Confirm Dialog ── */}
+            <AlertDialog open={showRemoveConfirm} onOpenChange={setShowRemoveConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <Trash2 className="h-5 w-5 text-destructive" />
+                            Remove Service
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div className="space-y-2 text-sm text-muted-foreground">
+                                <p>
+                                    Remove{' '}
+                                    <span className="font-semibold text-foreground">
+                                        {removingSubOrder?.service_name}
+                                    </span>{' '}
+                                    ({removingSubOrder?.sub_order_no}) from this order?
+                                </p>
+                                <p className="font-medium text-destructive">
+                                    This action cannot be undone.
+                                </p>
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            disabled={removeLoading}
+                            onClick={() => setRemovingSubOrder(null)}
+                        >
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive hover:bg-destructive/90 text-white"
+                            disabled={removeLoading}
+                            onClick={handleRemoveService}
+                        >
+                            {removeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Yes, Remove
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
