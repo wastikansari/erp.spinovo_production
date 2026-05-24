@@ -184,6 +184,14 @@ export interface MainOrderDetailsData {
   subOrders: SubOrder[];
 }
 
+export interface AddServiceRequest {
+  order_id: string;
+  service_id: number;
+  garment_details: string;
+  garment_qty: number;
+  garment_amount: number;
+}
+
 // import { BaseEntity } from './index';
 
 // export interface Booking extends BaseEntity {

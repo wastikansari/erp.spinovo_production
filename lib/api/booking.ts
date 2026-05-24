@@ -8,7 +8,9 @@ import {
   ServiceCategoryListData,
   MainOrderDetailsData,
   UpdateGarmentRequest,
+  AddServiceRequest,
   PendingQCListData,
+  PendingQCOrder,
 } from '../types/booking';
 import { API_URL } from '../config/constants';
 import { AuthService } from '../auth';
@@ -86,6 +88,28 @@ export class BookingApiService extends BaseApiService {
     return this.makeRequest<MainOrderDetailsData>(
       `/admin/order/details/${orderId}`,
       { method: 'GET' }
+    );
+  }
+
+  // MAIN ORDER QC COMPLETED
+  static async orderQcCompleted(orderId: string): Promise<ApiResponse<PendingQCOrder>> {
+    if (!orderId) throw new Error('Invalid order id');
+    return this.makeRequest<PendingQCOrder>(
+      `${API_URL.ORDER_QC_COMPLETED}/${orderId}`,
+      { method: 'GET' }
+    );
+  }
+
+  // ADD NEW SERVICE WITH GARMENT DETAILS TO AN EXISTING ORDER
+  static async addServiceWithGarments(
+    payload: AddServiceRequest
+  ): Promise<ApiResponse<unknown>> {
+    return this.makeRequest(
+      `${API_URL.ADD_SERVICE}/${payload.order_id}`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ garment_details: payload.garment_details }),
+      }
     );
   }
 

@@ -28,6 +28,8 @@ export const API_URL = {
   DELIVERY_LIST: '/admin/order/delivery/assigned/list',
   DELIVERY_SUBORDER_PENDING: '/admin/order/delivery/suborder/pending',
   QUALITY_CHECK_COMPLETED: '/admin/order/quality-check/suborder/completed',
+  ORDER_QC_COMPLETED: '/admin/order/qc/completed',
+  ADD_SERVICE: '/admin/order/update/addService',
   GARMENT_UPDATE: '/admin/suborder/garment/update',
 
 

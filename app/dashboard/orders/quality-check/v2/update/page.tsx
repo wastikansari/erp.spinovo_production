@@ -54,6 +54,7 @@ import {
     MainOrderDetailsData,
     SubOrder,
     CategoryItem,
+    AddServiceRequest,
 } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -172,10 +173,17 @@ function QCUpdateContent() {
     const [showQcConfirm, setShowQcConfirm] = useState(false);
 
     const [showAddServicePanel, setShowAddServicePanel] = useState(false);
-    const [addingServiceId, setAddingServiceId] = useState<number | null>(null);
     const [removingSubOrder, setRemovingSubOrder] = useState<SubOrder | null>(null);
     const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
     const [removeLoading, setRemoveLoading] = useState(false);
+
+    const [addSaving, setAddSaving] = useState(false);
+    const [addSaveError, setAddSaveError] = useState('');
+    const [showAddSaveConfirm, setShowAddSaveConfirm] = useState(false);
+
+    const [mainQcLoading, setMainQcLoading] = useState(false);
+    const [mainQcError, setMainQcError] = useState('');
+    const [showMainQcConfirm, setShowMainQcConfirm] = useState(false);
 
     const fetchData = useCallback(async () => {
         if (!orderId) {
@@ -257,17 +265,54 @@ function QCUpdateContent() {
         setGarmentEdits((prev) => ({ ...prev, [activeServiceId]: {} }));
     };
 
-    const handleAddService = async (serviceId: number) => {
-        if (!order) return;
-        setAddingServiceId(serviceId);
+    // Selecting an available service opens it in the category editor
+    const handleAddService = (serviceId: number) => {
+        setActiveServiceId(serviceId);
+        setShowAddServicePanel(false);
+        setAddSaveError('');
+        setSaveError('');
+        setQcError('');
+    };
+
+    const handleAddServiceAndSave = async () => {
+        if (!activeService || !order) return;
+        const updatedCategorys = activeService.category_list
+            .filter((cat) => (activeEdits[cat.category_id] ?? 0) > 0)
+            .map((cat) => ({
+                category_id: cat.category_id,
+                category: cat.category,
+                types_of_Clothes: cat.types_of_Clothes,
+                category_prices: cat.price,
+                items: activeEdits[cat.category_id],
+            }));
+        const garmentDetails = JSON.stringify({
+            service_id: activeService.service_id,
+            service: activeService.service,
+            duration: activeService.duration,
+            description: activeService.description,
+            categorys: updatedCategorys,
+        });
+        const garmentQty = Object.values(activeEdits).reduce((s, q) => s + q, 0);
+        const garmentAmount = activeService.category_list.reduce((s, c) => s + (activeEdits[c.category_id] ?? 0) * Number(c.price), 0);
+        const payload: AddServiceRequest = {
+            order_id: order._id,
+            service_id: activeService.service_id,
+            garment_details: garmentDetails,
+            garment_qty: garmentQty,
+            garment_amount: garmentAmount,
+        };
         try {
-            // TODO: wire up actual endpoint — e.g. BookingApiService.addServiceToOrder(order._id, serviceId)
-            toast({ title: 'Feature coming soon', description: 'Connect the add-service API endpoint.' });
+            setAddSaving(true);
+            setAddSaveError('');
+            await BookingApiService.addServiceWithGarments(payload);
+            setShowAddSaveConfirm(false);
+            toast({ title: 'Service Added', description: `${activeService.service} added to order` });
+            setActiveServiceId(null);
+            await fetchData();
         } catch (err: any) {
-            toast({ variant: 'destructive', title: 'Error', description: err.message });
+            setAddSaveError(err.message || 'Failed to add service');
         } finally {
-            setAddingServiceId(null);
-            setShowAddServicePanel(false);
+            setAddSaving(false);
         }
     };
 
@@ -354,6 +399,25 @@ function QCUpdateContent() {
             setQcError(err.message || 'Failed to complete quality check');
         } finally {
             setQcLoading(false);
+        }
+    };
+
+    const handleMainOrderQcDone = async () => {
+        try {
+            setMainQcLoading(true);
+            setMainQcError('');
+            const res = await BookingApiService.orderQcCompleted(orderId);
+            if (res.status) {
+                setShowMainQcConfirm(false);
+                toast({ title: 'Order QC Completed', description: res.msg || 'Main order quality check completed and settlement done.' });
+                await fetchData();
+            } else {
+                setMainQcError((res as any).msg || 'Failed to complete order quality check');
+            }
+        } catch (err: any) {
+            setMainQcError(err.message || 'Failed to complete order quality check');
+        } finally {
+            setMainQcLoading(false);
         }
     };
 
@@ -480,6 +544,50 @@ function QCUpdateContent() {
                     </Card>
                 ))}
             </div>
+
+            {/* ── Main Order QC Banner ── */}
+            {order?.quality_check ? (
+                <Card className="rounded-2xl shadow-sm border-green-200">
+                    <CardContent className="p-4 flex items-center gap-3 bg-green-50 rounded-2xl">
+                        <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
+                        <div className="flex-1">
+                            <p className="font-semibold text-green-800 text-sm">Main Order QC Completed</p>
+                            <p className="text-xs text-green-600 mt-0.5">Quality check and settlement have been finalized for this order.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : allQcDone ? (
+                <Card className="rounded-2xl shadow-sm border-amber-200">
+                    <CardContent className="p-4 bg-amber-50 rounded-2xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+                                <CheckCircle2 className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-amber-800 text-sm">All sub-order QCs completed</p>
+                                <p className="text-xs text-amber-600 mt-0.5">
+                                    Finalize the main order quality check to complete settlement.
+                                </p>
+                            </div>
+                            {mainQcError && (
+                                <p className="text-xs text-destructive font-medium">{mainQcError}</p>
+                            )}
+                            <Button
+                                className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
+                                disabled={mainQcLoading}
+                                onClick={() => setShowMainQcConfirm(true)}
+                            >
+                                {mainQcLoading ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                                )}
+                                Complete Order QC
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : null}
 
             {/* ── Order Details + Billing ── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -650,8 +758,8 @@ function QCUpdateContent() {
 
                         {/* Unpaid */}
                         <div className={`px-5 py-2.5 flex items-center justify-between border-t ${(order?.unpaid_amount ?? 0) > 0
-                                ? 'bg-red-50'
-                                : 'bg-muted/10'
+                            ? 'bg-red-50'
+                            : 'bg-muted/10'
                             }`}>
                             <span className={`text-xs font-medium flex items-center gap-2 ${(order?.unpaid_amount ?? 0) > 0 ? 'text-red-600' : 'text-muted-foreground'
                                 }`}>
@@ -678,7 +786,7 @@ function QCUpdateContent() {
                             <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
                                 Services
                             </CardTitle>
-                            {availableServices.length > 0 && (
+                            {/* {availableServices.length > 0 && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -692,7 +800,7 @@ function QCUpdateContent() {
                                     )}
                                     {showAddServicePanel ? 'Close' : 'Add'}
                                 </Button>
-                            )}
+                            )} */}
                         </div>
                     </CardHeader>
                     <CardContent className="p-2">
@@ -713,10 +821,9 @@ function QCUpdateContent() {
                                             setQcError('');
                                         }}
                                         className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${isActive
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'hover:bg-muted/60 text-foreground'
-                                            }`}
-                                    >
+                                            ? 'bg-primary text-primary-foreground'
+                                            : 'hover:bg-muted/60 text-foreground'
+                                            }`}>
                                         <span
                                             className={`h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${isActive ? 'bg-white/20' : meta.bg
                                                 }`}
@@ -764,45 +871,45 @@ function QCUpdateContent() {
                         })}
 
                         {/* Add Service panel */}
-                        {showAddServicePanel && availableServices.length > 0 && (
-                            <div className="mt-2 border-t pt-2 space-y-1">
-                                <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                                    Available to Add
-                                </p>
-                                {availableServices.map((svc) => {
-                                    const meta = SERVICE_META[resolveServiceKey(svc.service)];
-                                    const isAdding = addingServiceId === svc.service_id;
-                                    return (
-                                        <div
-                                            key={svc.service_id}
-                                            className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-muted/40"
-                                        >
-                                            <span className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${meta.bg}`}>
-                                                <span className={meta.color}>{meta.icon}</span>
+                        {/* {showAddServicePanel && availableServices.length > 0 && ( */}
+                        <div className="mt-2 border-t pt-2 space-y-1">
+                            <p className="px-3 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                                Available to Add
+                            </p>
+                            {availableServices.map((svc) => {
+                                const meta = SERVICE_META[resolveServiceKey(svc.service)];
+                                const isSelected = activeServiceId === svc.service_id && !activeSubOrder;
+                                return (
+                                    <button
+                                        key={svc.service_id}
+                                        onClick={() => handleAddService(svc.service_id)}
+                                        className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-left transition-colors ${isSelected
+                                            ? 'bg-primary/10 border border-primary/30'
+                                            : 'hover:bg-muted/40'
+                                            }`}
+                                    >
+                                        <span className={`h-7 w-7 rounded-lg flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary/20' : meta.bg
+                                            }`}>
+                                            <span className={isSelected ? 'text-primary' : meta.color}>
+                                                {meta.icon}
                                             </span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium truncate">{svc.service}</p>
-                                                <p className="text-xs text-muted-foreground truncate">{svc.duration}</p>
-                                            </div>
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-7 px-2 text-xs shrink-0"
-                                                disabled={isAdding}
-                                                onClick={() => handleAddService(svc.service_id)}
-                                            >
-                                                {isAdding ? (
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                ) : (
-                                                    <PlusCircle className="h-3 w-3 mr-1" />
-                                                )}
-                                                Add
-                                            </Button>
+                                        </span>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : ''}`}>
+                                                {svc.service}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground truncate">{svc.duration}</p>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                        {isSelected ? (
+                                            <span className="text-xs font-semibold text-primary shrink-0">Editing</span>
+                                        ) : (
+                                            <PlusCircle className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {/* )} */}
                     </CardContent>
                 </Card>
 
@@ -827,6 +934,11 @@ function QCUpdateContent() {
                                     {activeSubOrder?.quality_check && (
                                         <Badge className="bg-green-100 text-green-700 border-green-200 border shrink-0">
                                             <CheckCircle2 className="h-3 w-3 mr-1" /> QC Done
+                                        </Badge>
+                                    )}
+                                    {activeService && !activeSubOrder && (
+                                        <Badge className="bg-primary/10 text-primary border-primary/20 border shrink-0">
+                                            <PlusCircle className="h-3 w-3 mr-1" /> New Service
                                         </Badge>
                                     )}
                                 </div>
@@ -955,6 +1067,39 @@ function QCUpdateContent() {
                                         </div>
                                     </div>
                                 )}
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Add Service & Save panel — shown when a new (not yet added) service is selected */}
+                    {activeService && !activeSubOrder && (
+                        <Card className="rounded-2xl shadow-sm border-primary/30">
+                            <CardContent className="p-4 space-y-3">
+                                {addSaveError && (
+                                    <Alert variant="destructive">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertDescription>{addSaveError}</AlertDescription>
+                                    </Alert>
+                                )}
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-sm font-semibold">Ready to add this service?</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {totalActiveQty > 0
+                                            ? `${totalActiveQty} garment${totalActiveQty !== 1 ? 's' : ''} · ₹${saveNewTotal.toLocaleString('en-IN')}`
+                                            : 'Assign garments above before saving'}
+                                    </p>
+                                </div>
+                                <Button
+                                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                                    disabled={addSaving || totalActiveQty === 0}
+                                    onClick={() => setShowAddSaveConfirm(true)}>
+                                    {addSaving ? (
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                        <PlusCircle className="h-4 w-4 mr-2" />
+                                    )}
+                                    Add Service & Save
+                                </Button>
                             </CardContent>
                         </Card>
                     )}
@@ -1110,6 +1255,91 @@ function QCUpdateContent() {
                         >
                             {removeLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                             Yes, Remove
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* ── Add Service & Save Confirm Dialog ── */}
+            <AlertDialog open={showAddSaveConfirm} onOpenChange={setShowAddSaveConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <PlusCircle className="h-5 w-5 text-primary" />
+                            Add Service & Save
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div className="space-y-3 text-sm text-muted-foreground">
+                                <p>
+                                    Add{' '}
+                                    <span className="font-semibold text-foreground">{activeService?.service}</span>{' '}
+                                    to order{' '}
+                                    <span className="font-semibold text-foreground">{order?.order_display_no}</span>?
+                                </p>
+                                <div className="rounded-xl border bg-muted/30 px-4 py-3 space-y-2">
+                                    <div className="flex justify-between text-xs">
+                                        <span>Garments</span>
+                                        <span className="font-semibold text-foreground">{totalActiveQty}</span>
+                                    </div>
+                                    <div className="flex justify-between text-xs border-t pt-2">
+                                        <span>Service Amount</span>
+                                        <span className="font-bold text-foreground">
+                                            ₹{saveNewTotal.toLocaleString('en-IN')}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={addSaving}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction disabled={addSaving} onClick={handleAddServiceAndSave}>
+                            {addSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Add Service
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* ── Main Order QC Confirm Dialog ── */}
+            <AlertDialog open={showMainQcConfirm} onOpenChange={setShowMainQcConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                            Complete Main Order Quality Check
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div className="space-y-3 text-sm text-muted-foreground">
+                                <p>
+                                    Finalize quality check for order{' '}
+                                    <span className="font-semibold text-foreground">{order?.order_display_no}</span>?
+                                </p>
+                                <div className="rounded-xl border bg-muted/30 px-4 py-3 space-y-2">
+                                    <div className="flex justify-between text-xs">
+                                        <span>Sub-orders verified</span>
+                                        <span className="font-semibold text-foreground">{totalCount}</span>
+                                    </div>
+                                    <div className="flex justify-between text-xs border-t pt-2">
+                                        <span>Order total</span>
+                                        <span className="font-bold text-foreground">₹{order?.total_billing?.toLocaleString('en-IN')}</span>
+                                    </div>
+                                </div>
+                                <p className="font-medium text-foreground border-t pt-3">
+                                    This completes settlement for the order. Cannot be undone.
+                                </p>
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={mainQcLoading}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                            disabled={mainQcLoading}
+                            onClick={handleMainOrderQcDone}
+                        >
+                            {mainQcLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Yes, Complete QC
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
