@@ -248,7 +248,7 @@ function QCUpdateContent() {
     const totalActiveQty = Object.values(activeEdits).reduce((s, q) => s + q, 0);
     const pickedLimit = activeSubOrder?.no_of_garments_picked ?? 0;
     const isFull = totalActiveQty === pickedLimit; // display-only, does not gate saves
-    const totalSubOrderCancelCharges = activeSubOrder?.cancel_charge;
+    const totalSubOrderCancelCharges = orderData?.subOrders.reduce((sum, s) => sum + (s.cancel_charge ?? 0), 0) ?? 0;
 
     // Services from the catalogue not yet added to this order
     const availableServices = serviceList.filter(
@@ -705,9 +705,9 @@ function QCUpdateContent() {
                                 color: '',
                             },
                             {
-                                label: 'Order Cancel Charges',
+                                label: 'Suborder Cancel Charges',
                                 icon: <Wallet className="h-3.5 w-3.5" />,
-                                value: activeSubOrder?.cancel_charge ?? 0,
+                                value: totalSubOrderCancelCharges,
                                 color: '',
                             },
 
