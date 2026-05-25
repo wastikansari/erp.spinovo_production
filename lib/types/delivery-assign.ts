@@ -38,6 +38,47 @@ export interface DeliveryPendingSubOrderListData {
   subOrders: DeliveryPendingSubOrder[];
 }
 
+export interface CancelPendingSubOrder {
+  _id: string;
+  order_id: string;
+  customer_id: string;
+  address_id: string;
+  service_id: string;
+  service_name: string;
+  order_no: string;
+  sub_order_no: string;
+  order_stage_id: number;
+  booking_date: string;
+  booking_time: string;
+  service_duration_hours: number;
+  expected_delivery_date: string;
+  expected_delivery_time: string;
+  garment_details: string;
+  garment_qty: number;
+  garment_amount: number;
+  extra_garments_amount: number;
+  no_of_garments_picked: number;
+  no_of_garments_processed: number;
+  no_of_garments_delivered: number;
+  no_of_bag: number;
+  no_of_bag_outward: number;
+  no_of_bag_return: number;
+  quality_check: boolean;
+  is_suborder_cancel: number;
+  ord_status: string;
+  createdAt: string;
+  updatedAt: string;
+  order_details: Booking;
+  address_details: Address;
+}
+
+export interface CancelPendingSubOrderListData {
+  totalCount: number;
+  currentPage: number;
+  totalPages: number;
+  subOrders: CancelPendingSubOrder[];
+}
+
 export interface DeliveryAssignBooking extends BaseEntity {
   order_id: string;
   sub_order_id: string;

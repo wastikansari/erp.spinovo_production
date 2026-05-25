@@ -27,6 +27,8 @@ export interface SubOrder extends BaseEntity {
   no_of_garments_delivered: number;
   extra_garments_amount: number;
   quality_check: boolean;
+  is_suborder_cancel: number;
+  cancel_charge: number;
 }
 
 export interface Booking extends BaseEntity {

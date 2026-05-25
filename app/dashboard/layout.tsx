@@ -59,14 +59,15 @@ const navigation = [
   { name: 'Pickup Pending', href: '/dashboard/orders/pickup-pending', icon: UserCheck },
   { name: 'Pickup Assigned', href: '/dashboard/orders/pickup-assigned', icon: UserCheck },
 
-  { name: 'Quality Check (V2)', href: '/dashboard/orders/quality-check/v2', icon: UserCheck },
+  { name: 'Quality Check', href: '/dashboard/orders/quality-check/v2', icon: UserCheck },
 
-  { name: 'Quality Check', href: '/dashboard/orders/quality-check', icon: UserCheck },
+  // { name: 'Quality Check', href: '/dashboard/orders/quality-check', icon: UserCheck },
 
   { name: 'Process Pending', href: '/dashboard/orders/process-pending', icon: UserCheck },
   { name: 'Process Assigned', href: '/dashboard/orders/process-assigned', icon: UserCheck },
 
   { name: 'Delivery Pending', href: '/dashboard/orders/delivery-pending', icon: UserCheck },
+  { name: 'Cancel Order', href: '/dashboard/orders/cancel', icon: UserCheck },
   { name: 'Delivery Assigned', href: '/dashboard/orders/delivery-assigned', icon: UserCheck },
 
 

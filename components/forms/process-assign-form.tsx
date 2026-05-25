@@ -177,11 +177,11 @@ export function ProcessAssignForm({ open, onOpenChange, orderId, subOrderId, onS
                         )}
                     </div>
 
-                    {subOrderId && (
+                    {/* {subOrderId && (
                         <div className="bg-muted p-3 rounded-lg space-y-1 text-sm">
                             <p><span className="font-medium">Sub-Order ID:</span> <span className="font-mono text-xs">{subOrderId}</span></p>
                         </div>
-                    )}
+                    )} */}
 
                     <DialogFooter>
                         <Button

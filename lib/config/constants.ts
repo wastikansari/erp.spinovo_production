@@ -31,7 +31,7 @@ export const API_URL = {
   ORDER_QC_COMPLETED: '/admin/order/qc/completed',
   ADD_SERVICE: '/admin/order/update/addService',
   GARMENT_UPDATE: '/admin/suborder/garment/update',
-
+  CANCEL_SUBORDER_PENDING: '/admin/order/cancel/suborder/delivery/pending',
 
 } as const;
 

@@ -425,12 +425,11 @@ export default function DeliveryAssignedPage() {
 
                     {/* Order Status */}
                     <div>
-                      <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${
-                        item.order_details?.ord_status?.toLowerCase().includes('delivery assigned')
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${item.order_details?.ord_status?.toLowerCase().includes('delivery assigned')
                           ? 'bg-blue-100 text-blue-700 border-blue-200'
                           : 'bg-gray-100 text-gray-600 border-gray-200'
-                      }`}>
-                        {item.order_details?.ord_status ?? '—'}
+                        }`}>
+                        {sub?.ord_status ?? '—'}
                       </span>
                     </div>
 

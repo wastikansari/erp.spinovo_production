@@ -3,7 +3,7 @@ import { ProcessAssignListData, ProcessAssignRequest, ProcessAssignResponse, Pen
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
 import { API_URL } from '../config/constants';
-import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse, DeliveryPendingSubOrderListData } from '../types/delivery-assign';
+import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse, DeliveryPendingSubOrderListData, CancelPendingSubOrderListData } from '../types/delivery-assign';
 import { BookingListData } from '../types/booking';
 
 export class AssignApiService extends BaseApiService {
@@ -89,6 +89,12 @@ export class AssignApiService extends BaseApiService {
 
   static async getDeliveryPendingSuborders(page: number = 1, limit: number = 20): Promise<ApiResponse<DeliveryPendingSubOrderListData>> {
     return this.makeRequest<DeliveryPendingSubOrderListData>(`${API_URL.DELIVERY_SUBORDER_PENDING}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
+  static async getCancelPendingSuborders(page: number = 1, limit: number = 20): Promise<ApiResponse<CancelPendingSubOrderListData>> {
+    return this.makeRequest<CancelPendingSubOrderListData>(`${API_URL.CANCEL_SUBORDER_PENDING}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }

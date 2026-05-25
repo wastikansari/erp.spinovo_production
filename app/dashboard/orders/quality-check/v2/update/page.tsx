@@ -248,6 +248,7 @@ function QCUpdateContent() {
     const totalActiveQty = Object.values(activeEdits).reduce((s, q) => s + q, 0);
     const pickedLimit = activeSubOrder?.no_of_garments_picked ?? 0;
     const isFull = totalActiveQty === pickedLimit; // display-only, does not gate saves
+    const totalSubOrderCancelCharges = activeSubOrder?.cancel_charge;
 
     // Services from the catalogue not yet added to this order
     const availableServices = serviceList.filter(
@@ -324,10 +325,15 @@ function QCUpdateContent() {
         if (!removingSubOrder) return;
         setRemoveLoading(true);
         try {
-            // TODO: wire up actual endpoint — e.g. BookingApiService.removeSubOrder(removingSubOrder._id)
-            toast({ title: 'Feature coming soon', description: 'Connect the remove-service API endpoint.' });
-            setShowRemoveConfirm(false);
-            setRemovingSubOrder(null);
+            const res = await BookingApiService.cancelSubOrder(removingSubOrder._id);
+            if (res.status) {
+                setShowRemoveConfirm(false);
+                setRemovingSubOrder(null);
+                toast({ title: 'Service Removed', description: `${removingSubOrder.service_name} has been removed from this order.` });
+                await fetchData();
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: (res as any).msg || 'Failed to remove service' });
+            }
         } catch (err: any) {
             toast({ variant: 'destructive', title: 'Error', description: err.message });
         } finally {
@@ -698,6 +704,13 @@ function QCUpdateContent() {
                                 value: order?.tip_amount ?? 0,
                                 color: '',
                             },
+                            {
+                                label: 'Order Cancel Charges',
+                                icon: <Wallet className="h-3.5 w-3.5" />,
+                                value: activeSubOrder?.cancel_charge ?? 0,
+                                color: '',
+                            },
+
                         ].map((row, i) => (
                             <div
                                 key={row.label}
@@ -727,6 +740,7 @@ function QCUpdateContent() {
                             </div>
                         )}
 
+
                         {/* Total billing */}
 
                         <div className="px-5 py-3.5 flex items-center justify-between border-t border-t-border bg-primary/5">
@@ -734,12 +748,15 @@ function QCUpdateContent() {
                                 <IndianRupee className="h-4 w-4 text-primary" />
                                 Total Billing
                             </span>
-                            {order?.quality_check && (
+                            {order?.quality_check ? (
                                 <span className="text-base font-bold text-primary flex items-center gap-0.5">
                                     ₹{order?.total_billing?.toLocaleString('en-IN')}
-                                </span>)}  <span className="text-base font-bold text-primary flex items-center gap-0.5">
-                                pending
-                            </span>
+                                </span>
+                            ) : (
+                                <span className="text-base font-bold text-muted-foreground">
+                                    Pending
+                                </span>
+                            )}
                         </div>
 
                         {/* paid */}
@@ -841,7 +858,7 @@ function QCUpdateContent() {
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-1.5 shrink-0">
-                                            {sub.ord_status === 'Cancelled' ? (
+                                            {sub.is_suborder_cancel === 0 ? (
                                                 <X className={`h-4 w-4 ${isActive ? 'text-red-300' : 'text-red-400'}`} />
                                             ) : sub.quality_check ? (
                                                 <CheckCircle2 className={`h-4 w-4 ${isActive ? 'text-green-300' : 'text-green-500'}`} />
@@ -853,8 +870,8 @@ function QCUpdateContent() {
                                             ) : null}
                                         </div>
                                     </button>
-                                    {/* Cancel sub-order button — only when order_stage_id is 0 and not already cancelled */}
-                                    {sub.order_stage_id === 0 && sub.ord_status !== 'Cancelled' && !sub.quality_check && (
+                                    {/* Cancel sub-order button */}
+                                    {/* {sub.is_suborder_cancel !== 0 && !sub.quality_check && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -867,9 +884,9 @@ function QCUpdateContent() {
                                         >
                                             <X className="h-3.5 w-3.5" />
                                         </Button>
-                                    )}
+                                    )} */}
                                     {/* Remove service button */}
-                                    {!sub.quality_check && sub.ord_status !== 'Cancelled' && (
+                                    {/* {!sub.quality_check && sub.is_suborder_cancel !== 0 && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -882,7 +899,7 @@ function QCUpdateContent() {
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
-                                    )}
+                                    )} */}
                                 </div>
                             );
                         })}
@@ -1233,6 +1250,24 @@ function QCUpdateContent() {
                                         Mark QC Done
                                     </Button>
                                 </div>
+                                {activeSubOrder.is_suborder_cancel !== 0 && (
+                                    <Button
+                                        variant="outline"
+                                        className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                                        disabled={cancelLoading}
+                                        onClick={() => {
+                                            setCancellingSubOrder(activeSubOrder);
+                                            setShowCancelConfirm(true);
+                                        }}
+                                    >
+                                        {cancelLoading ? (
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <X className="h-4 w-4 mr-2" />
+                                        )}
+                                        Cancel Sub-order
+                                    </Button>
+                                )}
                             </CardContent>
                         </Card>
                     )}

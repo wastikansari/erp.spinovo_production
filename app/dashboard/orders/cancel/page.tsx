@@ -9,7 +9,6 @@ import {
     MoreHorizontal,
     Package,
     RefreshCw,
-    UserCheck,
     ListOrdered,
     Shirt,
     Droplets,
@@ -19,7 +18,11 @@ import {
     Sparkles,
     Clock,
     Hash,
-    CheckCircle2,
+    XCircle,
+    Truck,
+    IndianRupee,
+    MapPin,
+    Ban,
 } from 'lucide-react';
 import { AssignApiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -33,8 +36,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { PendingSubOrder } from '@/lib/types/process-assign';
-import { ProcessAssignForm } from '@/components/forms/process-assign-form';
+import { CancelPendingSubOrder } from '@/lib/types/delivery-assign';
 
 // ─── Service Color System ────────────────────────────────────────────────────
 
@@ -113,14 +115,14 @@ function resolveServiceKey(name: string): ServiceColorKey {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function getStatusClass(status: string) {
-    switch (status?.toLowerCase()) {
-        case 'pending': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-        case 'pickup completed': return 'bg-blue-100 text-blue-700 border-blue-200';
-        case 'processing': return 'bg-purple-100 text-purple-700 border-purple-200';
-        case 'completed': return 'bg-green-100 text-green-700 border-green-200';
-        case 'cancelled': return 'bg-red-100 text-red-700 border-red-200';
-        default: return 'bg-gray-100 text-gray-600 border-gray-200';
-    }
+    const s = status?.toLowerCase() ?? '';
+    if (s.includes('processing completed')) return 'bg-green-100 text-green-700 border-green-200';
+    if (s.includes('processing')) return 'bg-purple-100 text-purple-700 border-purple-200';
+    if (s.includes('completed')) return 'bg-green-100 text-green-700 border-green-200';
+    if (s.includes('cancelled')) return 'bg-red-100 text-red-700 border-red-200';
+    if (s.includes('pickup completed')) return 'bg-blue-100 text-blue-700 border-blue-200';
+    if (s.includes('pending')) return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+    return 'bg-gray-100 text-gray-600 border-gray-200';
 }
 
 function formatDate(dateString: string) {
@@ -201,18 +203,15 @@ function PaginationBar({
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const COL_STYLE = 'grid gap-x-3 px-5 items-center' as const;
-const COL_TEMPLATE = { gridTemplateColumns: '1.8fr 1.4fr 72px 72px 80px 64px 130px 110px 130px 120px 48px' } as const;
+const COL_TEMPLATE = { gridTemplateColumns: '1.8fr 1.4fr 72px 64px 90px 130px 110px 130px 48px' } as const;
 
-export default function ProcessAssignPage() {
-    const [subOrders, setSubOrders] = useState<PendingSubOrder[]>([]);
+export default function CancelSubOrderPage() {
+    const [subOrders, setSubOrders] = useState<CancelPendingSubOrder[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [error, setError] = useState('');
-    const [showAssignForm, setShowAssignForm] = useState(false);
-    const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-    const [selectedSubOrderId, setSelectedSubOrderId] = useState<string | null>(null);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -221,14 +220,14 @@ export default function ProcessAssignPage() {
         try {
             setLoading(true);
             setError('');
-            const response = await AssignApiService.getPendingProcessSuborders(page, 20);
+            const response = await AssignApiService.getCancelPendingSuborders(page, 20);
             if (response.status && response.data) {
                 setSubOrders(response.data.subOrders || []);
                 setTotalPages(response.data.totalPages || 1);
                 setCurrentPage(response.data.currentPage || 1);
                 setTotalCount(response.data.totalCount || 0);
             } else {
-                setError(response.msg || 'Failed to fetch pending sub-orders');
+                setError(response.msg || 'Failed to fetch cancel pending sub-orders');
                 setSubOrders([]);
             }
         } catch {
@@ -248,9 +247,9 @@ export default function ProcessAssignPage() {
             {/* HEADER */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Process Pending</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Cancel Sub-Orders</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                        Assign pickup-completed sub-orders to vendors for processing
+                        Sub-orders pending delivery assignment that are queued for cancellation
                     </p>
                 </div>
                 <Button variant="outline" onClick={() => fetchList(currentPage)} disabled={loading} className="rounded-xl self-start">
@@ -260,26 +259,37 @@ export default function ProcessAssignPage() {
             </div>
 
             {/* STATS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <Card className="rounded-2xl border shadow-sm">
                     <CardContent className="p-4 flex items-center gap-4">
-                        <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                            <Hash className="h-5 w-5 text-primary" />
+                        <div className="h-11 w-11 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                            <Hash className="h-5 w-5 text-red-500" />
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Pending Sub-Orders</p>
+                            <p className="text-xs text-muted-foreground">Total Cancel Pending</p>
                             <p className="text-2xl font-bold mt-0.5">{totalCount}</p>
                         </div>
                     </CardContent>
                 </Card>
                 <Card className="rounded-2xl border shadow-sm">
                     <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-11 w-11 rounded-xl bg-yellow-100 flex items-center justify-center shrink-0">
+                            <XCircle className="h-5 w-5 text-yellow-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">Not Yet Cancelled</p>
+                            <p className="text-2xl font-bold mt-0.5">{subOrders.filter(s => s.is_suborder_cancel === 0).length}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card className="rounded-2xl border shadow-sm">
+                    <CardContent className="p-4 flex items-center gap-4">
                         <div className="h-11 w-11 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                            <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                            <Truck className="h-5 w-5 text-blue-600" />
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">Pickup Completed</p>
-                            <p className="text-2xl font-bold mt-0.5">{subOrders.filter(s => s.ord_status?.toLowerCase() === 'pickup completed').length}</p>
+                            <p className="text-2xl font-bold mt-0.5">{subOrders.filter(s => s.ord_status?.toLowerCase().includes('pickup completed')).length}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -296,7 +306,7 @@ export default function ProcessAssignPage() {
                 <CardHeader className="border-b bg-muted/20 py-4">
                     <CardTitle className="flex items-center gap-2 text-base">
                         <ListOrdered className="h-5 w-5" />
-                        Pending Process Assignment
+                        Cancel Pending Sub-Orders
                     </CardTitle>
                 </CardHeader>
 
@@ -315,14 +325,12 @@ export default function ProcessAssignPage() {
                         className={`hidden lg:grid ${COL_STYLE} py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide`}
                         style={COL_TEMPLATE}
                     >
-                        <div>Sub Order Id</div>
-                        <div>Order Id</div>
-                        <div>Order QTY</div>
-                        <div>Pickup QTY</div>
-                        {/* <div>Extra Amount</div> */}
+                        <div>Sub Order</div>
+                        <div>Order</div>
+                        <div>Garment QTY</div>
                         <div>Bag</div>
-                        <div>Service time</div>
-                        <div>Delivery Date</div>
+                        <div>Amount</div>
+                        <div>Booking Date</div>
                         <div>Delivery Time</div>
                         <div>Status</div>
                         <div className="text-right">Action</div>
@@ -336,61 +344,66 @@ export default function ProcessAssignPage() {
                         </div>
                     ) : subOrders.length === 0 ? (
                         <div className="py-24 text-center">
-                            <Package className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                            <p className="font-semibold text-lg">No Pending Sub-Orders</p>
-                            <p className="text-sm text-muted-foreground mt-1">All sub-orders have been assigned for processing</p>
+                            <Ban className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                            <p className="font-semibold text-lg">No Cancel Pending Sub-Orders</p>
+                            <p className="text-sm text-muted-foreground mt-1">There are no sub-orders queued for cancellation</p>
                         </div>
                     ) : (
                         subOrders.map((sub, idx) => {
                             const theme = SERVICE_THEMES[resolveServiceKey(sub.service_name)];
+                            const isCancelled = sub.is_suborder_cancel === 1;
                             return (
                                 <div
                                     key={`${sub._id}-${idx}`}
-                                    className={`border-b last:border-b-0 border-l-4 ${theme.border}`}
+                                    className={`border-b last:border-b-0 border-l-4 ${isCancelled ? 'border-l-red-400 opacity-60' : theme.border}`}
                                 >
                                     {/* DESKTOP ROW */}
                                     <div
                                         className={`hidden lg:grid ${COL_STYLE} py-3.5 hover:bg-muted/5 transition-colors`}
                                         style={COL_TEMPLATE}
                                     >
-                                        {/* Sub Order Id */}
-                                        <div className="min-w-0">
+                                        {/* Sub Order */}
+                                        <div className="min-w-0 flex items-center gap-2">
                                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
                                                 {theme.icon}
                                                 {sub.sub_order_no}
                                             </span>
+                                            {isCancelled && (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium bg-red-100 text-red-600 border-red-200">
+                                                    <XCircle className="h-3 w-3" /> Cancelled
+                                                </span>
+                                            )}
                                         </div>
 
-                                        {/* Order Id */}
+                                        {/* Order */}
                                         <div className="text-sm font-medium text-primary">
                                             {sub.order_no}
                                         </div>
 
                                         {/* Garment QTY */}
-                                        <div className="text-sm font-semibold">{sub.garment_qty}</div>
-
-                                        {/* Pickup QTY */}
-                                        <div className="text-sm font-semibold">{sub.no_of_garments_picked}</div>
-
-                                        {/*Extra Amount*/}
-                                        {/* <div className="text-sm font-semibold">{sub.extra_garments_amount}</div> */}
+                                        <div className="text-sm">
+                                            <span className="font-semibold">{sub.garment_qty}</span>
+                                            {sub.no_of_garments_picked > 0 && (
+                                                <span className="text-xs text-muted-foreground ml-1">/ {sub.no_of_garments_picked} picked</span>
+                                            )}
+                                        </div>
 
                                         {/* Bag */}
                                         <div className="text-sm text-muted-foreground">{sub.no_of_bag > 0 ? sub.no_of_bag : '—'}</div>
 
-                                        {/* Service time */}
-                                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                            <Clock className="h-3.5 w-3.5 shrink-0" />
-                                            {sub.booking_time || '—'}
+                                        {/* Amount */}
+                                        <div className="flex items-center gap-0.5 text-sm font-semibold">
+                                            <IndianRupee className="h-3.5 w-3.5 shrink-0" />
+                                            {sub.garment_amount?.toLocaleString('en-IN')}
                                         </div>
 
-                                        {/* Delivery Date */}
+                                        {/* Booking Date */}
                                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                             <Calendar className="h-3.5 w-3.5 shrink-0" />
-                                            {formatDate(sub.expected_delivery_date)}
+                                            {formatDate(sub.booking_date)}
                                         </div>
 
-                                        {/* Delivery Time */}
+                                        {/* Expected Delivery Time */}
                                         <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                             <Clock className="h-3.5 w-3.5 shrink-0" />
                                             {sub.expected_delivery_time || '—'}
@@ -422,15 +435,11 @@ export default function ProcessAssignPage() {
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem
-                                                        className="text-primary font-medium"
-                                                        onClick={() => {
-                                                            setSelectedOrderId(sub.order_id);
-                                                            setSelectedSubOrderId(sub._id);
-                                                            setShowAssignForm(true);
-                                                        }}
+                                                        className="text-red-600 font-medium"
+                                                        disabled={isCancelled}
                                                     >
-                                                        <UserCheck className="mr-2 h-4 w-4" />
-                                                        Assign Process
+                                                        <Ban className="mr-2 h-4 w-4" />
+                                                        {isCancelled ? 'Already Cancelled' : 'Cancel Sub-Order'}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
@@ -439,22 +448,36 @@ export default function ProcessAssignPage() {
 
                                     {/* MOBILE ROW */}
                                     <div className="lg:hidden px-4 py-3 space-y-2">
-                                        <div className="flex items-center justify-between gap-2">
+                                        <div className="flex items-center justify-between gap-2 flex-wrap">
                                             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
                                                 {theme.icon}
                                                 {sub.sub_order_no}
                                             </span>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${getStatusClass(sub.ord_status)}`}>
-                                                {sub.ord_status || 'Pending'}
-                                            </span>
+                                            <div className="flex items-center gap-1.5">
+                                                {isCancelled && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-medium bg-red-100 text-red-600 border-red-200">
+                                                        <XCircle className="h-3 w-3" /> Cancelled
+                                                    </span>
+                                                )}
+                                                <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${getStatusClass(sub.ord_status)}`}>
+                                                    {sub.ord_status || 'Pending'}
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="text-xs text-muted-foreground">Order: <span className="font-medium text-foreground">{sub.order_no}</span></div>
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                             <span>Qty: <b>{sub.garment_qty}</b></span>
+                                            <span>Picked: <b>{sub.no_of_garments_picked}</b></span>
                                             <span>Bags: <b>{sub.no_of_bag || 0}</b></span>
-                                            <span>Time: <b>{sub.booking_time || '—'}</b></span>
-                                            <span>Delivery: <b>{formatDate(sub.expected_delivery_date)}</b></span>
+                                            <span>₹<b>{sub.garment_amount?.toLocaleString('en-IN')}</b></span>
+                                            <span>Booked: <b>{formatDate(sub.booking_date)}</b></span>
                                         </div>
+                                        {sub.address_details?.format_address && (
+                                            <div className="flex items-start gap-1 text-xs text-muted-foreground">
+                                                <MapPin className="h-3 w-3 shrink-0 mt-0.5" />
+                                                <span>{sub.address_details.format_address}</span>
+                                            </div>
+                                        )}
                                         <div className="flex gap-2 pt-1">
                                             <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg" onClick={() => router.push(`/dashboard/bookings/${sub.order_id}`)}>
                                                 <Eye className="mr-1 h-3 w-3" /> Order
@@ -464,15 +487,12 @@ export default function ProcessAssignPage() {
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                variant="default"
+                                                variant="destructive"
                                                 className="h-7 text-xs rounded-lg"
-                                                onClick={() => {
-                                                    setSelectedOrderId(sub.order_id);
-                                                    setSelectedSubOrderId(sub._id);
-                                                    setShowAssignForm(true);
-                                                }}
+                                                disabled={isCancelled}
                                             >
-                                                <UserCheck className="mr-1 h-3 w-3" /> Assign
+                                                <Ban className="mr-1 h-3 w-3" />
+                                                {isCancelled ? 'Cancelled' : 'Cancel'}
                                             </Button>
                                         </div>
                                     </div>
@@ -490,15 +510,6 @@ export default function ProcessAssignPage() {
                     />
                 </CardContent>
             </Card>
-
-            {/* PROCESS ASSIGN FORM */}
-            <ProcessAssignForm
-                open={showAssignForm}
-                onOpenChange={setShowAssignForm}
-                orderId={selectedOrderId}
-                subOrderId={selectedSubOrderId}
-                onSuccess={() => { setShowAssignForm(false); fetchList(currentPage); }}
-            />
         </div>
     );
 }
