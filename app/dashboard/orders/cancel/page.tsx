@@ -23,6 +23,7 @@ import {
     IndianRupee,
     MapPin,
     Ban,
+    UserCheck,
 } from 'lucide-react';
 import { AssignApiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -32,11 +33,11 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CancelPendingSubOrder } from '@/lib/types/delivery-assign';
+import { DeliverySubOrderAssignForm } from '@/components/forms/delivery-suborder-assign-form';
 
 // ─── Service Color System ────────────────────────────────────────────────────
 
@@ -212,6 +213,8 @@ export default function CancelSubOrderPage() {
     const [totalPages, setTotalPages] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
     const [error, setError] = useState('');
+    const [showAssignForm, setShowAssignForm] = useState(false);
+    const [selectedSubOrder, setSelectedSubOrder] = useState<CancelPendingSubOrder | null>(null);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -332,7 +335,7 @@ export default function CancelSubOrderPage() {
                         <div>Amount</div>
                         <div>Booking Date</div>
                         <div>Delivery Time</div>
-                        <div>Status</div>
+                        {/* <div>Status</div> */}
                         <div className="text-right">Action</div>
                     </div>
 
@@ -410,14 +413,15 @@ export default function CancelSubOrderPage() {
                                         </div>
 
                                         {/* Status */}
-                                        <div>
+                                        {/* <div>
                                             <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${getStatusClass(sub.ord_status)}`}>
                                                 {sub.ord_status || 'Pending'}
                                             </span>
-                                        </div>
+                                        </div> */}
 
                                         {/* Action */}
-                                        <div className="flex justify-end">
+                                        <div className="flex items-center justify-end gap-2">
+
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -433,16 +437,17 @@ export default function CancelSubOrderPage() {
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         Sub Order Details
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        className="text-red-600 font-medium"
-                                                        disabled={isCancelled}
-                                                    >
-                                                        <Ban className="mr-2 h-4 w-4" />
-                                                        {isCancelled ? 'Already Cancelled' : 'Cancel Sub-Order'}
-                                                    </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 text-xs rounded-lg"
+                                                onClick={() => { setSelectedSubOrder(sub); setShowAssignForm(true); }}
+                                            >
+                                                <UserCheck className="mr-1.5 h-3.5 w-3.5" />
+                                                Delivery Assign
+                                            </Button>
                                         </div>
                                     </div>
 
@@ -487,12 +492,11 @@ export default function CancelSubOrderPage() {
                                             </Button>
                                             <Button
                                                 size="sm"
-                                                variant="destructive"
+                                                variant="default"
                                                 className="h-7 text-xs rounded-lg"
-                                                disabled={isCancelled}
+                                                onClick={() => { setSelectedSubOrder(sub); setShowAssignForm(true); }}
                                             >
-                                                <Ban className="mr-1 h-3 w-3" />
-                                                {isCancelled ? 'Cancelled' : 'Cancel'}
+                                                <UserCheck className="mr-1 h-3 w-3" /> Assign
                                             </Button>
                                         </div>
                                     </div>
@@ -510,6 +514,13 @@ export default function CancelSubOrderPage() {
                     />
                 </CardContent>
             </Card>
+
+            <DeliverySubOrderAssignForm
+                open={showAssignForm}
+                onOpenChange={setShowAssignForm}
+                subOrder={selectedSubOrder}
+                onSuccess={() => { setShowAssignForm(false); fetchList(currentPage); }}
+            />
         </div>
     );
 }

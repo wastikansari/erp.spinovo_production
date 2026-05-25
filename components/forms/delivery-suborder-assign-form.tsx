@@ -24,7 +24,7 @@ import {
 import { Loader2, UserCheck, Shirt, Calendar, Clock, MapPin, IndianRupee } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AssignApiService, CopilotApiService, Copilot } from '@/lib/api';
-import { DeliveryPendingSubOrder } from '@/lib/types/delivery-assign';
+import { DeliveryPendingSubOrder, CancelPendingSubOrder } from '@/lib/types/delivery-assign';
 
 const assignSchema = z.object({
     copilot_id: z.string().min(1, 'Please select a copilot'),
@@ -35,7 +35,7 @@ type AssignFormData = z.infer<typeof assignSchema>;
 interface DeliverySubOrderAssignFormProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    subOrder: DeliveryPendingSubOrder | null;
+    subOrder: DeliveryPendingSubOrder | CancelPendingSubOrder | null;
     onSuccess: () => void;
 }
 

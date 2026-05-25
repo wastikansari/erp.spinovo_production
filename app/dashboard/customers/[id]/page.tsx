@@ -14,13 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
-  ArrowLeft, 
-  User, 
-  Phone, 
-  Mail, 
-  Wallet, 
-  MapPin, 
+import {
+  ArrowLeft,
+  User,
+  Phone,
+  Mail,
+  Wallet,
+  MapPin,
   Calendar,
   Loader2,
   RefreshCw,
@@ -49,20 +49,20 @@ export default function CustomerDetailsPage() {
     try {
       setLoading(true);
       setError('');
-      
+
       console.log('=== CUSTOMER DETAILS PAGE ===');
       console.log('Customer ID from params:', customerId);
-      
+
       if (!customerId) {
         setError('Customer ID is missing');
         return;
       }
-      
+
       const response = await CustomerApiService.getCustomerDetails(customerId);
-      
+
       console.log('=== CUSTOMER DETAILS RESPONSE ===');
       console.log('Response:', response);
-      
+
       if (response.status && response.data) {
         setCustomerData(response.data);
         console.log('Customer details loaded successfully');
@@ -83,7 +83,7 @@ export default function CustomerDetailsPage() {
     } catch (error) {
       console.error('=== CUSTOMER DETAILS ERROR ===');
       console.error('Error details:', error);
-      
+
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -99,7 +99,7 @@ export default function CustomerDetailsPage() {
   useEffect(() => {
     console.log('=== CUSTOMER DETAILS COMPONENT MOUNTED ===');
     console.log('Customer ID:', customerId);
-    
+
     if (customerId && customerId !== 'undefined') {
       fetchCustomerDetails();
     } else {
@@ -140,7 +140,7 @@ export default function CustomerDetailsPage() {
   };
 
   const getTransactionColor = (type: string) => {
-    return type === 'credit' 
+    return type === 'credit'
       ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
       : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
   };
@@ -252,7 +252,7 @@ export default function CustomerDetailsPage() {
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Wallet className="h-4 w-4 text-muted-foreground" />
@@ -272,7 +272,7 @@ export default function CustomerDetailsPage() {
                 </Badge>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -343,7 +343,7 @@ export default function CustomerDetailsPage() {
                           </TableCell>
                           <TableCell>{order.service_name}</TableCell>
                           <TableCell>{order.garment_qty}</TableCell>
-                          <TableCell>₹{order.order_amount}</TableCell>
+                          <TableCell>₹{order.total_billing}</TableCell>
                           <TableCell>
                             <Badge className={getStatusColor(order.ord_status)}>
                               {order.ord_status}
@@ -379,6 +379,7 @@ export default function CustomerDetailsPage() {
                         <TableHead>Transaction ID</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Amount</TableHead>
+                        <TableHead>Last Balances</TableHead>
                         <TableHead>Reason</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Date</TableHead>
@@ -398,6 +399,11 @@ export default function CustomerDetailsPage() {
                           <TableCell>
                             <span className={transaction.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'}>
                               {transaction.transaction_type === 'credit' ? '+' : '-'}₹{transaction.amount}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={'text-gray-600'}>
+                              {transaction.last_amount}
                             </span>
                           </TableCell>
                           <TableCell>{transaction.reason}</TableCell>
@@ -459,7 +465,7 @@ export default function CustomerDetailsPage() {
       </Tabs>
 
       {/* Debug Information (remove in production) */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* {process.env.NODE_ENV === 'development' && (
         <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs">
           <h4 className="font-semibold mb-2">Debug Info:</h4>
           <p>Customer ID: {customerId}</p>
@@ -470,7 +476,7 @@ export default function CustomerDetailsPage() {
           <p>Transactions Count: {transactions?.length || 0}</p>
           <p>Addresses Count: {addresses?.length || 0}</p>
         </div>
-      )}
+      )} */}
     </div>
   );
 }
