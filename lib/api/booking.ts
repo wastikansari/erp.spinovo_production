@@ -167,6 +167,15 @@ const response = await fetch(
 
     return data;
   }
+
+  // CANCEL SUB-ORDER
+  static async cancelSubOrder(subOrderId: string): Promise<ApiResponse<unknown>> {
+    if (!subOrderId) throw new Error('Invalid sub-order id');
+    return this.makeRequest(
+      `/admin/order/quality-check/suborder/cancel/${subOrderId}`,
+      { method: 'PATCH' }
+    );
+  }
 }
 
 

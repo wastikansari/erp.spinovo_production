@@ -8,7 +8,6 @@ import {
     AlertCircle,
     Calendar,
     Eye,
-    MoreHorizontal,
     Package,
     RefreshCw,
     Layers3,
@@ -28,12 +27,6 @@ import { BookingApiService, PendingQCOrder } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // ─── Service Color System ────────────────────────────────────────────────────
@@ -528,25 +521,17 @@ export default function QualityCheckPendingPage() {
 
                                     {/* ACTIONS */}
                                     <div className="flex justify-end">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    onClick={() =>
-                                                        router.push(
-                                                            `/dashboard/orders/quality-check/v2/update?id=${order._id}`
-                                                        )
-                                                    }
-                                                >
-                                                    <Eye className="mr-2 h-4 w-4" />
-                                                    Start Quality Check
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
+                                        <Button
+                                            size="sm"
+                                            onClick={() =>
+                                                router.push(
+                                                    `/dashboard/orders/quality-check/v2/update?id=${order._id}`
+                                                )
+                                            }
+                                        >
+                                            <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                            Start QC
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

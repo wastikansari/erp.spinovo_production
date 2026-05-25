@@ -88,6 +88,7 @@ export interface PendingQCOrder {
   tip_amount: number;
   total_billing: number;
   unpaid_amount: number;
+  paid_amount: number;
   quality_check: boolean;
   payment_mode: string;
   payment_status: string;
@@ -101,6 +102,7 @@ export interface PendingQCOrder {
   ord_status: string;
   createdAt: string;
   updatedAt: string;
+
 }
 
 export interface PendingQCListData {

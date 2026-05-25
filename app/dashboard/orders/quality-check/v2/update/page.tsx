@@ -185,6 +185,10 @@ function QCUpdateContent() {
     const [mainQcError, setMainQcError] = useState('');
     const [showMainQcConfirm, setShowMainQcConfirm] = useState(false);
 
+    const [cancellingSubOrder, setCancellingSubOrder] = useState<SubOrder | null>(null);
+    const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [cancelLoading, setCancelLoading] = useState(false);
+
     const fetchData = useCallback(async () => {
         if (!orderId) {
             setError('No order ID provided');
@@ -328,6 +332,26 @@ function QCUpdateContent() {
             toast({ variant: 'destructive', title: 'Error', description: err.message });
         } finally {
             setRemoveLoading(false);
+        }
+    };
+
+    const handleCancelSubOrder = async () => {
+        if (!cancellingSubOrder) return;
+        try {
+            setCancelLoading(true);
+            const res = await BookingApiService.cancelSubOrder(cancellingSubOrder._id);
+            if (res.status) {
+                setShowCancelConfirm(false);
+                setCancellingSubOrder(null);
+                toast({ title: 'Sub-order Cancelled', description: `${cancellingSubOrder.service_name} has been cancelled.` });
+                await fetchData();
+            } else {
+                toast({ variant: 'destructive', title: 'Error', description: (res as any).msg || 'Failed to cancel sub-order' });
+            }
+        } catch (err: any) {
+            toast({ variant: 'destructive', title: 'Error', description: err.message });
+        } finally {
+            setCancelLoading(false);
         }
     };
 
@@ -545,49 +569,7 @@ function QCUpdateContent() {
                 ))}
             </div>
 
-            {/* ── Main Order QC Banner ── */}
-            {order?.quality_check ? (
-                <Card className="rounded-2xl shadow-sm border-green-200">
-                    <CardContent className="p-4 flex items-center gap-3 bg-green-50 rounded-2xl">
-                        <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
-                        <div className="flex-1">
-                            <p className="font-semibold text-green-800 text-sm">Main Order QC Completed</p>
-                            <p className="text-xs text-green-600 mt-0.5">Quality check and settlement have been finalized for this order.</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            ) : allQcDone ? (
-                <Card className="rounded-2xl shadow-sm border-amber-200">
-                    <CardContent className="p-4 bg-amber-50 rounded-2xl">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                            <div className="h-10 w-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
-                                <CheckCircle2 className="h-5 w-5 text-amber-600" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-amber-800 text-sm">All sub-order QCs completed</p>
-                                <p className="text-xs text-amber-600 mt-0.5">
-                                    Finalize the main order quality check to complete settlement.
-                                </p>
-                            </div>
-                            {mainQcError && (
-                                <p className="text-xs text-destructive font-medium">{mainQcError}</p>
-                            )}
-                            <Button
-                                className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
-                                disabled={mainQcLoading}
-                                onClick={() => setShowMainQcConfirm(true)}
-                            >
-                                {mainQcLoading ? (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                ) : (
-                                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                                )}
-                                Complete Order QC
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            ) : null}
+
 
             {/* ── Order Details + Billing ── */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -746,18 +728,35 @@ function QCUpdateContent() {
                         )}
 
                         {/* Total billing */}
+
                         <div className="px-5 py-3.5 flex items-center justify-between border-t border-t-border bg-primary/5">
                             <span className="text-sm font-bold flex items-center gap-2">
                                 <IndianRupee className="h-4 w-4 text-primary" />
                                 Total Billing
                             </span>
-                            <span className="text-base font-bold text-primary flex items-center gap-0.5">
-                                ₹{order?.total_billing?.toLocaleString('en-IN')}
+                            {order?.quality_check && (
+                                <span className="text-base font-bold text-primary flex items-center gap-0.5">
+                                    ₹{order?.total_billing?.toLocaleString('en-IN')}
+                                </span>)}  <span className="text-base font-bold text-primary flex items-center gap-0.5">
+                                pending
                             </span>
                         </div>
 
+                        {/* paid */}
+                        <div className={`px-5 py-2.5 flex items-center justify-between border-t}`}>
+                            <span className={`text-xs font-medium flex items-center gap-2 'text-muted-foreground'
+                                }`}>
+                                <Wallet className="h-3.5 w-3.5" />
+                                Paid Amount
+                            </span>
+                            <span className={`text-xs font-bold flex items-center gap-0.5  text-green-600
+                                }`}>
+                                <IndianRupee className="h-3 w-3" />
+                                {order?.paid_amount?.toLocaleString('en-IN') ?? 0}
+                            </span>
+                        </div>
                         {/* Unpaid */}
-                        <div className={`px-5 py-2.5 flex items-center justify-between border-t ${(order?.unpaid_amount ?? 0) > 0
+                        {/* <div className={`px-5 py-2.5 flex items-center justify-between border-t ${(order?.unpaid_amount ?? 0) > 0
                             ? 'bg-red-50'
                             : 'bg-muted/10'
                             }`}>
@@ -771,7 +770,8 @@ function QCUpdateContent() {
                                 <IndianRupee className="h-3 w-3" />
                                 {order?.unpaid_amount?.toLocaleString('en-IN') ?? 0}
                             </span>
-                        </div>
+                        </div> */}
+
                     </CardContent>
                 </Card>
             </div>
@@ -841,7 +841,9 @@ function QCUpdateContent() {
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-1.5 shrink-0">
-                                            {sub.quality_check ? (
+                                            {sub.ord_status === 'Cancelled' ? (
+                                                <X className={`h-4 w-4 ${isActive ? 'text-red-300' : 'text-red-400'}`} />
+                                            ) : sub.quality_check ? (
                                                 <CheckCircle2 className={`h-4 w-4 ${isActive ? 'text-green-300' : 'text-green-500'}`} />
                                             ) : assignedQty > 0 ? (
                                                 <span className={`h-5 min-w-5 px-1 rounded-full text-xs font-bold flex items-center justify-center ${isActive ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'
@@ -851,8 +853,23 @@ function QCUpdateContent() {
                                             ) : null}
                                         </div>
                                     </button>
+                                    {/* Cancel sub-order button — only when order_stage_id is 0 and not already cancelled */}
+                                    {sub.order_stage_id === 0 && sub.ord_status !== 'Cancelled' && !sub.quality_check && (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 ml-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setCancellingSubOrder(sub);
+                                                setShowCancelConfirm(true);
+                                            }}
+                                        >
+                                            <X className="h-3.5 w-3.5" />
+                                        </Button>
+                                    )}
                                     {/* Remove service button */}
-                                    {!sub.quality_check && (
+                                    {!sub.quality_check && sub.ord_status !== 'Cancelled' && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -1104,20 +1121,79 @@ function QCUpdateContent() {
                         </Card>
                     )}
 
-                    {/* QC already done for this service */}
-                    {activeSubOrder?.quality_check && (
-                        <Card className="rounded-2xl shadow-sm border-green-200">
-                            <CardContent className="p-5 flex items-center gap-3 bg-green-50 rounded-2xl">
-                                <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
-                                <div>
-                                    <p className="font-semibold text-green-800 text-sm">Quality Check Completed</p>
-                                    <p className="text-xs text-green-600 mt-0.5">
-                                        {activeSubOrder.service_name} has been verified and is ready for processing.
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    )}
+                    {/* QC already done for this service — show garment breakdown */}
+                    {activeSubOrder?.quality_check && (() => {
+                        const garment = parseGarmentDetails(activeSubOrder.garment_details);
+                        const selectedCats = (garment?.categorys ?? []).filter((c: any) => Number(c.items) > 0);
+                        const totalQty = selectedCats.reduce((s: number, c: any) => s + Number(c.items), 0);
+                        const totalAmt = selectedCats.reduce((s: number, c: any) => s + Number(c.items) * Number(c.category_prices), 0);
+                        return (
+                            <Card className="rounded-2xl shadow-sm border-green-200">
+                                <CardHeader className="pb-3 border-b bg-green-50 rounded-t-2xl">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+                                        <div>
+                                            <p className="font-semibold text-green-800 text-sm">Quality Check Completed</p>
+                                            <p className="text-xs text-green-600 mt-0.5">{totalQty} garment{totalQty !== 1 ? 's' : ''} verified</p>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                {selectedCats.length > 0 ? (
+                                    <CardContent className="p-0">
+                                        <div className="hidden sm:grid sm:grid-cols-[1fr_80px_80px_100px] gap-4 px-5 py-2 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                                            <div>Category</div>
+                                            <div>Price</div>
+                                            <div className="text-center">Qty</div>
+                                            <div className="text-right">Amount</div>
+                                        </div>
+                                        {selectedCats.map((cat: any, idx: number) => (
+                                            <div
+                                                key={cat.category_id}
+                                                className={`grid grid-cols-1 sm:grid-cols-[1fr_80px_80px_100px] gap-4 items-center px-5 py-3 border-b last:border-b-0 ${idx % 2 === 0 ? 'bg-muted/10' : ''}`}
+                                            >
+                                                <div className="min-w-0">
+                                                    <p className="font-semibold text-sm">{cat.category}</p>
+                                                    {cat.types_of_Clothes?.length > 0 && (
+                                                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                                                            {cat.types_of_Clothes.join(', ')}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div className="hidden sm:flex items-center gap-0.5 text-sm text-muted-foreground">
+                                                    <IndianRupee className="h-3.5 w-3.5" />
+                                                    {Number(cat.category_prices).toLocaleString('en-IN')}
+                                                </div>
+                                                <div className="flex sm:justify-center items-center gap-1 text-sm font-bold text-primary">
+                                                    <Shirt className="h-3.5 w-3.5 text-muted-foreground sm:hidden" />
+                                                    {cat.items}
+                                                </div>
+                                                <div className="hidden sm:flex justify-end items-center gap-0.5 font-semibold text-sm">
+                                                    <IndianRupee className="h-3.5 w-3.5" />
+                                                    {(Number(cat.items) * Number(cat.category_prices)).toLocaleString('en-IN')}
+                                                </div>
+                                            </div>
+                                        ))}
+                                        <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_80px_100px] gap-4 items-center px-5 py-3 bg-green-50 border-t border-green-200">
+                                            <div className="flex items-center gap-2 font-semibold text-sm text-green-800">
+                                                <Shirt className="h-4 w-4 text-green-600" />
+                                                Total — {totalQty} garment{totalQty !== 1 ? 's' : ''}
+                                            </div>
+                                            <div className="hidden sm:block" />
+                                            <div className="hidden sm:block" />
+                                            <div className="hidden sm:flex justify-end items-center gap-0.5 font-bold text-sm text-green-800">
+                                                <IndianRupee className="h-3.5 w-3.5" />
+                                                {totalAmt.toLocaleString('en-IN')}
+                                            </div>
+                                        </div>
+                                    </CardContent>
+                                ) : (
+                                    <CardContent className="p-4">
+                                        <p className="text-xs text-muted-foreground">No garment details recorded.</p>
+                                    </CardContent>
+                                )}
+                            </Card>
+                        );
+                    })()}
 
                     {/* Action panel */}
                     {activeSubOrder && !activeSubOrder.quality_check && (
@@ -1213,6 +1289,48 @@ function QCUpdateContent() {
                         <AlertDialogAction disabled={saving} onClick={handleSave}>
                             {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                             Save
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* ── Cancel Sub-order Confirm Dialog ── */}
+            <AlertDialog open={showCancelConfirm} onOpenChange={setShowCancelConfirm}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="flex items-center gap-2">
+                            <X className="h-5 w-5 text-destructive" />
+                            Cancel Sub-order
+                        </AlertDialogTitle>
+                        <AlertDialogDescription asChild>
+                            <div className="space-y-2 text-sm text-muted-foreground">
+                                <p>
+                                    Are you sure you want to cancel{' '}
+                                    <span className="font-semibold text-foreground">
+                                        {cancellingSubOrder?.service_name}
+                                    </span>{' '}
+                                    (<span className="font-mono">{cancellingSubOrder?.sub_order_no}</span>)?
+                                </p>
+                                <p className="font-medium text-destructive">
+                                    This action cannot be undone. The sub-order will be marked as Cancelled and the main order will be updated accordingly.
+                                </p>
+                            </div>
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel
+                            disabled={cancelLoading}
+                            onClick={() => setCancellingSubOrder(null)}
+                        >
+                            No, Keep it
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-destructive hover:bg-destructive/90 text-white"
+                            disabled={cancelLoading}
+                            onClick={handleCancelSubOrder}
+                        >
+                            {cancelLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                            Yes, Cancel Sub-order
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -1321,9 +1439,18 @@ function QCUpdateContent() {
                                         <span className="font-semibold text-foreground">{totalCount}</span>
                                     </div>
                                     <div className="flex justify-between text-xs border-t pt-2">
-                                        <span>Order total</span>
-                                        <span className="font-bold text-foreground">₹{order?.total_billing?.toLocaleString('en-IN')}</span>
+                                        <span>Garment Amount</span>
+                                        <span className="font-bold text-foreground">₹{order?.order_amount?.toLocaleString('en-IN')}</span>
                                     </div>
+                                    <div className="flex justify-between text-xs border-t pt-2">
+                                        <span>Total Paid</span>
+                                        <span className="font-bold text-foreground">₹{order?.paid_amount?.toLocaleString('en-IN')}</span>
+                                    </div>
+                                    {/* <div className="flex justify-between text-xs border-t pt-2">
+                                        <span>Total Unpaid</span>
+                                        <span className="font-bold text-foreground">₹{{order?.order_amount? - order?.paid_amount? }.toLocaleString('en-IN')}</span>
+                                    </div> */}
+
                                 </div>
                                 <p className="font-medium text-foreground border-t pt-3">
                                     This completes settlement for the order. Cannot be undone.
@@ -1391,6 +1518,50 @@ function QCUpdateContent() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* ── Main Order QC Banner ── */}
+            {order?.quality_check ? (
+                <Card className="rounded-2xl shadow-sm border-green-200">
+                    <CardContent className="p-4 flex items-center gap-3 bg-green-50 rounded-2xl">
+                        <CheckCircle2 className="h-6 w-6 text-green-600 shrink-0" />
+                        <div className="flex-1">
+                            <p className="font-semibold text-green-800 text-sm">Main Order QC Completed</p>
+                            <p className="text-xs text-green-600 mt-0.5">Quality check and settlement have been finalized for this order.</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : allQcDone ? (
+                <Card className="rounded-2xl shadow-sm border-amber-200">
+                    <CardContent className="p-4 bg-amber-50 rounded-2xl">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <div className="h-10 w-10 rounded-xl bg-amber-100 border border-amber-200 flex items-center justify-center shrink-0">
+                                <CheckCircle2 className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-amber-800 text-sm">All sub-order QCs completed</p>
+                                <p className="text-xs text-amber-600 mt-0.5">
+                                    Finalize the main order quality check to complete settlement.
+                                </p>
+                            </div>
+                            {mainQcError && (
+                                <p className="text-xs text-destructive font-medium">{mainQcError}</p>
+                            )}
+                            <Button
+                                className="shrink-0 bg-green-600 hover:bg-green-700 text-white"
+                                disabled={mainQcLoading}
+                                onClick={() => setShowMainQcConfirm(true)}
+                            >
+                                {mainQcLoading ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                                )}
+                                Complete Order QC
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
+            ) : null}
         </div>
     );
 }
