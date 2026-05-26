@@ -245,9 +245,10 @@ export function DataTable<T extends Record<string, any>>({
                     <TableCell key={column.key.toString()}>
                       {column.render
                         ? column.render(item)
-                        : String(column.key).includes('.')
+                        : (String(column.key).includes('.')
                           ? String(column.key).split('.').reduce((obj, key) => obj?.[key], item)
                           : item[column.key]
+                        ) as React.ReactNode
                       }
                     </TableCell>
                   ))}

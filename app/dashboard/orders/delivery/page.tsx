@@ -32,13 +32,11 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { logger } from '@/lib/utils/logger';
 import { errorHandler } from '@/lib/utils/error-handler';
-import { PickupAssignBooking } from '@/lib/types/pickup-assign';
-import { BookingApiService, Booking } from '@/lib/api'
-import { AssignBookingForm } from '@/components/forms/assign-booking-form';
+import { DeliveryAssignBooking } from '@/lib/types/delivery-assign';
 import { ProcessAssignForm } from '@/components/forms/process-assign-form';
 
 export default function DeliveryAssignedPage() {
-  const [assignedBookings, setAssignedBookings] = useState<PickupAssignBooking[]>([]);
+  const [assignedBookings, setAssignedBookings] = useState<DeliveryAssignBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,7 +44,8 @@ export default function DeliveryAssignedPage() {
   const [error, setError] = useState<string>('');
   const router = useRouter();
   const { toast } = useToast();
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedSubOrderId, setSelectedSubOrderId] = useState<string | null>(null);
   const [showAssignForm, setShowAssignForm] = useState(false);
 
   const fetchDeliveryAssignedBookings = async (page: number) => {
@@ -143,8 +142,9 @@ export default function DeliveryAssignedPage() {
     router.push(`/dashboard/copilots/${copilotId}`);
   };
 
-  const handleAssignBooking = (booking: Booking) => {
-    setSelectedBooking(booking);
+  const handleAssignBooking = (assignBooking: DeliveryAssignBooking) => {
+    setSelectedOrderId(assignBooking.order_id);
+    setSelectedSubOrderId(assignBooking.sub_order_id);
     setShowAssignForm(true);
   };
 
@@ -157,21 +157,21 @@ export default function DeliveryAssignedPage() {
     {
       key: 'order_display_no',
       header: 'Order ID',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <span className="font-medium">{assignBooking.order_details.order_display_no}</span>
       ),
     },
     {
       key: 'service_name',
       header: 'Service',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <span>{assignBooking.order_details.service_name}</span>
       ),
     },
     {
       key: 'copilot_name',
       header: 'Assigned Copilot',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
           <div>
@@ -188,7 +188,7 @@ export default function DeliveryAssignedPage() {
     {
       key: 'order_amount',
       header: 'Amount',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <span className="font-medium">₹{assignBooking.order_details.order_amount}</span>
       ),
       searchable: false,
@@ -196,7 +196,7 @@ export default function DeliveryAssignedPage() {
     {
       key: 'booking_date',
       header: 'Booking Date & Time',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <div className="text-sm">
           <p>{assignBooking.order_details.booking_date}</p>
           <p className="text-muted-foreground">{assignBooking.order_details.booking_time}</p>
@@ -207,7 +207,7 @@ export default function DeliveryAssignedPage() {
     {
       key: 'address',
       header: 'Address',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <div className="flex items-start gap-2 max-w-[200px]">
           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
           <div className="text-sm">
@@ -221,7 +221,7 @@ export default function DeliveryAssignedPage() {
     {
       key: 'ord_status',
       header: 'Order Status',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <Badge className={getStatusColor(assignBooking.order_details.ord_status)}>
           {assignBooking.order_details.ord_status}
         </Badge>
@@ -231,7 +231,7 @@ export default function DeliveryAssignedPage() {
     {
       key: 'assign_status',
       header: 'Assign Status',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <Badge className={getAssignStatusColor(assignBooking.status)}>
           {assignBooking.status === 0 ? "cancelled" : assignBooking.status === 1 ? "Assigned" : assignBooking.status === 2 ? "Started" : assignBooking.status === 3 ? "Completed" : "Pending"}
         </Badge>
@@ -241,7 +241,7 @@ export default function DeliveryAssignedPage() {
     {
       key: 'createdAt',
       header: 'Assigned At',
-      render: (assignBooking: PickupAssignBooking) => (
+      render: (assignBooking: DeliveryAssignBooking) => (
         <div className="flex items-center gap-2">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm">{formatDateTime(assignBooking.createdAt)}</span>
@@ -251,7 +251,7 @@ export default function DeliveryAssignedPage() {
     },
   ];
 
-  const renderActions = (assignBooking: PickupAssignBooking) => (
+  const renderActions = (assignBooking: DeliveryAssignBooking) => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -259,7 +259,7 @@ export default function DeliveryAssignedPage() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleViewBookingDetails(assignBooking.booking_id)}>
+        <DropdownMenuItem onClick={() => handleViewBookingDetails(assignBooking.order_id)}>
           <Package className="mr-2 h-4 w-4" />
           View Booking
         </DropdownMenuItem>
@@ -268,7 +268,7 @@ export default function DeliveryAssignedPage() {
           View Copilot
         </DropdownMenuItem>
         {assignBooking.order_details.order_stage_id === 5 && (
-          <DropdownMenuItem onClick={() => handleAssignBooking(assignBooking.order_details)}>
+          <DropdownMenuItem onClick={() => handleAssignBooking(assignBooking)}>
             <UserCheck className="mr-2 h-4 w-4" />
             Assign processing
           </DropdownMenuItem>
@@ -347,7 +347,8 @@ export default function DeliveryAssignedPage() {
         <ProcessAssignForm
           open={showAssignForm}
           onOpenChange={setShowAssignForm}
-          booking={selectedBooking}
+          orderId={selectedOrderId}
+          subOrderId={selectedSubOrderId}
           onSuccess={handleAssignSuccess}
         />
       </div>

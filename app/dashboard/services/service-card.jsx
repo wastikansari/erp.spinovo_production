@@ -23,14 +23,14 @@ export function ServiceCard({ service }) {
         </div>
 
         {/* PRICE */}
-        <div className="text-right">
+        {/* <div className="text-right">
           <p className="text-sm line-through text-gray-400">
             ₹{service.original}
           </p>
           <p className="text-xl font-bold text-green-600">
             ₹{service.discounted}
           </p>
-        </div>
+        </div> */}
       </div>
 
       {/* CATEGORIES */}

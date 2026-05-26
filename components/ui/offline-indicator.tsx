@@ -38,7 +38,7 @@ export function OfflineIndicator() {
       <Alert variant="destructive">
         <WifiOff className="h-4 w-4" />
         <AlertDescription>
-          You're currently offline. Some features may not work properly.
+          You&apos;re currently offline. Some features may not work properly.
         </AlertDescription>
       </Alert>
     </div>

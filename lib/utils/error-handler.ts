@@ -100,6 +100,6 @@ export const errorHandler = {
   },
 
   isRetryableError: (error: AppError): boolean => {
-    return error.statusCode >= 500 || error.statusCode === 0 || error.code === 'NETWORK_ERROR';
+    return (error.statusCode != null && error.statusCode >= 500) || error.statusCode === 0 || error.code === 'NETWORK_ERROR';
   },
 };

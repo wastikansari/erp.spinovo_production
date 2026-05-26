@@ -18,10 +18,10 @@ const STATES = [
     },
 ];
 
-export default function VendorForm({ onClose, onSuccess }) {
+export default function VendorForm({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
     const { toast } = useToast();
 
-    const [cities, setCities] = useState([]);
+    const [cities, setCities] = useState<{ id: number; name: string }[]>([]);
     const [form, setForm] = useState({
         name: '',
         mobile: '',
@@ -54,17 +54,17 @@ export default function VendorForm({ onClose, onSuccess }) {
 
         const payload = {
             name: form.name,
-            mobile: Number(form.mobile),
+            mobile: form.mobile,
             stateName: form.stateName,
-            stateId: Number(form.stateId),
+            stateId: form.stateId,
             cityName: form.cityName,
-            cityId: Number(form.cityId),
+            cityId: form.cityId,
             address: form.address,
             idProofName: form.idProofName,
         };
 
         try {
-            const res = await VendorApiService.registerVendor(payload);
+            const res = await VendorApiService.createVendor(payload);
             if (res?.status) {
                 toast({ title: 'Vendor registered successfully' });
                 onClose();
@@ -105,9 +105,10 @@ export default function VendorForm({ onClose, onSuccess }) {
                         const state = STATES.find(
                             (s) => s.id === Number(e.target.value)
                         );
+                        if (!state) return;
                         setForm({
                             ...form,
-                            stateId: state.id,
+                            stateId: String(state.id),
                             stateName: state.name,
                             cityId: '',
                             cityName: '',
@@ -132,9 +133,10 @@ export default function VendorForm({ onClose, onSuccess }) {
                         const city = cities.find(
                             (c) => c.id === Number(e.target.value)
                         );
+                        if (!city) return;
                         setForm({
                             ...form,
-                            cityId: city.id,
+                            cityId: String(city.id),
                             cityName: city.name,
                         });
                     }}

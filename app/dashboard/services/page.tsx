@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { getServiceCategories } from '@/lib/api/service';
+import { FullServiceCategory } from '@/lib/types/booking';
 import { ServiceCard } from '@/app/dashboard/services/service-card';
 import { HeaderSection } from '@/components/ui/header-section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users } from 'lucide-react';
 
 export default function ServicesPage() {
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<FullServiceCategory[]>([]);
   const [loading, setLoading] = useState(true);
   async function load() {
     setLoading(true);

@@ -297,7 +297,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Today's Bookings ({dashboardData.TodayBookingList.length})
+              Today&apos;s Bookings ({dashboardData.TodayBookingList.length})
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -84,7 +84,7 @@ export class BaseApiService {
       } catch (error) {
         clearTimeout(timeoutId);
         
-        if (error.name === 'AbortError') {
+        if (error instanceof Error && error.name === 'AbortError') {
           throw new NetworkError('Request timeout', 408, 'TIMEOUT_ERROR');
         }
         
@@ -108,7 +108,7 @@ export class BaseApiService {
       shouldRetry: (error) => {
         // Don't retry auth errors or client errors
         if (error instanceof AuthenticationError || 
-            (error.statusCode >= 400 && error.statusCode < 500)) {
+            (error.statusCode != null && error.statusCode >= 400 && error.statusCode < 500)) {
           return false;
         }
         return errorHandler.isRetryableError(error);
