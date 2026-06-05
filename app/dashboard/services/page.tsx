@@ -14,6 +14,8 @@ export default function ServicesPage() {
   async function load() {
     setLoading(true);
     const data = await getServiceCategories();
+    console.log(data);
+    console.log(data[0].category_list[0]);
     setServices(data);
     setLoading(false);
   }
