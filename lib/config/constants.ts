@@ -2,8 +2,8 @@ export const APP_CONFIG = {
   name: process.env.NEXT_PUBLIC_APP_NAME || 'Spinovo Admin Panel',
   version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ||
-    // "http://192.168.0.186:3003/api/v1",
-    'https://api.spinovo.in/api/v1',
+    // "http://[IP_ADDRESS]/api/v1",
+  'https://api.spinovo.in/api/v1',
   enableDebug: process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true',
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
@@ -12,8 +12,8 @@ export const APP_CONFIG = {
 export const API_URL = {
   BASE_URL:
     "https://api.spinovo.in/api/v1",
-    // "http://192.168.0.186:3003/api/v1",
-    // const API_BASE = "http://192.168.0.186:3003";
+    // "http://[IP_ADDRESS]/api/v1",
+  // const API_BASE = "http://192.168.0.186:3003";
 
   // Order related endpoints
   PICKUP_PENDING: '/admin/order/pickup/pending',
