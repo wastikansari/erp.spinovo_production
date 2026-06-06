@@ -24,7 +24,9 @@ import {
     Footprints,
     Flame,
     Sparkles,
-    Clock
+    Clock,
+    User,
+    Phone,
 } from 'lucide-react';
 
 import { BookingApiService, Booking, SubOrder } from '@/lib/api';
@@ -39,6 +41,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 // import { AssignBookingForm } from '@/components/forms/assign-booking-form';
 
 // ─── Service Color System ────────────────────────────────────────────────────
@@ -399,20 +408,27 @@ function SubOrderCard({
 
 // ─── Pagination ───────────────────────────────────────────────────────────────
 
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
 function PaginationBar({
     currentPage,
     totalPages,
     totalOrders,
+    pageSize,
     loading,
     onPageChange,
+    onPageSizeChange,
 }: {
     currentPage: number;
     totalPages: number;
     totalOrders: number;
+    pageSize: number;
     loading: boolean;
     onPageChange: (p: number) => void;
+    onPageSizeChange: (size: number) => void;
 }) {
-    if (totalPages <= 1) return null;
+    const from = totalOrders === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+    const to = Math.min(currentPage * pageSize, totalOrders);
 
     const getPageNumbers = () => {
         const pages: (number | '…')[] = [];
@@ -435,49 +451,78 @@ function PaginationBar({
 
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t">
-            <p className="text-sm text-muted-foreground">
-                Showing page <span className="font-medium">{currentPage}</span> of{' '}
-                <span className="font-medium">{totalPages}</span> &mdash;{' '}
-                <span className="font-medium">{totalOrders}</span> total orders
-            </p>
-            <div className="flex items-center gap-1">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 rounded-lg"
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage === 1 || loading}
-                >
-                    Prev
-                </Button>
-                {getPageNumbers().map((p, i) =>
-                    p === '…' ? (
-                        <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground text-sm">
-                            …
-                        </span>
-                    ) : (
-                        <Button
-                            key={p}
-                            variant={p === currentPage ? 'default' : 'outline'}
-                            size="sm"
-                            className="h-8 w-8 p-0 rounded-lg"
-                            onClick={() => onPageChange(p as number)}
-                            disabled={loading}
-                        >
-                            {p}
-                        </Button>
-                    )
+            {/* Left: rows-per-page + info */}
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                    <span className="shrink-0">Rows per page:</span>
+                    <Select
+                        value={String(pageSize)}
+                        onValueChange={(v) => onPageSizeChange(Number(v))}
+                        disabled={loading}
+                    >
+                        <SelectTrigger className="h-8 w-20 rounded-lg text-xs">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {PAGE_SIZE_OPTIONS.map((n) => (
+                                <SelectItem key={n} value={String(n)} className="text-xs">
+                                    {n}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                {totalOrders > 0 && (
+                    <span>
+                        <span className="font-medium text-foreground">{from}–{to}</span>
+                        {' '}of{' '}
+                        <span className="font-medium text-foreground">{totalOrders}</span>
+                        {' '}orders
+                    </span>
                 )}
-                <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-8 px-3 rounded-lg"
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages || loading}
-                >
-                    Next
-                </Button>
             </div>
+
+            {/* Right: page buttons */}
+            {totalPages > 1 && (
+                <div className="flex items-center gap-1">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 rounded-lg"
+                        onClick={() => onPageChange(currentPage - 1)}
+                        disabled={currentPage === 1 || loading}
+                    >
+                        Prev
+                    </Button>
+                    {getPageNumbers().map((p, i) =>
+                        p === '…' ? (
+                            <span key={`ellipsis-${i}`} className="px-1 text-muted-foreground text-sm">
+                                …
+                            </span>
+                        ) : (
+                            <Button
+                                key={p}
+                                variant={p === currentPage ? 'default' : 'outline'}
+                                size="sm"
+                                className="h-8 w-8 p-0 rounded-lg"
+                                onClick={() => onPageChange(p as number)}
+                                disabled={loading}
+                            >
+                                {p}
+                            </Button>
+                        )
+                    )}
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 rounded-lg"
+                        onClick={() => onPageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages || loading}
+                    >
+                        Next
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
@@ -490,6 +535,7 @@ export default function BookingsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalOrders, setTotalOrders] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
     const [error, setError] = useState('');
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
     // const [showAssignForm, setShowAssignForm] = useState(false);
@@ -498,15 +544,16 @@ export default function BookingsPage() {
     const router = useRouter();
     const { toast } = useToast();
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        fetchBookings(currentPage);
-    }, [currentPage]);
+        fetchBookings(currentPage, pageSize);
+    }, [currentPage, pageSize]);
 
-    const fetchBookings = async (page: number) => {
+    const fetchBookings = async (page: number, limit: number) => {
         try {
             setLoading(true);
             setError('');
-            const response = await BookingApiService.getBookings(page, 20);
+            const response = await BookingApiService.getBookings(page, limit);
             if (response.status && response.data) {
                 setBookings(response.data.bookingList || []);
                 setTotalPages(response.data.total_pages || 1);
@@ -536,6 +583,12 @@ export default function BookingsPage() {
     const handlePageChange = (page: number) => {
         setExpandedRows([]);
         setCurrentPage(page);
+    };
+
+    const handlePageSizeChange = (size: number) => {
+        setExpandedRows([]);
+        setPageSize(size);
+        setCurrentPage(1);
     };
 
     const pendingOrders = bookings.filter(
@@ -652,16 +705,14 @@ export default function BookingsPage() {
                     )}
 
                     {/* TABLE HEADER — desktop */}
-                    <div className="hidden lg:grid grid-cols-8 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                        {/* <div /> */}
-                        <div>Order ID</div>
-                        {/* <div>Service</div> */}
+                    <div className="hidden lg:grid lg:grid-cols-8 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        <div>Order</div>
+                        <div>Customer</div>
                         <div>Qty</div>
                         <div>Pickup Date</div>
-                        <div>Pickup Time</div>
+                        <div>Time</div>
                         <div>Amount</div>
                         <div>Status</div>
-                        <div>Created At</div>
                         <div className="text-right">Actions</div>
                     </div>
 
@@ -685,26 +736,89 @@ export default function BookingsPage() {
                             const subCount = booking.sub_orders?.length ?? 0;
                             return (
                                 <div key={booking._id} className="border-b last:border-b-0">
-                                    {/* MAIN ROW */}
-                                    <div
-                                        className={`grid grid-cols-1 lg:grid-cols-8 gap-3 px-5 py-4 items-center transition-colors ${isExpanded ? 'bg-muted/10' : 'hover:bg-muted/5'}`}
-                                    >
-                                        {/* EXPAND */}
-                                        {/* <div className="flex items-center gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 rounded-full"
+                                    {/* MOBILE CARD */}
+                                    <div className={`lg:hidden px-4 py-4 space-y-3 transition-colors ${isExpanded ? 'bg-muted/10' : 'hover:bg-muted/5'}`}>
+                                        {/* Order no + status */}
+                                        <div className="flex items-center justify-between gap-2">
+                                            <button
                                                 onClick={() => toggleRow(booking._id)}
+                                                className="font-bold text-primary hover:underline text-base"
                                             >
-                                                {isExpanded ? (
-                                                    <ChevronDown className="h-4 w-4" />
-                                                ) : (
-                                                    <ChevronRight className="h-4 w-4" />
-                                                )}
-                                            </Button>
-                                        </div> */}
+                                                {booking.order_display_no}
+                                            </button>
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium shrink-0 ${getStatusClass(booking.ord_status)}`}>
+                                                {booking.ord_status}
+                                            </span>
+                                        </div>
 
+                                        {/* Customer info */}
+                                        {booking.customer_details && (
+                                            <div className="flex items-center gap-3 text-sm">
+                                                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                                    <User className="h-4 w-4 text-primary" />
+                                                </div>
+                                                <div>
+                                                    <p className="font-semibold text-foreground leading-tight">
+                                                        {booking.customer_details.name || '—'}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                                        <Phone className="h-3 w-3" />
+                                                        {booking.customer_details.mobile || '—'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Details */}
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                                            <div className="flex items-center gap-1.5">
+                                                <Shirt className="h-3.5 w-3.5 shrink-0" />
+                                                <span className="font-medium text-foreground">{booking.garment_qty}</span>
+                                                <span>garments</span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5">
+                                                <Calendar className="h-3.5 w-3.5 shrink-0" />
+                                                <span>{formatDate(booking.booking_date)}, {booking.booking_time}</span>
+                                            </div>
+                                            <div className="flex items-center gap-0.5 font-semibold text-foreground">
+                                                <IndianRupee className="h-3.5 w-3.5" />
+                                                <span>{booking.total_billing?.toLocaleString('en-IN')}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Footer: sub-orders + actions */}
+                                        <div className="flex items-center justify-between">
+                                            {subCount > 0 ? (
+                                                <button
+                                                    onClick={() => toggleRow(booking._id)}
+                                                    className="text-xs text-primary hover:underline"
+                                                >
+                                                    {subCount} sub-order{subCount > 1 ? 's' : ''} {isExpanded ? '▲' : '▼'}
+                                                </button>
+                                            ) : <span />}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem onClick={() => router.push(`/dashboard/bookings/${booking._id}`)}>
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        View Details
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => toggleRow(booking._id)}>
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        View Sub-Orders
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                    </div>
+
+                                    {/* DESKTOP ROW */}
+                                    <div className={`hidden lg:grid lg:grid-cols-8 gap-3 px-5 py-4 items-center transition-colors ${isExpanded ? 'bg-muted/10' : 'hover:bg-muted/5'}`}>
                                         {/* ORDER ID */}
                                         <div>
                                             <button
@@ -720,33 +834,39 @@ export default function BookingsPage() {
                                             )}
                                         </div>
 
-                                        {/* SERVICE */}
-                                        {/* <div>
-                                            <span
-                                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border font-medium ${SERVICE_THEMES[resolveServiceKey(booking.service_name)].badge}`}
-                                            >
-                                                {SERVICE_THEMES[resolveServiceKey(booking.service_name)].icon}
-                                                <span className="truncate max-w-[110px]">
-                                                    {booking.service_name}
-                                                </span>
-                                            </span>
-                                        </div> */}
+                                        {/* CUSTOMER */}
+                                        <div className="min-w-0">
+                                            {booking.customer_details ? (
+                                                <>
+                                                    <p className="font-medium text-sm truncate">
+                                                        {booking.customer_details.name || '—'}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                                        <Phone className="h-3 w-3 shrink-0" />
+                                                        {booking.customer_details.mobile || '—'}
+                                                    </p>
+                                                </>
+                                            ) : (
+                                                <span className="text-xs text-muted-foreground">—</span>
+                                            )}
+                                        </div>
 
                                         {/* QTY */}
                                         <div className="font-medium text-sm">
                                             {booking.garment_qty}
                                         </div>
 
-                                        {/* DATE */}
+                                        {/* PICKUP DATE */}
                                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                             <Calendar className="h-3.5 w-3.5 shrink-0" />
                                             {formatDate(booking.booking_date)}
                                         </div>
+
+                                        {/* PICKUP TIME */}
                                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                             <Clock className="h-3.5 w-3.5 shrink-0" />
                                             {booking.booking_time}
                                         </div>
-
 
                                         {/* AMOUNT */}
                                         <div className="font-semibold text-sm flex items-center gap-0.5">
@@ -754,21 +874,11 @@ export default function BookingsPage() {
                                             {booking.total_billing?.toLocaleString('en-IN')}
                                         </div>
 
-                                        {/* STATUS */}
+                                        {/* ORDER STATUS */}
                                         <div>
-                                            <span
-                                                className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${getStatusClass(booking.ord_status)}`}
-                                            >
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${getStatusClass(booking.ord_status)}`}>
                                                 {booking.ord_status}
                                             </span>
-                                        </div>
-
-                                        {/* CREATE AT */}
-                                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                            <Calendar className="h-3.5 w-3.5 shrink-0" />
-                                            {booking.createdAt
-                                                ? format(new Date(booking.createdAt), 'dd MMM yyyy, hh:mm a')
-                                                : '—'}
                                         </div>
 
                                         {/* ACTIONS */}
@@ -780,37 +890,15 @@ export default function BookingsPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem
-                                                        onClick={() =>
-                                                            router.push(
-                                                                `/dashboard/bookings/${booking._id}`
-                                                            )
-                                                        }
-                                                    >
+                                                    <DropdownMenuItem onClick={() => router.push(`/dashboard/bookings/${booking._id}`)}>
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View Details
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem
-
-                                                        onClick={() => toggleRow(booking._id)}
-                                                        className=" text-primary hover:underline text-sm"
-
-                                                    >
+                                                    <DropdownMenuItem onClick={() => toggleRow(booking._id)}>
                                                         <Eye className="mr-2 h-4 w-4" />
                                                         View Sub-Orders
                                                     </DropdownMenuItem>
                                                     <DropdownMenuSeparator />
-                                                    {/* {booking.order_stage_id == 1 && (
-                                                        <DropdownMenuItem
-                                                            onClick={() => {
-                                                                setSelectedBooking(booking);
-                                                                setShowAssignForm(true);
-                                                            }}
-                                                        >
-                                                            <UserCheck className="mr-2 h-4 w-4" />
-                                                            Assign Main Order for Pickup
-                                                        </DropdownMenuItem>
-                                                    )} */}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </div>
@@ -868,8 +956,10 @@ export default function BookingsPage() {
                         currentPage={currentPage}
                         totalPages={totalPages}
                         totalOrders={totalOrders}
+                        pageSize={pageSize}
                         loading={loading}
                         onPageChange={handlePageChange}
+                        onPageSizeChange={handlePageSizeChange}
                     />
                 </CardContent>
             </Card>

@@ -601,6 +601,42 @@ export default function BookingDetailsPage() {
                             </Button>
                         </CardContent>
                     </Card>
+                    {/* Address */}
+                    <Card className="rounded-2xl shadow-sm">
+                        <CardHeader className="pb-3 border-b">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                Pickup Address
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            <div className="flex gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                    <Home className="h-5 w-5 text-primary" />
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <p className="font-semibold text-sm">{address.address_type}</p>
+                                        {address.isPrimary && (
+                                            <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20">
+                                                Primary
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground leading-relaxed">{address.format_address}</p>
+                                    <div className="flex flex-wrap gap-2 pt-1 text-xs text-muted-foreground">
+                                        <span>Pincode: <span className="font-semibold text-foreground">{address.pincode}</span></span>
+                                        <span>City: <span className="font-semibold text-foreground">{address.city}</span></span>
+                                    </div>
+                                    {address.landmark && (
+                                        <p className="text-xs text-muted-foreground">
+                                            Near: <span className="font-medium text-foreground">{address.landmark}</span>
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
 
                     {/* Billing */}
                     <Card className="rounded-2xl shadow-sm">
@@ -707,31 +743,31 @@ export default function BookingDetailsPage() {
                     {((bookingData as any).pickupAssignments?.length > 0 ||
                         (bookingData as any).processAssignments?.length > 0 ||
                         (bookingData as any).deliveryAssignments?.length > 0) && (
-                        <Card className="rounded-2xl shadow-sm">
-                            <CardHeader className="pb-3 border-b">
-                                <CardTitle className="text-base">Assignments</CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-4 space-y-3">
-                                {[
-                                    { label: 'Pickup', data: (bookingData as any).pickupAssignments },
-                                    { label: 'Processing', data: (bookingData as any).processAssignments },
-                                    { label: 'Delivery', data: (bookingData as any).deliveryAssignments },
-                                ].map(({ label, data }) => (
-                                    <div key={label} className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">{label}</span>
-                                        {data?.length > 0 ? (
-                                            <div className="flex items-center gap-1 text-green-600 font-medium">
-                                                <CheckCircle2 className="h-3.5 w-3.5" />
-                                                {data.length} assigned
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted-foreground text-xs">Not assigned</span>
-                                        )}
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    )}
+                            <Card className="rounded-2xl shadow-sm">
+                                <CardHeader className="pb-3 border-b">
+                                    <CardTitle className="text-base">Assignments</CardTitle>
+                                </CardHeader>
+                                <CardContent className="pt-4 space-y-3">
+                                    {[
+                                        { label: 'Pickup', data: (bookingData as any).pickupAssignments },
+                                        { label: 'Processing', data: (bookingData as any).processAssignments },
+                                        { label: 'Delivery', data: (bookingData as any).deliveryAssignments },
+                                    ].map(({ label, data }) => (
+                                        <div key={label} className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">{label}</span>
+                                            {data?.length > 0 ? (
+                                                <div className="flex items-center gap-1 text-green-600 font-medium">
+                                                    <CheckCircle2 className="h-3.5 w-3.5" />
+                                                    {data.length} assigned
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground text-xs">Not assigned</span>
+                                            )}
+                                        </div>
+                                    ))}
+                                </CardContent>
+                            </Card>
+                        )}
                 </div>
             </div>
         </div>

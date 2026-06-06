@@ -1,6 +1,37 @@
 import { BaseEntity } from './index';
 import { Customer, Address } from './customer';
 
+export interface BookingCustomerDetails {
+  _id: string;
+  name: string;
+  mobile: string;
+  email: string;
+  gender: string;
+  profile_pic: string;
+  isActive: boolean;
+}
+
+export interface BookingAddressDetails {
+  _id: string;
+  customer_id: string;
+  address_type: string;
+  address_label: string;
+  flat_no: string;
+  building: string;
+  street: string;
+  landmark: string;
+  city: string;
+  state: string;
+  pincode: string;
+  format_address: string;
+  isPrimary: boolean;
+  petsAtHome: string;
+  latitude: string;
+  longitude: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SubOrder extends BaseEntity {
   order_id: string;
   customer_id: string;
@@ -63,7 +94,14 @@ export interface Booking extends BaseEntity {
   no_of_garemtn_picked: number;
   no_of_garemtn_processed: number;
   no_of_garemtn_delivered: number;
+  paid_amount: number;
+  unpaid_amount: number;
+  quality_check: boolean;
+  is_suborder_cancel: number;
+  cancel_charge: number;
   sub_orders?: SubOrder[];
+  customer_details?: BookingCustomerDetails;
+  address_details?: BookingAddressDetails;
 }
 
 export interface PendingQCOrder {
