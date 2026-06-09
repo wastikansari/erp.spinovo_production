@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "description": "Professional admin panel for Spinovo laundry services",
-  "keywords": ["admin", "dashboard", "laundry", "management"],
+  "keywords": [
+    "admin",
+    "dashboard",
+    "laundry",
+    "management"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -56,6 +61,7 @@
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",
+    "firebase": "^12.14.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
     "next": "13.5.1",

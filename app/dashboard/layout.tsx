@@ -21,6 +21,7 @@ import {
   UserCog,
   UserCheck,
   MapPin,
+  Bell,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -35,7 +36,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -49,6 +49,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { AuthService } from '@/lib/auth';
+import { useFCM } from '@/hooks/useFCM';
+import NotificationBell from '@/components/NotificationBell';
+import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
+
+const FCM_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.spinovo.in/api/v1/admin';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -95,6 +100,22 @@ export default function DashboardLayout({
   const [user, setUser] = useState<any>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState<any>(null);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
+  const [notifPromptDismissed, setNotifPromptDismissed] = useState(false);
+
+  useFCM({ onForegroundMessage: (payload) => setToast(payload), enabled: !!user && notifPermission === 'granted' });
+
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!user || typeof window === 'undefined' || !('Notification' in window)) return;
+    setNotifPermission(Notification.permission);
+  }, [user]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -148,7 +169,37 @@ export default function DashboardLayout({
     setShowLogoutDialog(true);
   };
 
+  const handleTestNotification = async () => {
+    // 1. Test OS notification directly (bypasses FCM)
+    if (Notification.permission === 'granted') {
+      new Notification('Test — OS Notification', {
+        body: 'Chrome OS notification is working ✅',
+        icon: '/favicon.ico',
+      });
+    } else {
+      console.warn('🔔 [TEST] Permission not granted — cannot show OS notification');
+    }
+    // 2. Simulate foreground FCM message (toast in the panel)
+    setToast({
+      notification: {
+        title: 'Test — Foreground Toast',
+        body: 'In-app toast notification is working ✅',
+      },
+    });
+    console.log('🔔 [TEST] Local notification test fired');
+    console.log('🔔 [TEST] Permission:', Notification.permission);
+    console.log('🔔 [TEST] FCM Token:', (window as any).__fcmToken ?? 'not set — run window.__fcmDiag()');
+  };
+
   const confirmLogout = () => {
+    const authToken = AuthService.getToken();
+    if (authToken) {
+      fetch(`${FCM_API_BASE}/fcm/remove-token`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
+        body: JSON.stringify({}),
+      }).catch(() => {});
+    }
     AuthService.logout();
     setShowLogoutDialog(false);
     router.push('/auth/login');
@@ -252,6 +303,7 @@ export default function DashboardLayout({
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <NotificationBell />
                 <Button
                   variant="ghost"
                   size="icon"
@@ -270,6 +322,10 @@ export default function DashboardLayout({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleTestNotification}>
+                      <Bell className="mr-2 h-4 w-4" />
+                      Test Notification
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Logout
@@ -302,6 +358,31 @@ export default function DashboardLayout({
       <div className="md:pl-64">
         <main className="py-6 px-4 sm:px-6 md:px-8">{children}</main>
       </div>
+
+      {/* Notification permission prompt */}
+      {user && !notifPromptDismissed && notifPermission !== 'granted' && (
+        <NotificationPermissionPrompt
+          permission={notifPermission}
+          onGranted={() => setNotifPermission('granted')}
+          onDismiss={() => setNotifPromptDismissed(true)}
+        />
+      )}
+
+      {/* FCM foreground notification toast */}
+      {toast && (
+        <div className="fixed bottom-4 right-4 z-50 w-80 rounded-lg border bg-background shadow-lg p-4 animate-in slide-in-from-bottom-2">
+          <div className="flex items-start gap-3">
+            <Bell className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium">{toast.notification?.title}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">{toast.notification?.body}</p>
+            </div>
+            <button onClick={() => setToast(null)} className="shrink-0">
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
