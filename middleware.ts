@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // Security headers
   const response = NextResponse.next();
 
@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
     : `connect-src 'self' https://api.spinovo.in ${firebaseDomains}`;
   response.headers.set(
     'Content-Security-Policy',
-    `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; ${connectSrc};`
+    `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; ${connectSrc};`
   );
 
   return response;
@@ -39,7 +39,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - firebase-messaging-sw.js (service worker must not receive a restrictive CSP)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|firebase-messaging-sw\\.js).*)',
   ],
 };

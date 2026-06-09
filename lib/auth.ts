@@ -79,7 +79,8 @@ export class AuthService {
           // proceed without FCM token
         }
       }
-
+console.log(`2wwwwwww wwwwwfcmToken ${fcmToken}`);
+console.log(`wwwwwwwwww wwdeviceType ${deviceType}`);
       const response = await fetch(`${this.API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
         method: 'POST',
         headers: {
@@ -92,6 +93,7 @@ export class AuthService {
           ...(fcmToken && { fcmToken }),
           deviceType,
         }),
+
       });
 console.log(response);
       if (!response.ok) {

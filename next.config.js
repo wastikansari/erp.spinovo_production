@@ -33,6 +33,25 @@ const nextConfig = {
           },
         ],
       },
+      // Service worker must never be cached by CDN/proxy so the browser always
+      // gets the latest version after a deployment (stale SW = stale FCM token)
+      {
+        source: '/firebase-messaging-sw.js',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, no-cache, must-revalidate',
+          },
+          {
+            key: 'Service-Worker-Allowed',
+            value: '/',
+          },
+          {
+            key: 'Content-Type',
+            value: 'application/javascript; charset=utf-8',
+          },
+        ],
+      },
     ];
   },
   // Optimize bundle
