@@ -620,7 +620,7 @@ export default function BookingsPage() {
                 </div>
                 <Button
                     variant="outline"
-                    onClick={() => fetchBookings(currentPage)}
+                    onClick={() => fetchBookings(currentPage, pageSize)}
                     disabled={loading}
                     className="rounded-xl self-start"
                 >
