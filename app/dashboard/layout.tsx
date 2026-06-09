@@ -49,7 +49,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { AuthService } from '@/lib/auth';
-import { useFCM } from '@/hooks/useFCM';
+import { useFCM, unregisterFCM } from '@/hooks/useFCM';
 import NotificationBell from '@/components/NotificationBell';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
@@ -192,14 +192,8 @@ export default function DashboardLayout({
   };
 
   const confirmLogout = () => {
-    const authToken = AuthService.getToken();
-    if (authToken) {
-      fetch(`${FCM_API_BASE}/fcm/remove-token`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({}),
-      }).catch(() => { });
-    }
+    // unregisterFCM triggers onUnregistered → backend token removal handled there
+    unregisterFCM().catch(() => {});
     AuthService.logout();
     setShowLogoutDialog(false);
     router.push('/auth/login');

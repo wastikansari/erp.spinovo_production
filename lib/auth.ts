@@ -2,8 +2,11 @@ import { APP_CONFIG, API_ENDPOINTS } from './config/constants';
 import { logger } from './utils/logger';
 import { errorHandler, AuthenticationError, ApiError } from './utils/error-handler';
 import { validators, sanitizers } from './utils/validation';
-import { getToken } from 'firebase/messaging';
+import { register, onRegistered } from 'firebase/messaging';
 import { getMessaging } from './firebase';
+
+const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
+  || 'BHktXl20xhuxVNNL5eI0RwrjSQSTcIVLWY3q65VyivZRHdEuvwUCaiuvpciI3-2TXuosNN1pI6xl_nHu4OJ-jto';
 
 interface LoginCredentials {
   mobile: string;
@@ -78,10 +81,19 @@ export class AuthService {
                 });
                 swRegistration = await navigator.serviceWorker.ready;
               }
-              fcmToken = await getToken(messaging, {
-                vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-                serviceWorkerRegistration: swRegistration,
-              }) || undefined;
+              // Firebase v12: register() + onRegistered() replaces deprecated getToken()
+              // Wrap in a promise with a 5s timeout so login is never blocked
+              const m = messaging;
+              fcmToken = await new Promise<string | undefined>((resolve) => {
+                const timer = setTimeout(() => resolve(undefined), 5000);
+                const unsub = onRegistered(m, (fid) => {
+                  clearTimeout(timer);
+                  unsub();
+                  resolve(fid);
+                });
+                register(m, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swRegistration })
+                  .catch(() => { clearTimeout(timer); unsub(); resolve(undefined); });
+              });
             }
           }
         } catch {
