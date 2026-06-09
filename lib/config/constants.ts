@@ -11,9 +11,7 @@ export const APP_CONFIG = {
 
 export const API_URL = {
   BASE_URL:
-    "https://api.spinovo.in/api/v1",
-    // "http://[IP_ADDRESS]/api/v1",
-  // const API_BASE = "http://192.168.0.186:3003";
+    process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.spinovo.in/api/v1",
 
   // Order related endpoints
   PICKUP_PENDING: '/admin/order/pickup/pending',

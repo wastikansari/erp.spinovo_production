@@ -2,10 +2,14 @@ import { APP_CONFIG, API_ENDPOINTS } from './config/constants';
 import { logger } from './utils/logger';
 import { errorHandler, AuthenticationError, ApiError } from './utils/error-handler';
 import { validators, sanitizers } from './utils/validation';
+import { getToken } from 'firebase/messaging';
+import { getMessaging } from './firebase';
 
 interface LoginCredentials {
   mobile: string;
   password: string;
+  fcmToken?: string;
+  deviceType?: string;
 }
 
 interface AdminUser {
@@ -58,6 +62,24 @@ export class AuthService {
 
       logger.info('Attempting login', { mobile: sanitizedMobile }, 'AuthService');
 
+      let fcmToken: string | undefined = credentials.fcmToken;
+      const deviceType = credentials.deviceType ?? 'web';
+
+      if (!fcmToken) {
+        try {
+          if (typeof window !== 'undefined' && Notification.permission === 'granted') {
+            const messaging = getMessaging();
+            if (messaging) {
+              fcmToken = await getToken(messaging, {
+                vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+              }) || undefined;
+            }
+          }
+        } catch {
+          // proceed without FCM token
+        }
+      }
+
       const response = await fetch(`${this.API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
         method: 'POST',
         headers: {
@@ -67,6 +89,8 @@ export class AuthService {
         body: JSON.stringify({
           mobile: sanitizedMobile,
           password: credentials.password,
+          ...(fcmToken && { fcmToken }),
+          deviceType,
         }),
       });
 console.log(response);

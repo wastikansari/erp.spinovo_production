@@ -198,7 +198,7 @@ export default function DashboardLayout({
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
         body: JSON.stringify({}),
-      }).catch(() => {});
+      }).catch(() => { });
     }
     AuthService.logout();
     setShowLogoutDialog(false);
@@ -303,8 +303,8 @@ export default function DashboardLayout({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <NotificationBell />
-                <Button
+                {/* <NotificationBell /> */}
+                {/* <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -314,7 +314,7 @@ export default function DashboardLayout({
                   ) : (
                     <Moon className="h-4 w-4" />
                   )}
-                </Button>
+                </Button> */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -325,6 +325,20 @@ export default function DashboardLayout({
                     <DropdownMenuItem onClick={handleTestNotification}>
                       <Bell className="mr-2 h-4 w-4" />
                       Test Notification
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                      {/* <Button
+                        variant="ghost"
+                        size="icon"
+                          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                      > */}
+                      {theme === 'dark' ? (
+                        <Sun className="h-4 w-4" />
+                      ) : (
+                        <Moon className="h-4 w-4" />
+                      )}
+                      <span className='ml-2'>Dark/Light Mode</span>
+                      {/* </Button> */}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
