@@ -67,20 +67,29 @@ export class AuthService {
 
       if (!fcmToken) {
         try {
-          if (typeof window !== 'undefined' && Notification.permission === 'granted') {
+          if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
             const messaging = getMessaging();
             if (messaging) {
+              let swRegistration: ServiceWorkerRegistration | undefined;
+              if ('serviceWorker' in navigator) {
+                swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                  scope: '/',
+                  updateViaCache: 'none',
+                });
+                swRegistration = await navigator.serviceWorker.ready;
+              }
               fcmToken = await getToken(messaging, {
                 vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+                serviceWorkerRegistration: swRegistration,
               }) || undefined;
             }
           }
         } catch {
-          // proceed without FCM token
+          // proceed without FCM token — useFCM hook will register it after login
         }
       }
-console.log(`2wwwwwww wwwwwfcmToken ${fcmToken}`);
-console.log(`wwwwwwwwww wwdeviceType ${deviceType}`);
+      console.log(`wwwwwww fcmToken ${fcmToken}`);
+      console.log(`wwwwwww deviceType ${deviceType}`);
       const response = await fetch(`${this.API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
         method: 'POST',
         headers: {
@@ -95,7 +104,6 @@ console.log(`wwwwwwwwww wwdeviceType ${deviceType}`);
         }),
 
       });
-console.log(response);
       if (!response.ok) {
         throw new ApiError(`Login failed: ${response.status}`, response.status);
       }
