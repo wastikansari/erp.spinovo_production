@@ -193,7 +193,7 @@ export default function DashboardLayout({
 
   const confirmLogout = () => {
     // unregisterFCM triggers onUnregistered → backend token removal handled there
-    unregisterFCM().catch(() => {});
+    unregisterFCM().catch(() => { });
     AuthService.logout();
     setShowLogoutDialog(false);
     router.push('/auth/login');
@@ -338,10 +338,8 @@ export default function DashboardLayout({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleTestNotification}>
-                      <Bell className="mr-2 h-4 w-4" />
-                      Test Notification
-                    </DropdownMenuItem>
+                    {/* 
+                     */}
                     <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                       {/* <Button
                         variant="ghost"
