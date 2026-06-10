@@ -24,17 +24,13 @@ function authHeaders() {
 
 // GET /admin/service/category
 export async function getServiceCategories(): Promise<FullServiceCategory[]> {
-  try {
-    const res = await fetch(`${API_URL.BASE_URL}${API_URL.SERVICE_CATEGORY_BASE}`, {
-      headers: authHeaders(),
-    });
-    const json = await res.json();
-    if (!json.status) throw new Error(json.msg || 'Failed to fetch services');
-    return json.data.service || [];
-  } catch (error) {
-    console.error('Service API Error:', error);
-    return [];
-  }
+  const res = await fetch(`${API_URL.BASE_URL}${API_URL.SERVICE_CATEGORY_BASE}`, {
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  if (!json.status) throw new Error(json.msg || 'Failed to fetch services');
+  return json.data.service || [];
 }
 
 // GET /admin/service/category/:serviceId

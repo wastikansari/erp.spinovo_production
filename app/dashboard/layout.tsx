@@ -214,19 +214,41 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-background">
       {/* Mobile menu */}
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden fixed top-4 left-4 z-50"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </Button>
-        </SheetTrigger>
+        {/* Mobile top header bar */}
+        <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-background border-b flex items-center px-2 gap-2">
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <span className="flex-1 text-sm font-bold">Spinovo Admin</span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Settings className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleTestNotification}>
+                <Bell className="mr-2 h-4 w-4" />
+                Test Notification
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+                <span className="ml-2">Dark/Light Mode</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
         <SheetContent side="left" className="w-64 p-0">
           <SheetHeader className="p-4">
             <SheetTitle>Spinovo Admin</SheetTitle>
@@ -364,7 +386,7 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <div className="md:pl-64">
-        <main className="py-6 px-4 sm:px-6 md:px-8">{children}</main>
+        <main className="pt-20 pb-6 px-4 sm:px-6 md:pt-6 md:px-8">{children}</main>
       </div>
 
       {/* Notification permission prompt */}
@@ -378,7 +400,7 @@ export default function DashboardLayout({
 
       {/* FCM foreground notification toast */}
       {toast && (
-        <div className="fixed bottom-4 right-4 z-50 w-80 rounded-lg border bg-background shadow-lg p-4 animate-in slide-in-from-bottom-2">
+        <div className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] sm:w-80 max-w-sm rounded-lg border bg-background shadow-lg p-4 animate-in slide-in-from-bottom-2">
           <div className="flex items-start gap-3">
             <Bell className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
             <div className="min-w-0 flex-1">

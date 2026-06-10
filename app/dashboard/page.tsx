@@ -8,7 +8,6 @@ import {
   Users,
   Package,
   IndianRupee,
-  TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
   Loader2,
@@ -25,7 +24,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { format } from 'date-fns';
 import { DashboardApiService, DashboardData } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -89,14 +87,6 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'MMM do, yyyy');
-    } catch {
-      return dateString;
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -120,7 +110,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
         </div>
         <Card>
           <CardContent className="flex items-center justify-center py-10">
@@ -138,7 +128,7 @@ export default function DashboardPage() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
           <Button onClick={fetchDashboardData} variant="outline" size="sm">
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
@@ -205,7 +195,7 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.title}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -215,7 +205,7 @@ export default function DashboardPage() {
               <stat.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-lg sm:text-2xl font-bold">{stat.value}</div>
               <div className="flex items-center text-xs text-muted-foreground">
                 {stat.trendUp ? (
                   <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
@@ -309,18 +299,18 @@ export default function DashboardPage() {
               <div className="space-y-4 max-h-[300px] overflow-y-auto">
                 {dashboardData.TodayBookingList.map((booking) => (
                   <div key={booking._id} className="border rounded-lg p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{booking.order_display_no}</span>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-medium text-sm">{booking.order_display_no}</span>
                           <Badge className={getStatusColor(booking.ord_status)}>
                             {booking.ord_status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground truncate">
                           {booking.service_name}
                         </p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                           <span>Qty: {booking.garment_qty}</span>
                           <span>₹{booking.order_amount}</span>
                           <span>{booking.booking_time}</span>
@@ -329,6 +319,7 @@ export default function DashboardPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="shrink-0"
                         onClick={() => handleViewBookingDetails(booking._id)}
                       >
                         <Eye className="h-4 w-4" />

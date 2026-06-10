@@ -52,22 +52,22 @@ export default function UpdateCategoryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const categoryId   = Number(params.categoryId);
-  const serviceId    = searchParams.get('serviceId') ?? '';
-  const serviceName  = searchParams.get('serviceName') ?? '';
+  const categoryId = Number(params.categoryId);
+  const serviceId = searchParams.get('serviceId') ?? '';
+  const serviceName = searchParams.get('serviceName') ?? '';
 
   // Form state
-  const [categoryName, setCategoryName]   = useState('');
-  const [price, setPrice]                 = useState('');
-  const [description, setDescription]     = useState('');
-  const [garments, setGarments]           = useState<string[]>([]);
-  const [newGarment, setNewGarment]       = useState('');
+  const [categoryName, setCategoryName] = useState('');
+  const [price, setPrice] = useState('');
+  const [description, setDescription] = useState('');
+  const [garments, setGarments] = useState<string[]>([]);
+  const [newGarment, setNewGarment] = useState('');
 
   // UI state
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
-  const [saving, setSaving]     = useState(false);
-  const [alert, setAlert]       = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -78,7 +78,7 @@ export default function UpdateCategoryPage() {
     async function fetchCategory() {
       setLoading(true);
       const services = await getServiceCategories();
-      const service = services.find((s) => s._id === serviceId);
+      const service = services.find((s) => String(s.service_id) === serviceId);
       if (service) {
         const cat = service.category_list.find((c) => c.category_id === categoryId);
         if (cat) {
@@ -120,7 +120,7 @@ export default function UpdateCategoryPage() {
       setAlert({ type: 'error', message: 'Category name is required.' });
       return;
     }
-    if (!price || isNaN(Number(price)) || Number(price) < 0) {
+    if (!price.trim() || isNaN(Number(price.trim())) || Number(price.trim()) < 0) {
       setAlert({ type: 'error', message: 'Enter a valid price.' });
       return;
     }

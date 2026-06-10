@@ -43,7 +43,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
           className="h-8 gap-1.5 text-xs shrink-0"
           onClick={() =>
             router.push(
-              `/dashboard/services/edit-service/${service._id}?serviceName=${encodeURIComponent(service.service)}&duration=${service.service_duration_hours}`
+              `/dashboard/services/edit-service/${service.service_id}?serviceName=${encodeURIComponent(service.service)}&duration=${service.service_duration_hours}`
             )
           }
         >
@@ -80,7 +80,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
                   className="h-8 gap-1.5 text-xs"
                   onClick={() =>
                     router.push(
-                      `/dashboard/services/update/${cat.category_id}?serviceId=${service._id}&serviceName=${encodeURIComponent(service.service)}`
+                      `/dashboard/services/update/${cat.category_id}?serviceId=${service.service_id}&serviceName=${encodeURIComponent(service.service)}`
                     )
                   }
                 >
@@ -116,7 +116,7 @@ export function ServiceCard({ service }: ServiceCardProps) {
                    text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950"
         onClick={() =>
           router.push(
-            `/dashboard/services/add-category/${service._id}?serviceName=${encodeURIComponent(service.service)}`
+            `/dashboard/services/add-category/${service.service_id}?serviceName=${encodeURIComponent(service.service)}`
           )
         }
       >

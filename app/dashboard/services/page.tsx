@@ -6,21 +6,29 @@ import { FullServiceCategory } from '@/lib/types/booking';
 import { ServiceCard } from '@/app/dashboard/services/service-card';
 import { HeaderSection } from '@/components/ui/header-section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+import { Users, AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function ServicesPage() {
   const [services, setServices] = useState<FullServiceCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
   async function load() {
     setLoading(true);
-    const data = await getServiceCategories();
-    console.log(data);
-    console.log(data[0].category_list[0]);
-    setServices(data);
-    setLoading(false);
+    setError('');
+    try {
+      const data = await getServiceCategories();
+      setServices(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load services');
+    } finally {
+      setLoading(false);
+    }
   }
-  useEffect(() => {
 
+  useEffect(() => {
     load();
   }, []);
 
@@ -33,9 +41,7 @@ export default function ServicesPage() {
   }
 
   const handleRefresh = () => {
-    console.log('=== MANUAL REFRESH ===');
     load();
-    // fetchCustomers(currentPage);
   };
 
   return (
@@ -46,7 +52,6 @@ export default function ServicesPage() {
         loading={loading}
       />
       <Card>
-        {/* PAGE HEADER */}
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
@@ -56,18 +61,33 @@ export default function ServicesPage() {
             Manage service categories, prices and garment types
           </div>
         </CardHeader>
-        {/* SERVICE GRID */}
         <CardContent>
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {services.map((service) => (
-              <ServiceCard
-                key={service.service_id}
-                service={service}
-              />
-            ))}
-          </div>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="flex items-center justify-between gap-4">
+                <span>{error}</span>
+                <Button size="sm" variant="outline" onClick={handleRefresh}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Retry
+                </Button>
+              </AlertDescription>
+            </Alert>
+          ) : services.length === 0 ? (
+            <div className="py-10 text-center text-muted-foreground">
+              No services found.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {services.map((service) => (
+                <ServiceCard
+                  key={service.service_id}
+                  service={service}
+                />
+              ))}
+            </div>
+          )}
         </CardContent>
-
       </Card>
     </div>
   );
