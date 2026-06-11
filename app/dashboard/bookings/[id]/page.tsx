@@ -669,6 +669,9 @@ export default function BookingDetailsPage() {
                             {order.garment_discount_amount > 0 && (
                                 <PriceRow label="Garment Discount" value={order.garment_discount_amount} negative />
                             )}
+                            {order.spinovo_bonus_discount > 0 && (
+                                <PriceRow label="Spinovo Bonus" value={order.spinovo_bonus_discount} negative />
+                            )}
                             <Separator className="my-2" />
                             <PriceRow label="Total Billing" value={order.total_billing} highlight />
                         </CardContent>
@@ -703,7 +706,7 @@ export default function BookingDetailsPage() {
                     </Card>
 
                     {/* Address */}
-                    <Card className="rounded-2xl shadow-sm">
+                    {/* <Card className="rounded-2xl shadow-sm">
                         <CardHeader className="pb-3 border-b">
                             <CardTitle className="flex items-center gap-2 text-base">
                                 <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -737,7 +740,7 @@ export default function BookingDetailsPage() {
                                 </div>
                             </div>
                         </CardContent>
-                    </Card>
+                    </Card> */}
 
                     {/* Assignments summary */}
                     {((bookingData as any).pickupAssignments?.length > 0 ||

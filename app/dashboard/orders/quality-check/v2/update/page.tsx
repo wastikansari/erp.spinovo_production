@@ -705,6 +705,12 @@ function QCUpdateContent() {
                                 color: '',
                             },
                             {
+                                label: 'Spinovo Bonus Discount',
+                                icon: <Wallet className="h-3.5 w-3.5" />,
+                                value: order?.spinovo_bonus_discount ?? 0,
+                                color: '',
+                            },
+                            {
                                 label: 'Suborder Cancel Charges',
                                 icon: <Wallet className="h-3.5 w-3.5" />,
                                 value: totalSubOrderCancelCharges,

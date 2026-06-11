@@ -83,6 +83,7 @@ export interface Booking extends BaseEntity {
   ord_status: string;
   delivery_charge: number;
   tip_amount: number;
+  spinovo_bonus_discount: number;
   total_billing: number;
   payment_mode: string;
   payment_status: string;
@@ -126,6 +127,7 @@ export interface PendingQCOrder {
   handling_charges: number;
   service_charges: number;
   tip_amount: number;
+  spinovo_bonus_discount: number;
   total_billing: number;
   unpaid_amount: number;
   paid_amount: number;
