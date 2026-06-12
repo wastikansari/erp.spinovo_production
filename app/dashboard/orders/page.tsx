@@ -70,6 +70,20 @@ interface ServiceTheme {
     label: string;
 }
 
+const SERVICE_ABBREV: Record<string, ServiceColorKey> = {
+    QI: 'quick-ironing',
+    I: 'ironing',
+    W: 'wash',
+    WI: 'wash-ironing',
+    DC: 'dry-cleaning',
+    SC: 'shoes-cleaning',
+};
+
+function abbrevFromSubOrderNo(subOrderNo: string): string {
+    const parts = subOrderNo?.split('-') ?? [];
+    return parts[parts.length - 1]?.toUpperCase() ?? '';
+}
+
 const SERVICE_THEMES: Record<ServiceColorKey, ServiceTheme> = {
     'quick-ironing': {
         border: 'border-l-orange-400',
@@ -705,8 +719,9 @@ export default function BookingsPage() {
                     )}
 
                     {/* TABLE HEADER — desktop */}
-                    <div className="hidden lg:grid lg:grid-cols-8 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    <div className="hidden lg:grid lg:grid-cols-9 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         <div>Order</div>
+                        <div>Service</div>
                         <div>Customer</div>
                         <div>Qty</div>
                         <div>Pickup Date</div>
@@ -818,7 +833,7 @@ export default function BookingsPage() {
                                     </div>
 
                                     {/* DESKTOP ROW */}
-                                    <div className={`hidden lg:grid lg:grid-cols-8 gap-3 px-5 py-4 items-center transition-colors ${isExpanded ? 'bg-muted/10' : 'hover:bg-muted/5'}`}>
+                                    <div className={`hidden lg:grid lg:grid-cols-9 gap-3 px-5 py-4 items-center transition-colors ${isExpanded ? 'bg-muted/10' : 'hover:bg-muted/5'}`}>
                                         {/* ORDER ID */}
                                         <div>
                                             <button
@@ -832,6 +847,24 @@ export default function BookingsPage() {
                                                     {subCount} sub-order{subCount > 1 ? 's' : ''}
                                                 </div>
                                             )}
+                                        </div>
+                                        {/* SERVICE */}
+                                        <div className="flex flex-wrap gap-1">
+                                            {booking.sub_orders?.map((sub) => {
+                                                const abbrev = abbrevFromSubOrderNo(sub.sub_order_no);
+                                                const key = SERVICE_ABBREV[abbrev] ?? 'default';
+                                                const t = SERVICE_THEMES[key];
+                                                return (
+                                                    <span
+                                                        key={sub._id}
+                                                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded border text-xs font-semibold ${t.badge}`}
+                                                        title={t.label}
+                                                    >
+                                                        {t.icon}
+                                                        {abbrev}
+                                                    </span>
+                                                );
+                                            })}
                                         </div>
 
                                         {/* CUSTOMER */}

@@ -266,10 +266,10 @@ export default function CustomerDetailsPage() {
                 <Badge variant="secondary">{user.living_type || 'Not specified'}</Badge>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Status</p>
+                {/* <p className="text-sm text-muted-foreground">Status</p>
                 <Badge variant={user.isActive ? "default" : "secondary"}>
                   {user.isActive ? 'Active' : 'Inactive'}
-                </Badge>
+                </Badge> */}
               </div>
             </div>
 
@@ -285,10 +285,10 @@ export default function CustomerDetailsPage() {
                 <p className="text-sm text-muted-foreground">Last Active</p>
                 <p className="font-medium">{formatDateTime(user.lastActive)}</p>
               </div>
-              <div>
+              {/* <div>
                 <p className="text-sm text-muted-foreground">City ID</p>
                 <p className="font-medium">{user.city_id}</p>
-              </div>
+              </div> */}
             </div>
           </div>
         </CardContent>
