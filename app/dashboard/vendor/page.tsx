@@ -196,31 +196,16 @@ export default function VendorsPage() {
     }
   };
 
-  const getStatusColor = (status: number) => {
-    return status === 1
-      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
-      : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
-  };
-
-  const getRoleColor = (role: number) => {
-    switch (role) {
-      case 0:
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
-      case 1:
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300';
+  const getKycBadge = (status: string) => {
+    switch (status) {
+      case 'approved':
+        return { label: 'Approved', className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' };
+      case 'submitted':
+        return { label: 'Pending Review', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900/20 dark:text-amber-300' };
+      case 'rejected':
+        return { label: 'Rejected', className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300' };
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
-  };
-
-  const getRoleText = (role: number) => {
-    switch (role) {
-      case 0:
-        return 'Vendor';
-      case 1:
-        return 'Senior Vendor';
-      default:
-        return 'Unknown';
+        return { label: 'Not Submitted', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' };
     }
   };
 
@@ -258,32 +243,21 @@ export default function VendorsPage() {
         </div>
       ),
     },
-    // {
-    //   key: 'role',
-    //   header: 'Role',
-    //   render: (vendor: Vendor) => (
-    //     <Badge className={getRoleColor(vendor.cityName)}>
-    //       {getRoleText(vendor.cityName)}
-    //     </Badge>
-    //   ),
-    //   searchable: false,
-    // },
-    // {
-    //   key: 'status',
-    //   header: 'Status',
-    //   render: (vendor: Vendor) => (
-    //     // <Badge className={getStatusColor(vendor.accountIsActive)}>
-    //     // { vendor.accountIsActive === true ? 'Active' : 'Inactive' }
-    //     // </Badge>
-    //   ),
-    //   searchable: false,
-    // },
     {
       key: 'city_id',
-      header: 'City ID',
+      header: 'City',
       render: (vendor: Vendor) => (
         <span className="text-muted-foreground">{vendor.cityName || 'Not assigned'}</span>
       ),
+    },
+    {
+      key: 'kycStatus',
+      header: 'KYC Status',
+      render: (vendor: Vendor) => {
+        const badge = getKycBadge(vendor.kycStatus);
+        return <Badge className={badge.className}>{badge.label}</Badge>;
+      },
+      searchable: false,
     },
     {
       key: 'createdAt',
@@ -306,10 +280,10 @@ export default function VendorsPage() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {/* <DropdownMenuItem onClick={() => handleViewDetails(vendor._id)}>
+        <DropdownMenuItem onClick={() => handleViewDetails(vendor._id)}>
           <Eye className="mr-2 h-4 w-4" />
-          View Profile
-        </DropdownMenuItem> */}
+          View / Review KYC
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -323,10 +297,10 @@ export default function VendorsPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
-          <Button onClick={() => setShowCreateForm(true)} size="sm">
+          {/* <Button onClick={() => setShowCreateForm(true)} size="sm">
             <Plus className="mr-2 h-4 w-4" />
             Create Vendor
-          </Button>
+          </Button> */}
         </div>
       </div>
 

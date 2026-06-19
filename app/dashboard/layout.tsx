@@ -22,6 +22,10 @@ import {
   UserCheck,
   MapPin,
   Bell,
+  AlertTriangle,
+  BarChart2,
+  Clock,
+  Timer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -75,16 +79,21 @@ const navigation = [
   { name: 'Cancel Order', href: '/dashboard/orders/cancel', icon: UserCheck },
   { name: 'Delivery Assigned', href: '/dashboard/orders/delivery-assigned', icon: UserCheck },
 
+  // ── Vendor order management ──
+  { name: 'Vendor Orders', href: '/dashboard/orders/vendor-assigned', icon: Store },
+  { name: 'Vendor Rejected', href: '/dashboard/orders/vendor-rejected', icon: AlertTriangle },
+  { name: 'Overdue Orders', href: '/dashboard/orders/vendor-overdue', icon: Clock },
 
   { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
   { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
   { name: 'Copilots', href: '/dashboard/copilots', icon: UserCog },
   { name: 'Vendors', href: '/dashboard/vendor', icon: Users },
+  { name: 'Vendor Performance', href: '/dashboard/vendor/performance', icon: BarChart2 },
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
   { name: 'Package', href: '/dashboard/package', icon: Store },
   { name: 'Services', href: '/dashboard/services', icon: Wallet },
+  { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
   { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
-  // { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
 export default function DashboardLayout({

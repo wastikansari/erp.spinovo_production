@@ -253,14 +253,14 @@ export default function CustomerDetailsPage() {
               </div>
             </div>
 
-            <div className="space-y-4">
+             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Wallet className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <p className="text-sm text-muted-foreground">Wallet Balance</p>
                   <p className="font-medium text-green-600">₹{user.wallet_balance}</p>
                 </div>
-              </div>
+              </div>     
               <div>
                 <p className="text-sm text-muted-foreground">Living Type</p>
                 <Badge variant="secondary">{user.living_type || 'Not specified'}</Badge>

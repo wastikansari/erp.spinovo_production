@@ -1,5 +1,12 @@
 import { BaseEntity } from './index';
 
+export type KycStatus = 'not_submitted' | 'submitted' | 'approved' | 'rejected';
+
+export interface SelectedService {
+    service_id: number;
+    service: string;
+}
+
 export interface Vendor extends BaseEntity {
     _id: string;
     name: string;
@@ -13,6 +20,8 @@ export interface Vendor extends BaseEntity {
     profilePic: string;
     idProofPic: string;
     idProofName: string;
+    idProofType: string;
+    pincode: string;
     cityName: string;
     cityId: number;
     stateName: string;
@@ -34,6 +43,28 @@ export interface Vendor extends BaseEntity {
     can_tailoring: number;
     can_stream_ironing: number;
     bankDetails: any[];
+    // KYC onboarding
+    kycStatus: KycStatus;
+    kycRejectionReason: string;
+    selectedServices: SelectedService[];
+    createdAt: string;
+    updatedAt: string;
+}
+
+// One vendor-submitted price for a service-category
+export interface VendorServicePrice {
+    _id: string;
+    vendor: string;
+    service_id: number;
+    service: string;
+    category_id: number;
+    category: string;
+    price: number;
+    approved_price: number | null;
+    status: 'pending' | 'approved' | 'rejected';
+    admin_remark: string;
+    reviewed_at: string | null;
+    types_of_Clothes: string[];
     createdAt: string;
     updatedAt: string;
 }
@@ -47,6 +78,33 @@ export interface VendorListData {
 
 export interface VendorDetailsData {
     vendorUser: Vendor;
+}
+
+// KYC review payload (admin) — full vendor + their submitted prices
+export interface VendorKycDetailData {
+    vendor: Vendor;
+    prices: VendorServicePrice[];
+}
+
+// Pending-KYC list item (lighter than full Vendor)
+export interface PendingKycVendor {
+    _id: string;
+    name: string;
+    mobile: number;
+    cityName: string;
+    pincode: string;
+    address: string;
+    kycStatus: KycStatus;
+    selectedServices: SelectedService[];
+    profilePic: string;
+    createdAt: string;
+}
+
+export interface PendingKycListData {
+    total: number;
+    total_pages: number;
+    page: number;
+    vendors: PendingKycVendor[];
 }
 
 export interface CreateVendorRequest {

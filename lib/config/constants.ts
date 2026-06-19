@@ -10,8 +10,7 @@ export const APP_CONFIG = {
 } as const;
 
 export const API_URL = {
-  BASE_URL:
-    process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.spinovo.in/api/v1",
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.spinovo.in/api/v1",
 
   // Order related endpoints
   PICKUP_PENDING: '/admin/order/pickup/pending',
@@ -35,6 +34,12 @@ export const API_URL = {
   // Service management endpoints
   SERVICE_CATEGORY_LIST: '/admin/service/category',
   SERVICE_CATEGORY_BASE: '/admin/service/category',
+
+  // Vendor order management
+  VENDOR_ORDERS: '/admin/vendor/orders',
+  VENDOR_ORDERS_STATS: '/admin/vendor/orders/stats',
+  VENDOR_ORDERS_REJECTED: '/admin/vendor/orders/rejected',
+  VENDOR_LIST_ACTIVE: '/admin/vendor/list/active',
 
 } as const;
 
@@ -87,7 +92,10 @@ export const VALIDATION_RULES = {
   password: {
     minLength: 8,
     maxLength: 128,
-    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+    // Require at least one lowercase, one uppercase, one digit, and one special
+    // character. Any non-alphanumeric counts as special (e.g. # @ $ ! etc.) and
+    // all printable characters are allowed in the password.
+    pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
   },
   name: {
     minLength: 2,

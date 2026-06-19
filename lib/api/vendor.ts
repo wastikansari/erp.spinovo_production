@@ -1,6 +1,12 @@
 import { ApiResponse } from '../types';
-import { CreateCopilotRequest } from '../types/copilot';
-import { CreateVendorRequest, CreateVendorResponse, VendorDetailsData, VendorListData } from '../types/vendor';
+import {
+  CreateVendorRequest,
+  CreateVendorResponse,
+  VendorDetailsData,
+  VendorListData,
+  VendorKycDetailData,
+  PendingKycListData,
+} from '../types/vendor';
 import { BaseApiService } from './base';
 
 // export class VendorApiServices extends BaseApiService {
@@ -50,6 +56,56 @@ export class VendorApiService extends BaseApiService {
     return this.makeRequest<CreateVendorResponse>('/admin/vendor/create', {
       method: 'POST',
       body: JSON.stringify(data),
+    });
+  }
+
+  // ── KYC review ──────────────────────────────────────────────────────────────
+
+  // Vendors awaiting review (kycStatus = "submitted")
+  static async getPendingKyc(page: number = 1, limit: number = 20): Promise<ApiResponse<PendingKycListData>> {
+    return this.makeRequest<PendingKycListData>(
+      `/admin/vendor/kyc/pending?page=${page}&limit=${limit}`,
+      { method: 'GET' },
+    );
+  }
+
+  // Full KYC detail (vendor + submitted prices)
+  static async getVendorKycDetail(vendorId: string): Promise<ApiResponse<VendorKycDetailData>> {
+    if (!vendorId || vendorId === 'undefined' || vendorId === 'null') {
+      throw new Error('Invalid vendor ID provided');
+    }
+    return this.makeRequest<VendorKycDetailData>(`/admin/vendor/kyc/${vendorId}`, {
+      method: 'GET',
+    });
+  }
+
+  // Approve KYC → activates account + approves pending prices
+  static async approveKyc(vendorId: string): Promise<ApiResponse<{ kycStatus: string; accountIsActive: boolean }>> {
+    return this.makeRequest(`/admin/vendor/kyc/${vendorId}/approve`, {
+      method: 'PATCH',
+    });
+  }
+
+  // Reject KYC with a reason
+  static async rejectKyc(vendorId: string, reason: string): Promise<ApiResponse<{ kycStatus: string; kycRejectionReason: string }>> {
+    return this.makeRequest(`/admin/vendor/kyc/${vendorId}/reject`, {
+      method: 'PATCH',
+      body: JSON.stringify({ reason }),
+    });
+  }
+
+  // ── Per-price-entry approve / reject ────────────────────────────────────────
+
+  static async approveSinglePrice(priceId: string): Promise<ApiResponse<{ price: object }>> {
+    return this.makeRequest(`/admin/vendor/price/${priceId}/approve`, {
+      method: 'PATCH',
+    });
+  }
+
+  static async rejectSinglePrice(priceId: string, remark: string): Promise<ApiResponse<{ price: object }>> {
+    return this.makeRequest(`/admin/vendor/price/${priceId}/reject`, {
+      method: 'PATCH',
+      body: JSON.stringify({ remark }),
     });
   }
 }

@@ -213,6 +213,7 @@ export default function ProcessAssignPage() {
     const [showAssignForm, setShowAssignForm] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [selectedSubOrderId, setSelectedSubOrderId] = useState<string | null>(null);
+    const [selectedServiceName, setSelectedServiceName] = useState<string | null>(null);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -426,6 +427,7 @@ export default function ProcessAssignPage() {
                                                         onClick={() => {
                                                             setSelectedOrderId(sub.order_id);
                                                             setSelectedSubOrderId(sub._id);
+                                                            setSelectedServiceName(sub.service_name);
                                                             setShowAssignForm(true);
                                                         }}
                                                     >
@@ -469,6 +471,7 @@ export default function ProcessAssignPage() {
                                                 onClick={() => {
                                                     setSelectedOrderId(sub.order_id);
                                                     setSelectedSubOrderId(sub._id);
+                                                    setSelectedServiceName(sub.service_name);
                                                     setShowAssignForm(true);
                                                 }}
                                             >
@@ -497,6 +500,7 @@ export default function ProcessAssignPage() {
                 onOpenChange={setShowAssignForm}
                 orderId={selectedOrderId}
                 subOrderId={selectedSubOrderId}
+                serviceName={selectedServiceName}
                 onSuccess={() => { setShowAssignForm(false); fetchList(currentPage); }}
             />
         </div>
