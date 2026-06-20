@@ -41,6 +41,19 @@ export const API_URL = {
   VENDOR_ORDERS_REJECTED: '/admin/vendor/orders/rejected',
   VENDOR_LIST_ACTIVE: '/admin/vendor/list/active',
 
+  // Vendor Outward / Inward (service_id-driven routing, no hardcoded names)
+  VENDOR_OUTWARD:          '/admin/vendor/orders/outward',
+  VENDOR_INWARD_PENDING:   '/admin/vendor/orders/inward-pending',
+
+  // Process Pending service summary
+  PROCESS_PENDING_SUMMARY: '/admin/orders/process-pending/summary',
+
+  // Ironing workflow
+  IRONING_PENDING:         '/admin/orders/ironing-pending',
+
+  // Service vendor config
+  SERVICE_VENDOR_CONFIG:   '/admin/service/vendor-config',
+
 } as const;
 
 export const API_ENDPOINTS = {

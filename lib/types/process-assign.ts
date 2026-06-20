@@ -73,3 +73,67 @@ export interface ProcessAssignRequest {
 export interface ProcessAssignResponse {
   assign_id: string;
 }
+
+// ── Service summary (for process-pending summary cards) ───────────────────────
+export interface ProcessServiceSummary {
+  service_id: number;
+  service_name: string;
+  count: number;
+  is_vendor_eligible: boolean;
+  post_vendor_workflow: string | null;
+}
+
+// ── Vendor Outward / Inward order item ───────────────────────────────────────
+export interface VendorInwardOutwardOrder {
+  _id: string;
+  process_status: number;
+  order_id: string;
+  sub_order_id: string;
+  order_number: string;
+  service_id: number;
+  service: string;
+  booking_date: string;
+  booking_time: string;
+  garment_qty: number;
+  ord_status: string;
+  vendor: { _id: string; name: string; mobile: string; city: string } | null;
+  accepted_at: string | null;
+  picked_up_at: string | null;
+  processing_completed_at: string | null;
+  service_deadline: string | null;
+  inward_otp: string | null;
+  inward_otp_verified: boolean;
+  inward_verified_at: string | null;
+  garments_returned_qty: number;
+  createdAt: string;
+}
+
+export interface VendorInwardOutwardData {
+  orders: VendorInwardOutwardOrder[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
+// ── Ironing order item ────────────────────────────────────────────────────────
+export interface IroningOrder {
+  _id: string;
+  sub_order_no: string;
+  order_no: string;
+  service_id: number;
+  service_name: string;
+  booking_date: string;
+  booking_time: string;
+  garment_qty: number;
+  ord_status: string;
+  order_id: string;
+}
+
+// ── Service vendor config ─────────────────────────────────────────────────────
+export interface ServiceVendorConfig {
+  service_id: number;
+  service: string;
+  is_vendor_eligible: boolean;
+  post_vendor_workflow: string | null;
+  service_duration_hours: number;
+}

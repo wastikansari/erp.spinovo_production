@@ -83,6 +83,9 @@ const navigation = [
   { name: 'Vendor Orders', href: '/dashboard/orders/vendor-assigned', icon: Store },
   { name: 'Vendor Rejected', href: '/dashboard/orders/vendor-rejected', icon: AlertTriangle },
   { name: 'Overdue Orders', href: '/dashboard/orders/vendor-overdue', icon: Clock },
+  { name: 'Vendor Outward', href: '/dashboard/orders/vendor-outward', icon: Store },
+  { name: 'Vendor Inward', href: '/dashboard/orders/vendor-inward', icon: UserCheck },
+  { name: 'Ironing Pending', href: '/dashboard/orders/ironing-pending', icon: Timer },
 
   { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
   { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
