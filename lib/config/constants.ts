@@ -24,6 +24,7 @@ export const API_URL = {
   PROCESS_SUBORDER_PENDING: '/admin/order/process/suborder/pending',
   DELIVERY_ASSIGN: '/admin/order/delivery/assign',
   DELIVERY_LIST: '/admin/order/delivery/assigned/list',
+  DELIVERED_LIST: '/admin/order/delivery/delivered/list',
   DELIVERY_SUBORDER_PENDING: '/admin/order/delivery/suborder/pending',
   QUALITY_CHECK_COMPLETED: '/admin/order/quality-check/suborder/completed',
   ORDER_QC_COMPLETED: '/admin/order/qc/completed',
@@ -47,9 +48,9 @@ export const API_URL = {
 
   // Process Pending service summary
   PROCESS_PENDING_SUMMARY: '/admin/orders/process-pending/summary',
-
+WASH_DC_PENDING: '/admin/order/washDc/suborder/pending',
   // Ironing workflow
-  IRONING_PENDING:         '/admin/orders/ironing-pending',
+  IRONING_PENDING:   '/admin/order/ironing/suborder/pending',
 
   // Service vendor config
   SERVICE_VENDOR_CONFIG:   '/admin/service/vendor-config',

@@ -55,7 +55,7 @@ export default function DeliveryAssignedPage() {
 
       logger.info('Fetching delivery assigned bookings', { page }, 'DeliveryAssignedPage');
 
-      const response = await AssignApiService.getDeliveryAssignedList(page, 20);
+      const response = await AssignApiService.getDeliveredList(page, 20);
 
       if (response.status && response.data) {
         setAssignedBookings(response.data.assignList || []);

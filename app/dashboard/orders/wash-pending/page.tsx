@@ -22,6 +22,8 @@ import {
     CheckCircle2,
 } from 'lucide-react';
 import { AssignApiService } from '@/lib/api';
+import { AssignApiService as AssignApi } from '@/lib/api/assign';
+import { ProcessServiceSummary } from '@/lib/types/process-assign';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PendingSubOrder } from '@/lib/types/process-assign';
-import { ProcessAssignForm, ProcessAssignFormforIroning } from '@/components/forms/process-assign-form';
+import { ProcessAssignForm } from '@/components/forms/process-assign-form';
 
 // ─── Service Color System ────────────────────────────────────────────────────
 
@@ -213,15 +215,29 @@ export default function ProcessAssignPage() {
     const [showAssignForm, setShowAssignForm] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const [selectedSubOrderId, setSelectedSubOrderId] = useState<string | null>(null);
+    const [selectedServiceName, setSelectedServiceName] = useState<string | null>(null);
+
+    // ── Service summary + filter ──
+    const [summary, setSummary] = useState<ProcessServiceSummary[]>([]);
+    const [activeServiceId, setActiveServiceId] = useState<number | null>(null); // null = All
 
     const router = useRouter();
     const { toast } = useToast();
 
-    const fetchList = useCallback(async (page: number) => {
+    const fetchSummary = useCallback(async () => {
+        try {
+            const res = await AssignApi.getProcessPendingSummary();
+            if (res.status && res.data) setSummary(res.data.summary);
+        } catch { /* non-critical */ }
+    }, []);
+
+    const fetchList = useCallback(async (page: number, serviceId?: number | null) => {
         try {
             setLoading(true);
             setError('');
-            const response = await AssignApiService.getIroningPendingSuborders(page, 20);
+            const response = await AssignApiService.getWashDcPendingSuborders(
+                page, 20, serviceId ?? undefined,
+            );
             if (response.status && response.data) {
                 setSubOrders(response.data.subOrders || []);
                 setTotalPages(response.data.totalPages || 1);
@@ -240,7 +256,16 @@ export default function ProcessAssignPage() {
         }
     }, [toast]);
 
-    useEffect(() => { fetchList(currentPage); }, [currentPage, fetchList]);
+    useEffect(() => {
+        fetchSummary();
+        fetchList(1, null);
+    }, [fetchSummary, fetchList]);
+
+    function handleServiceFilter(serviceId: number | null) {
+        setActiveServiceId(serviceId);
+        fetchList(1, serviceId);
+        fetchSummary();
+    }
 
     return (
         <div className="space-y-5 p-4 md:p-6">
@@ -248,16 +273,73 @@ export default function ProcessAssignPage() {
             {/* HEADER */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Ironing Pending</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Wash & DC Pending</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
                         Assign pickup-completed sub-orders to vendors for processing
                     </p>
                 </div>
-                <Button variant="outline" onClick={() => fetchList(currentPage)} disabled={loading} className="rounded-xl self-start">
+                <Button variant="outline" onClick={() => { fetchSummary(); fetchList(currentPage, activeServiceId); }} disabled={loading} className="rounded-xl self-start">
                     <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                     Refresh
                 </Button>
             </div>
+
+            {/* SERVICE SUMMARY CARDS — dynamic, service_id driven, no hardcoded names */}
+            {summary.length > 0 && (
+                <div>
+                    {/* <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                        Filter by Service
+                    </p> */}
+                    <div className="flex flex-wrap gap-3">
+                        {/* All card */}
+                        {/* <button
+                            onClick={() => handleServiceFilter(null)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                                activeServiceId === null
+                                    ? 'bg-gray-900 text-white border-gray-900'
+                                    : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400'
+                            }`}
+                        >
+                            All Services
+                            <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
+                                activeServiceId === null ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                                {summary.reduce((s, x) => s + x.count, 0)}
+                            </span>
+                        </button> */}
+                        {/* Per-service cards */}
+                        {/* {summary.map(s => (
+                            <button
+                                key={s.service_id}
+                                onClick={() => handleServiceFilter(s.service_id)}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
+                                    activeServiceId === s.service_id
+                                        ? 'bg-indigo-600 text-white border-indigo-600'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:border-indigo-300'
+                                }`}
+                            >
+                                <span>{s.service_name}</span>
+                                <span className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${
+                                    activeServiceId === s.service_id
+                                        ? 'bg-white/20 text-white'
+                                        : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                    {s.count}
+                                </span>
+                                {s.is_vendor_eligible && (
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                                        activeServiceId === s.service_id
+                                            ? 'bg-white/15 text-white/80'
+                                            : 'bg-green-50 text-green-700 border border-green-200'
+                                    }`}>
+                                        Vendor
+                                    </span>
+                                )}
+                            </button>
+                        ))} */}
+                    </div>
+                </div>
+            )}
 
             {/* STATS */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -296,7 +378,7 @@ export default function ProcessAssignPage() {
                 <CardHeader className="border-b bg-muted/20 py-4">
                     <CardTitle className="flex items-center gap-2 text-base">
                         <ListOrdered className="h-5 w-5" />
-                        Pending Ironing Assignment
+                        Pending Wash and Dry cleaning Assignment
                     </CardTitle>
                 </CardHeader>
 
@@ -316,7 +398,8 @@ export default function ProcessAssignPage() {
                         style={COL_TEMPLATE}
                     >
                         <div>Sub Order Id</div>
-                        <div>Order Id</div>
+                        <div>Service</div>
+                        {/* <div>Order Id</div> */}
                         <div>Order QTY</div>
                         <div>Pickup QTY</div>
                         {/* <div>Extra Amount</div> */}
@@ -361,10 +444,19 @@ export default function ProcessAssignPage() {
                                             </span>
                                         </div>
 
-                                        {/* Order Id */}
-                                        <div className="text-sm font-medium text-primary">
-                                            {sub.order_no}
+                                        {/* Service Name */}
+                                        <div className="min-w-0">
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
+                                                {theme.icon}
+                                                {sub.service_name}
+                                            </span>
                                         </div>
+
+
+                                        {/* Order Id */}
+                                        {/* <div className="text-sm font-medium text-primary">
+                                            {sub.order_no}
+                                        </div> */}
 
                                         {/* Garment QTY */}
                                         <div className="text-sm font-semibold">{sub.garment_qty}</div>
@@ -426,6 +518,7 @@ export default function ProcessAssignPage() {
                                                         onClick={() => {
                                                             setSelectedOrderId(sub.order_id);
                                                             setSelectedSubOrderId(sub._id);
+                                                            setSelectedServiceName(sub.service_name);
                                                             setShowAssignForm(true);
                                                         }}
                                                     >
@@ -469,6 +562,7 @@ export default function ProcessAssignPage() {
                                                 onClick={() => {
                                                     setSelectedOrderId(sub.order_id);
                                                     setSelectedSubOrderId(sub._id);
+                                                    setSelectedServiceName(sub.service_name);
                                                     setShowAssignForm(true);
                                                 }}
                                             >
@@ -492,11 +586,12 @@ export default function ProcessAssignPage() {
             </Card>
 
             {/* PROCESS ASSIGN FORM */}
-            <ProcessAssignFormforIroning
+            <ProcessAssignForm
                 open={showAssignForm}
                 onOpenChange={setShowAssignForm}
                 orderId={selectedOrderId}
                 subOrderId={selectedSubOrderId}
+                serviceName={selectedServiceName}
                 onSuccess={() => { setShowAssignForm(false); fetchList(currentPage); }}
             />
         </div>

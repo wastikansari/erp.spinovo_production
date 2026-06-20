@@ -273,7 +273,7 @@ export default function ProcessAssignPage() {
             {/* HEADER */}
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Process Pending</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Wash & DC Pending</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
                         Assign pickup-completed sub-orders to vendors for processing
                     </p>
@@ -287,12 +287,12 @@ export default function ProcessAssignPage() {
             {/* SERVICE SUMMARY CARDS — dynamic, service_id driven, no hardcoded names */}
             {summary.length > 0 && (
                 <div>
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+                    {/* <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                         Filter by Service
-                    </p>
+                    </p> */}
                     <div className="flex flex-wrap gap-3">
                         {/* All card */}
-                        <button
+                        {/* <button
                             onClick={() => handleServiceFilter(null)}
                             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                                 activeServiceId === null
@@ -306,9 +306,9 @@ export default function ProcessAssignPage() {
                             }`}>
                                 {summary.reduce((s, x) => s + x.count, 0)}
                             </span>
-                        </button>
+                        </button> */}
                         {/* Per-service cards */}
-                        {summary.map(s => (
+                        {/* {summary.map(s => (
                             <button
                                 key={s.service_id}
                                 onClick={() => handleServiceFilter(s.service_id)}
@@ -336,7 +336,7 @@ export default function ProcessAssignPage() {
                                     </span>
                                 )}
                             </button>
-                        ))}
+                        ))} */}
                     </div>
                 </div>
             )}
@@ -378,7 +378,7 @@ export default function ProcessAssignPage() {
                 <CardHeader className="border-b bg-muted/20 py-4">
                     <CardTitle className="flex items-center gap-2 text-base">
                         <ListOrdered className="h-5 w-5" />
-                        Pending Process Assignment
+                        Pending Wash and Dry cleaning Assignment
                     </CardTitle>
                 </CardHeader>
 
@@ -398,7 +398,8 @@ export default function ProcessAssignPage() {
                         style={COL_TEMPLATE}
                     >
                         <div>Sub Order Id</div>
-                        <div>Order Id</div>
+                        <div>Service</div>
+                        {/* <div>Order Id</div> */}
                         <div>Order QTY</div>
                         <div>Pickup QTY</div>
                         {/* <div>Extra Amount</div> */}
@@ -443,10 +444,19 @@ export default function ProcessAssignPage() {
                                             </span>
                                         </div>
 
-                                        {/* Order Id */}
-                                        <div className="text-sm font-medium text-primary">
-                                            {sub.order_no}
+                                        {/* Service Name */}
+                                        <div className="min-w-0">
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
+                                                {theme.icon}
+                                                {sub.service_name}
+                                            </span>
                                         </div>
+
+
+                                        {/* Order Id */}
+                                        {/* <div className="text-sm font-medium text-primary">
+                                            {sub.order_no}
+                                        </div> */}
 
                                         {/* Garment QTY */}
                                         <div className="text-sm font-semibold">{sub.garment_qty}</div>

@@ -35,6 +35,14 @@ export class VendorApiService extends BaseApiService {
     });
   }
 
+    static async getIroningVendors(page: number = 1, limit: number = 20): Promise<ApiResponse<VendorListData>> {
+    console.log(`=== FETCHING VENDORS ===`);
+    console.log(`Page: ${page}, Limit: ${limit}`);
+    return this.makeRequest<VendorListData>(`/admin/ironing/vendor/list?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
   static async getVendorDetails(vendorId: string): Promise<ApiResponse<VendorDetailsData>> {
     console.log(`=== FETCHING VENDOR DETAILS ===`);
     console.log(`Vendor ID: ${vendorId}`);

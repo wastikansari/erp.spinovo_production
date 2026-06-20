@@ -79,9 +79,41 @@ export class AssignApiService extends BaseApiService {
     });
   }
 
+    static async getIroningPendingSuborders(
+    page: number = 1,
+    limit: number = 20,
+    serviceId?: number,
+  ): Promise<ApiResponse<PendingSubOrderListData>> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (serviceId != null) params.set('service_id', String(serviceId));
+    return this.makeRequest<PendingSubOrderListData>(`${API_URL.IRONING_PENDING}?${params}`, {
+      method: 'GET',
+    });
+  }
+
+    static async getWashDcPendingSuborders(
+    page: number = 1,
+    limit: number = 20,
+    serviceId?: number,
+  ): Promise<ApiResponse<PendingSubOrderListData>> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (serviceId != null) params.set('service_id', String(serviceId));
+    return this.makeRequest<PendingSubOrderListData>(`${API_URL.WASH_DC_PENDING}?${params}`, {
+      method: 'GET',
+    });
+  }
+
   // ── Process Pending summary (service-grouped counts, no hardcoded names) ──
   static async getProcessPendingSummary(): Promise<ApiResponse<{ summary: ProcessServiceSummary[]; total: number }>> {
     return this.makeRequest(`${API_URL.PROCESS_PENDING_SUMMARY}`, { method: 'GET' });
+  }
+
+    static async getWashDCPendingSummary(): Promise<ApiResponse<{ summary: ProcessServiceSummary[]; total: number }>> {
+    return this.makeRequest(`${API_URL.WASH_DC_PENDING}`, { method: 'GET' });
+  }
+
+    static async getIroningPendingSummary(): Promise<ApiResponse<{ summary: ProcessServiceSummary[]; total: number }>> {
+    return this.makeRequest(`${API_URL.IRONING_PENDING}`, { method: 'GET' });
   }
 
   // ── Vendor Outward ────────────────────────────────────────────────────────
@@ -139,6 +171,14 @@ export class AssignApiService extends BaseApiService {
     console.log(`=== FETCHING DELIVERY ASSIGNED LIST ===`);
     console.log(`Page: ${page}, Limit: ${limit}`);
     return this.makeRequest<DeliveryAssignBookingListData>(`${API_URL.DELIVERY_LIST}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+    });
+  }
+
+    static async getDeliveredList(page: number = 1, limit: number = 20): Promise<ApiResponse<DeliveryAssignBookingListData>> {
+    console.log(`=== FETCHING DELIVERED LIST ===`);
+    console.log(`Page: ${page}, Limit: ${limit}`);
+    return this.makeRequest<DeliveryAssignBookingListData>(`${API_URL.DELIVERED_LIST}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
