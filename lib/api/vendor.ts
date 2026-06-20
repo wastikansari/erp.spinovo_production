@@ -108,4 +108,10 @@ export class VendorApiService extends BaseApiService {
       body: JSON.stringify({ remark }),
     });
   }
+
+  static async approveBankDetails(vendorId: string): Promise<ApiResponse<{ bankDetailsApproved: boolean }>> {
+    return this.makeRequest(`/admin/vendor/${vendorId}/bank-details/approve`, {
+      method: 'PATCH',
+    });
+  }
 }

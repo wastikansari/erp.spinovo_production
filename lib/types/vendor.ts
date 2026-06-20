@@ -2,6 +2,23 @@ import { BaseEntity } from './index';
 
 export type KycStatus = 'not_submitted' | 'submitted' | 'approved' | 'rejected';
 
+export interface VendorAddress {
+  street: string;
+  city:   string;
+  pincode: string;
+  state:  string;
+}
+
+export interface BankDetail {
+  _id:           string;
+  bankName:      string;
+  holderName:    string;
+  accountNumber: number;
+  ifscCode:      string;
+  accountType:   string;
+  createdAt:     string;
+}
+
 export interface SelectedService {
     service_id: number;
     service: string;
@@ -42,7 +59,11 @@ export interface Vendor extends BaseEntity {
     can_wash_and_ironing: number;
     can_tailoring: number;
     can_stream_ironing: number;
-    bankDetails: any[];
+    bankDetails: BankDetail[];
+    bankDetailsApproved: boolean;
+    isOnline: boolean;
+    homeAddress: VendorAddress;
+    businessAddress: VendorAddress;
     // KYC onboarding
     kycStatus: KycStatus;
     kycRejectionReason: string;

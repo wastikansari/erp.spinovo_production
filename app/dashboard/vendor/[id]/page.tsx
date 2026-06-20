@@ -41,6 +41,10 @@ import {
   ImageOff,
   Check,
   X,
+  Lock,
+  Building2,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -73,6 +77,9 @@ export default function VendorKycDetailsPage() {
 
   // image preview
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // bank details approval
+  const [approvingBank, setApprovingBank] = useState(false);
 
   // per-price-entry actions
   const [priceActionId, setPriceActionId] = useState<string | null>(null);
@@ -197,6 +204,24 @@ export default function VendorKycDetailsPage() {
       toast({ title: 'Error', description: 'Failed to reject price', variant: 'destructive' });
     } finally {
       setPriceRejecting(false);
+    }
+  };
+
+  const handleApproveBankDetails = async () => {
+    try {
+      setApprovingBank(true);
+      const res = await VendorApiService.approveBankDetails(vendorId);
+      if (res.status) {
+        toast({ title: 'Bank Details Approved', description: 'Details are now locked and approved for payouts.' });
+        fetchDetail();
+      } else {
+        toast({ title: 'Error', description: res.msg || 'Approval failed', variant: 'destructive' });
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Approval failed';
+      toast({ title: 'Error', description: msg, variant: 'destructive' });
+    } finally {
+      setApprovingBank(false);
     }
   };
 
@@ -618,6 +643,53 @@ export default function VendorKycDetailsPage() {
                     })}
                   </tbody>
                 </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Bank Details Card */}
+      {data?.vendor && (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Building2 className="h-4 w-4 text-indigo-500" />
+                Bank Details
+                {data.vendor.bankDetailsApproved && (
+                  <span className="flex items-center gap-1 text-xs text-green-600 font-normal bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                    <Lock className="h-3 w-3" /> Approved & Locked
+                  </span>
+                )}
+              </CardTitle>
+              {!data.vendor.bankDetailsApproved && data.vendor.bankDetails?.length > 0 && (
+                <Button
+                  size="sm"
+                  onClick={handleApproveBankDetails}
+                  disabled={approvingBank}
+                  className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                >
+                  {approvingBank ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <CheckCircle2 className="h-3.5 w-3.5 mr-1" />}
+                  Approve & Lock
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!data.vendor.bankDetails || data.vendor.bankDetails.length === 0 ? (
+              <p className="text-sm text-gray-400 italic">No bank details submitted yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {data.vendor.bankDetails.map((b) => (
+                  <div key={b._id} className="rounded-lg border p-4 bg-gray-50 grid grid-cols-2 gap-3 text-sm">
+                    <div><span className="text-gray-500">Bank Name</span><p className="font-medium">{b.bankName}</p></div>
+                    <div><span className="text-gray-500">Account Holder</span><p className="font-medium">{b.holderName}</p></div>
+                    <div><span className="text-gray-500">Account Number</span><p className="font-medium font-mono">{b.accountNumber}</p></div>
+                    <div><span className="text-gray-500">IFSC Code</span><p className="font-medium font-mono">{b.ifscCode}</p></div>
+                    <div><span className="text-gray-500">Account Type</span><p className="font-medium">{b.accountType}</p></div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

@@ -107,7 +107,9 @@ import {
   Eye,
   Phone,
   User,
-  Calendar
+  Calendar,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { VendorApiService, Vendor } from '@/lib/api';
@@ -126,6 +128,7 @@ export default function VendorsPage() {
   const [totalVendors, setTotalVendors] = useState(0);
   const [error, setError] = useState<string>('');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [onlineFilter, setOnlineFilter] = useState<'all' | 'online' | 'offline'>('all');
   const router = useRouter();
   const { toast } = useToast();
 
@@ -222,6 +225,12 @@ export default function VendorsPage() {
     fetchVendors(currentPage);
   };
 
+  const filteredVendors = vendors.filter(v => {
+    if (onlineFilter === 'online') return v.isOnline;
+    if (onlineFilter === 'offline') return !v.isOnline;
+    return true;
+  });
+
   const columns = [
     {
       key: 'name',
@@ -242,6 +251,20 @@ export default function VendorsPage() {
           <span>{vendor.mobile}</span>
         </div>
       ),
+    },
+    {
+      key: 'isOnline',
+      header: 'Status',
+      render: (vendor: Vendor) => (
+        <div className="flex items-center gap-1.5">
+          {vendor.isOnline ? (
+            <><Wifi className="h-3.5 w-3.5 text-green-500" /><Badge className="bg-green-100 text-green-800 text-xs">Online</Badge></>
+          ) : (
+            <><WifiOff className="h-3.5 w-3.5 text-gray-400" /><Badge className="bg-gray-100 text-gray-600 text-xs">Offline</Badge></>
+          )}
+        </div>
+      ),
+      searchable: false,
     },
     {
       key: 'city_id',
@@ -322,8 +345,26 @@ export default function VendorsPage() {
             </Alert>
           )}
 
+          {/* Online/Offline filter */}
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-sm text-muted-foreground">Filter:</span>
+            {(['all', 'online', 'offline'] as const).map(f => (
+              <button
+                key={f}
+                onClick={() => setOnlineFilter(f)}
+                className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
+                  onlineFilter === f
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-indigo-400'
+                }`}
+              >
+                {f === 'all' ? `All (${vendors.length})` : f === 'online' ? `Online (${vendors.filter(v => v.isOnline).length})` : `Offline (${vendors.filter(v => !v.isOnline).length})`}
+              </button>
+            ))}
+          </div>
+
           <DataTable
-            data={vendors}
+            data={filteredVendors}
             columns={columns}
             loading={loading}
             searchPlaceholder="Search vendors..."

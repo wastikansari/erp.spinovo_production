@@ -62,6 +62,7 @@ export interface ActiveVendor {
   name: string;
   mobile: string;
   cityName: string;
+  isOnline: boolean;
 }
 
 export interface ActiveVendorListData {
