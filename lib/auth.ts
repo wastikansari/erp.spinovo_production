@@ -58,10 +58,6 @@ export class AuthService {
       if (!validators.mobile(sanitizedMobile)) {
         throw new AuthenticationError('Invalid mobile number format');
       }
-      
-      if (!validators.password(credentials.password)) {
-        throw new AuthenticationError('Invalid password format');
-      }
 
       logger.info('Attempting login', { mobile: sanitizedMobile }, 'AuthService');
 
@@ -100,8 +96,6 @@ export class AuthService {
           // proceed without FCM token — useFCM hook will register it after login
         }
       }
-      console.log(`wwwwwww fcmToken ${fcmToken}`);
-      console.log(`wwwwwww deviceType ${deviceType}`);
       const response = await fetch(`${this.API_BASE_URL}${API_ENDPOINTS.LOGIN}`, {
         method: 'POST',
         headers: {

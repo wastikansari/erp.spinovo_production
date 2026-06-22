@@ -67,8 +67,9 @@ export default function LoginPage() {
         setError(response.msg || 'Login failed');
         setLoading(false);
       }
-    } catch {
-      setError('Network error. Please try again.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Network error. Please try again.';
+      setError(msg);
       setLoading(false);
     }
   };
