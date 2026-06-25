@@ -63,7 +63,6 @@ const FCM_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.spinovo.in/
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
-  { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
 
   { name: 'Orders', href: '/dashboard/orders', icon: Package },
 
@@ -76,7 +75,7 @@ const navigation = [
 
   { name: 'Wash Pending', href: '/dashboard/orders/wash-pending', icon: UserCheck },
   { name: 'Ironing Pending', href: '/dashboard/orders/ironing-pending', icon: UserCheck },
-  { name: 'Process Assigned', href: '/dashboard/orders/process-assigned', icon: UserCheck },
+  { name: 'Process Assigned (Inhouse)', href: '/dashboard/orders/process-assigned', icon: UserCheck },
 
   // ── Vendor order management ──
   { name: 'Vendor Orders', href: '/dashboard/orders/vendor-assigned', icon: Store },
@@ -102,6 +101,7 @@ const navigation = [
   { name: 'Services', href: '/dashboard/services', icon: Wallet },
   { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
   { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
+  { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
 ];
 
 export default function DashboardLayout({
