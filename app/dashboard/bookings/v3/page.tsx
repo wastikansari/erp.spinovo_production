@@ -114,9 +114,7 @@ export default function BookingsPage() {
                     variant: 'destructive',
                 });
             }
-        } catch (err) {
-            console.error(err);
-
+        } catch {
             setError('Network error occurred');
 
             toast({

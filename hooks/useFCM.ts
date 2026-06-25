@@ -5,7 +5,7 @@ import { register, onRegistered, onUnregistered, onMessage, unregister, MessageP
 import { getMessaging } from '@/lib/firebase';
 import { AuthService } from '@/lib/auth';
 
-const FCM_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3003/api/v1/admin';
+const FCM_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.spinovo.in/api/v1/admin';
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
   || 'BHktXl20xhuxVNNL5eI0RwrjSQSTcIVLWY3q65VyivZRHdEuvwUCaiuvpciI3-2TXuosNN1pI6xl_nHu4OJ-jto';
 
@@ -23,8 +23,7 @@ export async function unregisterFCM(): Promise<void> {
   }
 }
 
-// Run window.__fcmDiag() in browser console for a full status report
-if (typeof window !== 'undefined') {
+if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
   (window as any).__fcmDiag = async () => {
     console.group('🔔 FCM Diagnostics');
     console.log('Notification API:', 'Notification' in window ? 'supported' : 'NOT supported');
@@ -59,12 +58,10 @@ export function useFCM({ onForegroundMessage, enabled = true }: UseFCMProps): vo
     const init = async () => {
       try {
         if (Notification.permission !== 'granted') {
-          console.warn('🔔 [FCM] Permission not granted — aborting');
           return;
         }
 
         const messaging = getMessaging();
-        console.log('🔔 [FCM] Messaging instance:', messaging ? 'OK' : 'NULL');
         if (!messaging) return;
 
         let swRegistration: ServiceWorkerRegistration | undefined;
@@ -76,18 +73,18 @@ export function useFCM({ onForegroundMessage, enabled = true }: UseFCMProps): vo
           await reg.update();
           swRegistration = await navigator.serviceWorker.ready;
           swRef.current = swRegistration;
-          console.log('🔔 [FCM] SW state:', swRegistration.active?.state ?? 'unknown');
         }
 
         // onRegistered fires when Firebase assigns/refreshes the FID-based token
         const unsubRegistered = onRegistered(messaging, async (fid) => {
-          console.log('🔔 [FCM] Token (FID):', `${fid.slice(0, 20)}...`);
           _fcmToken = fid;
-          (window as any).__fcmToken = fid;
+          if (process.env.NODE_ENV !== 'production') {
+            (window as any).__fcmToken = fid;
+          }
 
           const authToken = AuthService.getToken();
           if (authToken) {
-            const res = await fetch(`${FCM_API_BASE}/fcm/register-token`, {
+            await fetch(`${FCM_API_BASE}/fcm/register-token`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -95,7 +92,6 @@ export function useFCM({ onForegroundMessage, enabled = true }: UseFCMProps): vo
               },
               body: JSON.stringify({ token: fid, deviceType: 'web' }),
             }).catch(() => null);
-            console.log('🔔 [FCM] Token registered with backend — status:', res?.status ?? 'error');
           }
         });
         cleanupFns.push(unsubRegistered);
@@ -132,10 +128,9 @@ export function useFCM({ onForegroundMessage, enabled = true }: UseFCMProps): vo
 
         // Initiate registration — triggers onRegistered callback with the FID token
         await register(messaging, { vapidKey: VAPID_KEY, serviceWorkerRegistration: swRegistration });
-        console.log('🔔 [FCM] Registration initiated ✅');
 
-      } catch (err) {
-        console.error('🔔 [FCM] Init error:', err);
+      } catch {
+        // FCM init failure is non-fatal — notifications won't work but the app continues
       }
     };
 

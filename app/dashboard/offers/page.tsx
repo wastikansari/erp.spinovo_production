@@ -42,21 +42,12 @@ export default function OffersPage() {
         try {
             setLoading(true);
             setError('');
-            console.log('=== FETCHING OFFERS ===');
 
             const response = await OfferApiService.getOffers();
-            console.log('=== API RESPONSE ===', response);
 
             if (response.status && response.data) {
                 setOffers(response.data.offers || []);
                 setTotalOffers(response.data.count || 0);
-
-                if (response.data.offers && response.data.offers.length > 0) {
-                    toast({
-                        title: 'Success',
-                        description: `Loaded ${response.data.offers.length} offers`,
-                    });
-                }
             } else {
                 setError(response.msg || 'Failed to fetch offers');
                 toast({

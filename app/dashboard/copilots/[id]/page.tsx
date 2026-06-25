@@ -40,8 +40,6 @@ export default function CopilotDetailsPage() {
       setLoading(true);
       setError('');
       
-      console.log('=== COPILOT DETAILS PAGE ===');
-      console.log('Copilot ID from params:', copilotId);
       
       if (!copilotId) {
         setError('Copilot ID is missing');
@@ -50,12 +48,9 @@ export default function CopilotDetailsPage() {
       
       const response = await CopilotApiService.getCopilotDetails(copilotId);
       
-      console.log('=== COPILOT DETAILS RESPONSE ===');
-      console.log('Response:', response);
       
       if (response.status && response.data) {
         setCopilotData(response.data);
-        console.log('Copilot details loaded successfully');
         toast({
           title: 'Success',
           description: 'Copilot details loaded successfully',
@@ -87,8 +82,6 @@ export default function CopilotDetailsPage() {
   };
 
   useEffect(() => {
-    console.log('=== COPILOT DETAILS COMPONENT MOUNTED ===');
-    console.log('Copilot ID:', copilotId);
     
     if (copilotId && copilotId !== 'undefined') {
       fetchCopilotDetails();

@@ -50,9 +50,6 @@ export default function CustomerDetailsPage() {
       setLoading(true);
       setError('');
 
-      console.log('=== CUSTOMER DETAILS PAGE ===');
-      console.log('Customer ID from params:', customerId);
-
       if (!customerId) {
         setError('Customer ID is missing');
         return;
@@ -60,20 +57,11 @@ export default function CustomerDetailsPage() {
 
       const response = await CustomerApiService.getCustomerDetails(customerId);
 
-      console.log('=== CUSTOMER DETAILS RESPONSE ===');
-      console.log('Response:', response);
-
       if (response.status && response.data) {
         setCustomerData(response.data);
-        console.log('Customer details loaded successfully');
-        toast({
-          title: 'Success',
-          description: 'Customer details loaded successfully',
-        });
       } else {
         const errorMsg = response.msg || 'Failed to fetch customer details';
         setError(errorMsg);
-        console.error('API Error:', errorMsg);
         toast({
           title: 'Error',
           description: errorMsg,
@@ -81,9 +69,6 @@ export default function CustomerDetailsPage() {
         });
       }
     } catch (error) {
-      console.error('=== CUSTOMER DETAILS ERROR ===');
-      console.error('Error details:', error);
-
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -97,9 +82,6 @@ export default function CustomerDetailsPage() {
   };
 
   useEffect(() => {
-    console.log('=== CUSTOMER DETAILS COMPONENT MOUNTED ===');
-    console.log('Customer ID:', customerId);
-
     if (customerId && customerId !== 'undefined') {
       fetchCustomerDetails();
     } else {

@@ -45,17 +45,10 @@ export default function CopilotsPage() {
     try {
       setLoading(true);
       setError('');
-      console.log('=== FETCHING COPILOTS ===');
-      console.log('Page:', page);
 
       const response = await CopilotApiService.getCopilots(page, 20);
-      console.log('=== API RESPONSE ===');
-      console.log('Full response:', response);
 
       if (response.status && response.data) {
-        console.log('=== PROCESSING DATA ===');
-        console.log('Copilot list:', response.data.copilotList);
-        console.log('Total copilots:', response.data.copilotTotal);
 
         setCopilots(response.data.copilotList || []);
         setTotalPages(response.data.total_pages || 1);
@@ -96,7 +89,6 @@ export default function CopilotsPage() {
   };
 
   useEffect(() => {
-    console.log('=== COMPONENT MOUNTED ===');
     fetchCopilots(currentPage);
   }, [currentPage]);
 
@@ -141,7 +133,6 @@ export default function CopilotsPage() {
   };
 
   const handleRefresh = () => {
-    console.log('=== MANUAL REFRESH ===');
     fetchCopilots(currentPage);
   };
 

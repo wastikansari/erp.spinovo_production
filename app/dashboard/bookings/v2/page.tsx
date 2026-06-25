@@ -62,7 +62,6 @@ export default function BookingsPage() {
         setBookings([]);
       }
     } catch (error) {
-      console.error('Error fetching bookings:', error);
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({

@@ -136,17 +136,10 @@ export default function VendorsPage() {
     try {
       setLoading(true);
       setError('');
-      console.log('=== FETCHING VENDORS ===');
-      console.log('Page:', page);
 
       const response = await VendorApiService.getVendors(page, 20);
-      console.log('=== API RESPONSE ===');
-      console.log('Full response:', response);
 
       if (response.status && response.data) {
-        console.log('=== PROCESSING DATA ===');
-        console.log('Vendor list:', response.data.vendorList);
-        console.log('Total vendors:', response.data.totalVendor);
 
         setVendors(response.data.vendorList || []);
         setTotalPages(response.data.total_pages || 1);
@@ -187,7 +180,6 @@ export default function VendorsPage() {
   };
 
   useEffect(() => {
-    console.log('=== COMPONENT MOUNTED ===');
     fetchVendors(currentPage);
   }, [currentPage]);
 
@@ -217,7 +209,6 @@ export default function VendorsPage() {
   };
 
   const handleRefresh = () => {
-    console.log('=== MANUAL REFRESH ===');
     fetchVendors(currentPage);
   };
 

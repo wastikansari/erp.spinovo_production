@@ -26,17 +26,12 @@ export class AssignApiService extends BaseApiService {
     }
   
   static async getPickupAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<PickupAssignBookingListData>> {
-    console.log(`=== FETCHING PICKUP ASSIGNED LIST ===`);
-    console.log(`Page: ${page}, Limit: ${limit}`);
     return this.makeRequest<PickupAssignBookingListData>(`${API_URL.PICKUP_LIST}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
 
   static async pickupAssign(data: PickupAssignBookingRequest): Promise<ApiResponse<PickupAssignBookingResponse>> {
-    console.log(`=== PICKUP ASSIGN ===`);
-    console.log('Data:', data);
-
     return this.makeRequest<PickupAssignBookingResponse>(API_URL.PICKUP_ASSIGN, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -50,17 +45,12 @@ export class AssignApiService extends BaseApiService {
   }
 
   static async getProcessAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<ProcessAssignListData>> {
-    console.log(`=== FETCHING PROCESS ASSIGNED LIST ===`);
-    console.log(`Page: ${page}, Limit: ${limit}`);
     return this.makeRequest<ProcessAssignListData>(`${API_URL.PROCESS_LIST}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
 
   static async processAssign(data: ProcessAssignRequest): Promise<ApiResponse<ProcessAssignResponse>> {
-    console.log(`=== FETCHING PROCESS ASSIGN ===`);
-    console.log('Data:', data);
-
     return this.makeRequest<ProcessAssignResponse>(API_URL.PROCESS_ASSIGN, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -153,9 +143,6 @@ export class AssignApiService extends BaseApiService {
   }
 
   static async processAssignCompleted(booking_id: string,): Promise<ApiResponse<ProcessAssignResponse>> {
-    console.log(`=== FETCHING PROCESS ASSIGN COMPLETED ===`);
-    console.log('Data:', booking_id);
-
     return this.makeRequest<ProcessAssignResponse>(`${API_URL.PROCESS_COMPLETED}/${booking_id}`, {
       method: 'GET',
     });
@@ -168,16 +155,12 @@ export class AssignApiService extends BaseApiService {
   }
 
   static async getDeliveryAssignedList(page: number = 1, limit: number = 20): Promise<ApiResponse<DeliveryAssignBookingListData>> {
-    console.log(`=== FETCHING DELIVERY ASSIGNED LIST ===`);
-    console.log(`Page: ${page}, Limit: ${limit}`);
     return this.makeRequest<DeliveryAssignBookingListData>(`${API_URL.DELIVERY_LIST}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
   }
 
     static async getDeliveredList(page: number = 1, limit: number = 20): Promise<ApiResponse<DeliveryAssignBookingListData>> {
-    console.log(`=== FETCHING DELIVERED LIST ===`);
-    console.log(`Page: ${page}, Limit: ${limit}`);
     return this.makeRequest<DeliveryAssignBookingListData>(`${API_URL.DELIVERED_LIST}?page=${page}&limit=${limit}`, {
       method: 'GET',
     });
@@ -196,9 +179,6 @@ export class AssignApiService extends BaseApiService {
   }
 
   static async deliveryAssign(data: DeliveryAssignBookingRequest): Promise<ApiResponse<DeliveryAssignBookingResponse>> {
-    console.log(`=== FETCHING DELIVERY ASSIGN ===`);
-    console.log('Data:', data);
-
     return this.makeRequest<DeliveryAssignBookingResponse>(API_URL.DELIVERY_ASSIGN, {
       method: 'POST',
       body: JSON.stringify(data),

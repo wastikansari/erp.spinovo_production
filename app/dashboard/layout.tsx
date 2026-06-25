@@ -58,8 +58,6 @@ import { useFCM, unregisterFCM } from '@/hooks/useFCM';
 import NotificationBell from '@/components/NotificationBell';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
-const FCM_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.spinovo.in/api/v1/admin';
-
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
@@ -151,7 +149,6 @@ export default function DashboardLayout({
           if (profileResponse.status) {
             setUser(profileResponse.data.profile);
           } else {
-            // If profile fetch fails, use stored user data
             const storedUser = AuthService.getUser();
             if (storedUser) {
               setUser(storedUser);
@@ -160,9 +157,7 @@ export default function DashboardLayout({
               return;
             }
           }
-        } catch (error) {
-          console.error('Failed to fetch profile:', error);
-          // Use stored user data as fallback
+        } catch {
           const storedUser = AuthService.getUser();
           if (storedUser) {
             setUser(storedUser);
@@ -171,8 +166,7 @@ export default function DashboardLayout({
             return;
           }
         }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
+      } catch {
         router.push('/auth/login');
       } finally {
         setIsLoading(false);
@@ -187,25 +181,18 @@ export default function DashboardLayout({
   };
 
   const handleTestNotification = async () => {
-    // 1. Test OS notification directly (bypasses FCM)
     if (Notification.permission === 'granted') {
       new Notification('Test — OS Notification', {
-        body: 'Chrome OS notification is working ✅',
+        body: 'Chrome OS notification is working',
         icon: '/favicon.ico',
       });
-    } else {
-      console.warn('🔔 [TEST] Permission not granted — cannot show OS notification');
     }
-    // 2. Simulate foreground FCM message (toast in the panel)
     setToast({
       notification: {
         title: 'Test — Foreground Toast',
-        body: 'In-app toast notification is working ✅',
+        body: 'In-app toast notification is working',
       },
     });
-    console.log('🔔 [TEST] Local notification test fired');
-    console.log('🔔 [TEST] Permission:', Notification.permission);
-    console.log('🔔 [TEST] FCM Token:', (window as any).__fcmToken ?? 'not set — run window.__fcmDiag()');
   };
 
   const confirmLogout = () => {

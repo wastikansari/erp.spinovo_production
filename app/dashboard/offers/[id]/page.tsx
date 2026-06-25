@@ -39,23 +39,15 @@ export default function OfferDetailsPage() {
             setLoading(true);
             setError('');
 
-            console.log('=== OFFER DETAILS PAGE ===');
-            console.log('Offer ID from params:', offerId);
-
             if (!offerId) {
                 setError('Offer ID is missing');
                 return;
             }
 
             const response = await OfferApiService.getOfferDetails(offerId);
-            console.log('=== OFFER DETAILS RESPONSE ===', response);
 
             if (response.status && response.data) {
                 setOffer(response.data.offer);
-                toast({
-                    title: 'Success',
-                    description: 'Offer details loaded successfully',
-                });
             } else {
                 const errorMsg = response.msg || 'Failed to fetch offer details';
                 setError(errorMsg);

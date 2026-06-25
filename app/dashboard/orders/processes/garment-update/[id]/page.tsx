@@ -41,8 +41,6 @@ export default function BookingDetailsPage() {
       setLoading(true);
       setError('');
 
-      console.log('=== BOOKING DETAILS PAGE ===');
-      console.log('Booking ID from params:', bookingId);
 
       if (!bookingId) {
         setError('Booking ID is missing');
@@ -51,12 +49,9 @@ export default function BookingDetailsPage() {
 
       const response = await BookingApiService.getBookingDetails(bookingId);
 
-      console.log('=== BOOKING DETAILS RESPONSE ===');
-      console.log('Response:', response);
 
       if (response.status && response.data) {
         setBookingData(response.data);
-        console.log('Booking details loaded successfully');
         toast({
           title: 'Success',
           description: 'Booking details loaded successfully',
@@ -88,8 +83,6 @@ export default function BookingDetailsPage() {
   };
 
   useEffect(() => {
-    console.log('=== BOOKING DETAILS COMPONENT MOUNTED ===');
-    console.log('Booking ID:', bookingId);
 
     if (bookingId && bookingId !== 'undefined') {
       fetchBookingDetails();
@@ -187,7 +180,6 @@ export default function BookingDetailsPage() {
   }
 
   const { order, customer, address } = bookingData;
-  console.log('Parsed order_details:' + order.order_details);
 
 
   // ✅ Parse order_details safely
@@ -196,11 +188,9 @@ export default function BookingDetailsPage() {
   // ✅ JSON Parse
   try {
     parsedOrderDetails = order.order_details ? JSON.parse(order.order_details) : [];
-    console.log('Parsed order_details:', parsedOrderDetails);
   } catch (err) {
     console.error('Invalid JSON', err);
   }
-  console.log('Parsed order_details:' + parsedOrderDetails);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">

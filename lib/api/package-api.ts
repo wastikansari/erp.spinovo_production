@@ -1,8 +1,4 @@
-// lib/api/package2-api.ts  ← REPLACE THIS FILE COMPLETELY
-
 import { API_URL } from "../config/constants";
-
-
 
 const getHeaders = () => ({
   Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
@@ -10,34 +6,25 @@ const getHeaders = () => ({
 });
 
 const handleResponse = async (response: Response) => {
-  console.log(`[API] ${response.url} → Status: ${response.status}`);
-
   if (!response.ok) {
     const text = await response.text();
-    console.error("[API ERROR] Raw response:", text);
     throw new Error(`HTTP ${response.status}: ${text || "Network error"}`);
   }
 
   const text = await response.text();
   if (!text) {
-    console.log("[API] Empty response body (DELETE success?)");
     return { status: true, msg: "Operation successful" };
   }
 
   try {
-    const json = JSON.parse(text);
-    console.log("[API SUCCESS] Parsed JSON:", json);
-    return json;
-  } catch (e) {
-    console.error("[API] Failed to parse JSON:", text);
+    return JSON.parse(text);
+  } catch {
     throw new Error("Invalid JSON response");
   }
 };
 
 export const packageApi = {
   getAll: async () => {
-    console.log("[API] Fetching all packages...");
-     console.log("[API] Creating vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv:" , getHeaders());
     const res = await fetch(`${API_URL.BASE_URL}/admin/package/list`, {
       headers: getHeaders(),
     });
@@ -45,7 +32,6 @@ export const packageApi = {
   },
 
   create: async (name: string) => {
-    console.log("[API] Creating package:", name , getHeaders());
     const res = await fetch(`$${API_URL.BASE_URL}/admin/package/create`, {
       method: "POST",
       headers: getHeaders(),
@@ -55,7 +41,6 @@ export const packageApi = {
   },
 
   addPlan: async (packageId: string, plan_id: number, validity: number) => {
-    console.log(`[API] Adding plan to package ${packageId}:`, { plan_id, validity });
     const res = await fetch(`${API_URL.BASE_URL}/admin/package/create/${packageId}/validity`, {
       method: "POST",
       headers: getHeaders(),
@@ -65,7 +50,6 @@ export const packageApi = {
   },
 
   addSubPlan: async (packageId: string, planId: string, data: any) => {
-    console.log(`[API] Adding sub-plan to plan ${planId}:`, data);
     const res = await fetch(`${API_URL.BASE_URL}/admin/package/create/${packageId}/plan/${planId}/subplan`, {
       method: "POST",
       headers: getHeaders(),
@@ -75,7 +59,6 @@ export const packageApi = {
   },
 
   deleteSubPlan: async (packageId: string, planId: string, subPlanId: number) => {
-    console.log(`[API] Deleting sub-plan ${subPlanId} from plan ${planId}`);
     const res = await fetch(
       `${API_URL.BASE_URL}/admin/package/delete/${packageId}/plan/${planId}/subplan/${subPlanId}`,
       { method: "DELETE", headers: getHeaders() }
@@ -84,7 +67,6 @@ export const packageApi = {
   },
 
   deletePlan: async (packageId: string, planId: string) => {
-    console.log(`[API] Deleting plan ${planId} from package ${packageId}`);
     const res = await fetch(
       `${API_URL.BASE_URL}/admin/package/delete/${packageId}/plan/${planId}`,
       { method: "DELETE", headers: getHeaders() }
@@ -93,7 +75,6 @@ export const packageApi = {
   },
 
   deletePackage: async (packageId: string) => {
-    console.log(`[API] Deleting package ${packageId}`);
     const res = await fetch(`${API_URL.BASE_URL}/admin/package/delete/${packageId}`, {
       method: "DELETE",
       headers: getHeaders(),

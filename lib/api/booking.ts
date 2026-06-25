@@ -155,9 +155,7 @@ const response = await fetch(
     let data: ApiResponse<SubOrderDetailsData>;
     try {
       data = await response.json();
-      console.log(data, "<=========== Update Sub Order Garment")
-    } catch (error) {
-      console.log(error, "<=========== Update Sub Order Garment Error")
+    } catch {
       throw new Error(`Server returned an invalid response (HTTP ${response.status})`);
     }
 

@@ -9,18 +9,13 @@ import {
 
 export class OfferApiService extends BaseApiService {
     static async getOffers(): Promise<ApiResponse<OfferListData>> {
-        console.log(`=== FETCHING OFFERS ===`);
         return this.makeRequest<OfferListData>(`/admin/offer/list`, {
             method: 'GET',
         });
     }
 
     static async getOfferDetails(offerId: string): Promise<ApiResponse<OfferDetailsData>> {
-        console.log(`=== FETCHING OFFER DETAILS ===`);
-        console.log(`Offer ID: ${offerId}`);
-
         if (!offerId || offerId === 'undefined' || offerId === 'null') {
-            console.error('Invalid offer ID provided:', offerId);
             throw new Error('Invalid offer ID provided');
         }
 
@@ -30,9 +25,6 @@ export class OfferApiService extends BaseApiService {
     }
 
     static async createOffer(data: CreateOfferRequest): Promise<ApiResponse<CreateOfferResponse>> {
-        console.log(`=== CREATING OFFER ===`);
-        console.log('Data:', data);
-
         // Build FormData so service_for_offer is sent as array fields
         const formData = new FormData();
         const serviceArray = Array.isArray(data['service_for_offer[]'])

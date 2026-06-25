@@ -100,7 +100,6 @@ export default function LocationsPage() {
         setStates([]);
       }
     } catch (error) {
-      console.error('Error fetching states:', error);
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -238,8 +237,7 @@ export default function LocationsPage() {
           variant: 'destructive',
         });
       }
-    } catch (error) {
-      console.error('Delete error:', error);
+    } catch {
       toast({
         title: 'Error',
         description: `Failed to delete ${deleteDialog.type}. Please try again.`,

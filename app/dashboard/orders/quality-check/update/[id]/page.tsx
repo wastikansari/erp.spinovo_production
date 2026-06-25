@@ -314,7 +314,6 @@ export default function SubOrderDetailsPage() {
         try {
             setSaveLoading(true);
             setSaveError('');
-            console.log('ressssssssss vvvvvvvx', subOrderId, unpaid_amount, updatedGarmentDetails);
             const res = await BookingApiService.updateSubOrderGarment({
                 sub_order_id: subOrderId,
                 garment_details: updatedGarmentDetails,

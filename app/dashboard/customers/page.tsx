@@ -28,30 +28,15 @@ export default function CustomersPage() {
     try {
       setLoading(true);
       setError('');
-      console.log('=== FETCHING CUSTOMERS ===');
-      console.log('Page:', page);
 
       const response = await CustomerApiService.getCustomers(page, 20);
-      console.log('=== API RESPONSE ===');
-      console.log('Full response:', response);
 
       if (response.status && response.data) {
-        console.log('=== PROCESSING DATA ===');
-        console.log('Customer list:', response.data.customerList);
-
         setCustomers(response.data.customerList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalCustomers(response.data.totalCustomers || 0);
-
-        if (response.data.customerList && response.data.customerList.length > 0) {
-          toast({
-            title: 'Success',
-            description: `Loaded ${response.data.customerList.length} customers`,
-          });
-        }
       } else {
-        console.error('=== API ERROR ===');
         setError(response.msg || 'Failed to fetch customers');
         toast({
           title: 'Error',
@@ -61,9 +46,6 @@ export default function CustomersPage() {
         setCustomers([]);
       }
     } catch (error) {
-      console.error('=== FETCH ERROR ===');
-      console.error('Error details:', error);
-
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -90,7 +72,6 @@ export default function CustomersPage() {
   };
 
   const handleRefresh = () => {
-    console.log('=== MANUAL REFRESH ===');
     fetchCustomers(currentPage);
   };
 
@@ -176,7 +157,6 @@ export default function CustomersPage() {
   );
 
   useEffect(() => {
-    console.log('=== COMPONENT MOUNTED ===');
     fetchCustomers(currentPage);
   }, [currentPage]);
 

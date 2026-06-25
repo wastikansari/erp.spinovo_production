@@ -394,8 +394,7 @@ export function ProcessAssignFormforIroning({
     const fetchVendors = async () => {
         setLoadingVendors(true);
         try {
-            // Fetch up to 200 vendors (enough for any real deployment)
-            const res = await VendorApiService.getIroningVendors(1, 200);
+            const res = await VendorApiService.getIroningVendors();
             if (res.status && res.data) {
                 let list = res.data.vendorList.filter((v) => v.accountIsActive === true);
                 if (serviceName) {

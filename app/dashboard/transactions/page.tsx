@@ -42,30 +42,15 @@ export default function TransactionsPage() {
     try {
       setLoading(true);
       setError('');
-      console.log('=== FETCHING TRANSACTIONS ===');
-      console.log('Page:', page);
 
       const response = await TransactionApiService.getTransactions(page, 20);
-      console.log('=== API RESPONSE ===');
-      console.log('Full response:', response);
 
       if (response.status && response.data) {
-        console.log('=== PROCESSING DATA ===');
-        console.log('Transaction list:', response.data.transactionList);
-
         setTransactions(response.data.transactionList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalTransactions(response.data.totalTransaction || 0);
-
-        if (response.data.transactionList && response.data.transactionList.length > 0) {
-          toast({
-            title: 'Success',
-            description: `Loaded ${response.data.transactionList.length} transactions`,
-          });
-        }
       } else {
-        console.error('=== API ERROR ===');
         setError(response.msg || 'Failed to fetch transactions');
         toast({
           title: 'Error',
@@ -75,9 +60,6 @@ export default function TransactionsPage() {
         setTransactions([]);
       }
     } catch (error) {
-      console.error('=== FETCH ERROR ===');
-      console.error('Error details:', error);
-
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -92,7 +74,6 @@ export default function TransactionsPage() {
   };
 
   useEffect(() => {
-    console.log('=== COMPONENT MOUNTED ===');
     fetchTransactions(currentPage);
   }, [currentPage]);
 
@@ -121,7 +102,6 @@ export default function TransactionsPage() {
   };
 
   const handleRefresh = () => {
-    console.log('=== MANUAL REFRESH ===');
     fetchTransactions(currentPage);
   };
 

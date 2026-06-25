@@ -33,30 +33,15 @@ export default function OTPRequestsPage() {
     try {
       setLoading(true);
       setError('');
-      console.log('=== FETCHING OTP REQUESTS ===');
-      console.log('Page:', page);
 
       const response = await OTPApiService.getOTPRequests(page, 20);
-      console.log('=== API RESPONSE ===');
-      console.log('Full response:', response);
 
       if (response.status && response.data) {
-        console.log('=== PROCESSING DATA ===');
-        console.log('OTP list:', response.data.otpList);
-
         setOtpRequests(response.data.otpList || []);
         setTotalPages(response.data.total_pages || 1);
         setCurrentPage(response.data.page || 1);
         setTotalOtpRequests(response.data.totalOtpRequest || 0);
-
-        if (response.data.otpList && response.data.otpList.length > 0) {
-          toast({
-            title: 'Success',
-            description: `Loaded ${response.data.otpList.length} OTP requests`,
-          });
-        }
       } else {
-        console.error('=== API ERROR ===');
         setError(response.msg || 'Failed to fetch OTP requests');
         toast({
           title: 'Error',
@@ -66,9 +51,6 @@ export default function OTPRequestsPage() {
         setOtpRequests([]);
       }
     } catch (error) {
-      console.error('=== FETCH ERROR ===');
-      console.error('Error details:', error);
-
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
@@ -83,7 +65,6 @@ export default function OTPRequestsPage() {
   };
 
   useEffect(() => {
-    console.log('=== COMPONENT MOUNTED ===');
     fetchOTPRequests(currentPage);
   }, [currentPage]);
 
@@ -117,7 +98,6 @@ export default function OTPRequestsPage() {
   };
 
   const handleRefresh = () => {
-    console.log('=== MANUAL REFRESH ===');
     fetchOTPRequests(currentPage);
   };
 

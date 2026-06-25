@@ -54,13 +54,11 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       setError('');
-      console.log('Fetching dashboard data...');
 
       const response = await DashboardApiService.getDashboard();
 
       if (response.status && response.data) {
         setDashboardData(response.data);
-        console.log('Dashboard data loaded:', response.data);
       } else {
         setError(response.msg || 'Failed to fetch dashboard data');
         toast({
@@ -70,7 +68,6 @@ export default function DashboardPage() {
         });
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
       const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
       setError(errorMessage);
       toast({
