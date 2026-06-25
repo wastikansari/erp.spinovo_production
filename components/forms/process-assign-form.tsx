@@ -402,11 +402,11 @@ export function ProcessAssignFormforIroning({
                     list = list.filter((v) => vendorMatchesService(v, serviceName));
                 }
                 // Sort: online first, then offline
-                list.sort((a, b) => {
-                    const aOn = a.isOnline === true ? 1 : 0;
-                    const bOn = b.isOnline === true ? 1 : 0;
-                    return bOn - aOn;
-                });
+                // list.sort((a, b) => {
+                //     const aOn = a.isOnline === true ? 1 : 0;
+                //     const bOn = b.isOnline === true ? 1 : 0;
+                //     return bOn - aOn;
+                // });
                 setVendors(list);
             } else {
                 toast({ title: 'Could not load vendors', description: res.msg, variant: 'destructive' });

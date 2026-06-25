@@ -26,6 +26,7 @@ import {
   BarChart2,
   Clock,
   Timer,
+  FileDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -62,6 +63,7 @@ const FCM_API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://api.spinovo.in/
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
+  { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
 
   { name: 'Orders', href: '/dashboard/orders', icon: Package },
 

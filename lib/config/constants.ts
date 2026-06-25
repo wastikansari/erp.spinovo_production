@@ -67,6 +67,7 @@ export const API_ENDPOINTS = {
 
   // Customers
   CUSTOMERS: '/admin/customer/list',
+  CUSTOMER_EXPORT: '/admin/customer/export',
   CUSTOMER_DETAILS: '/admin/customer/details',
   CUSTOMER_TRANSACTIONS: '/admin/customer/transactions',
   CUSTOMER_OTP_REQUESTS: '/admin/customer/otpreques',
