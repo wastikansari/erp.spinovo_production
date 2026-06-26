@@ -185,6 +185,15 @@ function parseGarmentDetails(raw: string) {
         return null;
     }
 }
+function formatStatus(status: any) {
+    switch (Number(status)) {
+        case 1: return 'Assigned';
+        case 2: return 'Started';
+        case 3: return 'Done';
+        default: return status ?? '—';
+    }
+}
+
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -197,14 +206,59 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
     );
 }
 
+// function AssignmentCard({
+//     title,
+//     icon,
+//     iconBg,
+//     iconColor,
+//     assignment,
+//     emptyLabel,
+//     fields,
+// }: {
+//     title: string;
+//     icon: React.ReactNode;
+//     iconBg: string;
+//     iconColor: string;
+//     assignment: any;
+//     emptyLabel: string;
+//     fields?: { label: string; key: string }[];
+// }) {
+//     return (
+//         <Card className="rounded-2xl shadow-sm">
+//             <CardHeader className="pb-3">
+//                 <CardTitle className="flex items-center gap-2 text-base">
+//                     <div className={`h-7 w-7 rounded-lg ${iconBg} flex items-center justify-center`}>
+//                         <span className={iconColor}>{icon}</span>
+//                     </div>
+//                     {title}
+//                 </CardTitle>
+//             </CardHeader>
+//             <CardContent>
+//                 {assignment ? (
+//                     <div className="space-y-3">
+//                         <div className="flex items-center gap-2">
+//                             <CheckCircle2 className="h-4 w-4 text-green-500" />
+//                             <span className="text-sm font-medium text-green-700">Assigned</span>
+//                         </div>
+//                         {fields?.map((f) => (
+//                             <div key={f.key} className="flex justify-between text-sm">
+//                                 <span className="text-muted-foreground">{f.label}</span>
+//                                 <span className="font-medium">{assignment[f.key] ?? '—'}</span>
+//                             </div>
+//                         ))}
+//                     </div>
+//                 ) : (
+//                     <div className="flex items-center gap-2 py-1">
+//                         <Circle className="h-4 w-4 text-muted-foreground" />
+//                         <span className="text-sm text-muted-foreground">{emptyLabel}</span>
+//                     </div>
+//                 )}
+//             </CardContent>
+//         </Card>
+//     );
+// }
 function AssignmentCard({
-    title,
-    icon,
-    iconBg,
-    iconColor,
-    assignment,
-    emptyLabel,
-    fields,
+    title, icon, iconBg, iconColor, assignment, emptyLabel, fields,
 }: {
     title: string;
     icon: React.ReactNode;
@@ -212,7 +266,12 @@ function AssignmentCard({
     iconColor: string;
     assignment: any;
     emptyLabel: string;
-    fields?: { label: string; key: string }[];
+    fields?: {
+        label: string;
+        key: string;
+        format?: (value: any) => string;
+        onClick?: (assignment: any) => void; // 👈
+    }[];
 }) {
     return (
         <Card className="rounded-2xl shadow-sm">
@@ -234,7 +293,19 @@ function AssignmentCard({
                         {fields?.map((f) => (
                             <div key={f.key} className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">{f.label}</span>
-                                <span className="font-medium">{assignment[f.key] ?? '—'}</span>
+                                {f.onClick ? (
+                                    <button
+                                        onClick={() => f.onClick!(assignment)}
+                                        className="font-medium text-primary underline underline-offset-2 hover:text-primary/70 transition-colors cursor-pointer flex items-center gap-1"
+                                    >
+                                        {f.format ? f.format(assignment[f.key]) : (assignment[f.key] ?? '—')}
+                                        <span className="text-xs">↗</span>
+                                    </button>
+                                ) : (
+                                    <span className="font-medium">
+                                        {f.format ? f.format(assignment[f.key]) : (assignment[f.key] ?? '—')}
+                                    </span>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -367,6 +438,23 @@ export default function SubOrderDetailsPage() {
                 </Button>
             </div>
         );
+    }
+
+    function formatToIST(isoString: string) {
+        if (!isoString) return '—';
+        try {
+            return new Date(isoString).toLocaleString('en-IN', {
+                timeZone: 'Asia/Kolkata',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            });
+        } catch {
+            return isoString;
+        }
     }
 
     const subOrder = data?.subOrder;
@@ -736,6 +824,66 @@ export default function SubOrderDetailsPage() {
 
                     {/* Pickup Assignment */}
                     <AssignmentCard
+                        title="Pickup Assignee"
+                        icon={<Truck className="h-4 w-4" />}
+                        iconBg="bg-blue-100"
+                        iconColor="text-blue-600"
+                        assignment={data?.pickupAssignment}
+                        emptyLabel="Not yet assigned"
+                        fields={[
+                            {
+                                label: 'Pickup Assignee',
+                                key: 'status',
+                                onClick: (assignment) => router.push(`/dashboard/copilots/${assignment?.copilot_id}`), // 👈
+                            },
+                            { label: 'Status', key: 'status', format: formatStatus },
+                            { label: 'Assigned At', key: 'createdAt', format: formatToIST }, // 👈
+                            { label: 'Picked Up At', key: 'updatedAt', format: formatToIST }, // 👈
+                        ]}
+                    />
+
+                    {/* Process Assignment */}
+                    <AssignmentCard
+                        title="Processing Assignee"
+                        icon={<Settings className="h-4 w-4" />}
+                        iconBg="bg-purple-100"
+                        iconColor="text-purple-600"
+                        assignment={data?.processAssignment}
+                        emptyLabel="Not yet assigned"
+                        fields={[
+                            {
+                                label: 'Processing Assignee',
+                                key: 'status',
+                                onClick: (assignment) => router.push(`/dashboard/vendor/${assignment?.vendor_id}`), // 👈
+                            },
+                            { label: 'Status', key: 'status', format: formatStatus },
+                            { label: 'Assigned At', key: 'createdAt', format: formatToIST }, // 👈
+                            { label: 'Processed At', key: 'updatedAt', format: formatToIST }, // 👈
+                        ]}
+                    />
+
+                    {/* Delivery Assignment */}
+                    <AssignmentCard
+                        title="Delivery Assignee"
+                        icon={<UserCheck className="h-4 w-4" />}
+                        iconBg="bg-green-100"
+                        iconColor="text-green-600"
+                        assignment={data?.deliveryAssignment}
+                        emptyLabel="Not yet assigned"
+                        fields={[
+                            {
+                                label: 'Pickup Assignee',
+                                key: 'status',
+                                onClick: (assignment) => router.push(`/dashboard/copilots/${assignment?.copilot_id}`), // 👈
+                            },
+                            { label: 'Status', key: 'status', format: formatStatus },
+                            { label: 'Assigned At', key: 'createdAt', format: formatToIST }, // 👈
+                            { label: 'Delivered At', key: 'updatedAt', format: formatToIST }, // 👈
+                        ]}
+                    />
+
+                    {/* Pickup Assignment */}
+                    {/* <AssignmentCard
                         title="Pickup Assignment"
                         icon={<Truck className="h-4 w-4" />}
                         iconBg="bg-blue-100"
@@ -743,14 +891,15 @@ export default function SubOrderDetailsPage() {
                         assignment={data?.pickupAssignment}
                         emptyLabel="Not yet assigned"
                         fields={[
-                            { label: 'Partner', key: 'partner_name' },
+                            { label: 'Vendor', key: 'vendor' },
                             { label: 'Status', key: 'status' },
-                            { label: 'Assigned At', key: 'assigned_at' },
+                            { label: 'Assigned At', key: 'createdAt' },
+                            { label: 'Picked Up At', key: 'updatedAt' },
                         ]}
-                    />
+                    /> */}
 
                     {/* Process Assignment */}
-                    <AssignmentCard
+                    {/* <AssignmentCard
                         title="Processing Assignment"
                         icon={<Settings className="h-4 w-4" />}
                         iconBg="bg-purple-100"
@@ -760,12 +909,13 @@ export default function SubOrderDetailsPage() {
                         fields={[
                             { label: 'Partner', key: 'partner_name' },
                             { label: 'Status', key: 'status' },
-                            { label: 'Assigned At', key: 'assigned_at' },
+                            { label: 'Assigned At', key: 'createdAt' },
+                            { label: 'Processed At', key: 'updatedAt' },
                         ]}
-                    />
+                    /> */}
 
                     {/* Delivery Assignment */}
-                    <AssignmentCard
+                    {/* <AssignmentCard
                         title="Delivery Assignment"
                         icon={<UserCheck className="h-4 w-4" />}
                         iconBg="bg-green-100"
@@ -775,9 +925,10 @@ export default function SubOrderDetailsPage() {
                         fields={[
                             { label: 'Partner', key: 'partner_name' },
                             { label: 'Status', key: 'status' },
-                            { label: 'Assigned At', key: 'assigned_at' },
+                            { label: 'Assigned At', key: 'createdAt' },
+                            { label: 'Delivered At', key: 'updatedAt' },
                         ]}
-                    />
+                    /> */}
 
                     {/* Quick Actions */}
                     <Card className="rounded-2xl shadow-sm">
@@ -785,7 +936,7 @@ export default function SubOrderDetailsPage() {
                             <CardTitle className="text-base">Quick Actions</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-4 space-y-2">
-                            <Button className="w-full rounded-xl justify-start" size="sm">
+                            {/* <Button className="w-full rounded-xl justify-start" size="sm">
                                 <Truck className="mr-2 h-4 w-4" />
                                 Assign Pickup Partner
                             </Button>
@@ -796,7 +947,7 @@ export default function SubOrderDetailsPage() {
                             <Button variant="outline" className="w-full rounded-xl justify-start" size="sm">
                                 <UserCheck className="mr-2 h-4 w-4" />
                                 Assign Delivery Partner
-                            </Button>
+                            </Button> */}
                             <Button
                                 variant="ghost"
                                 className="w-full rounded-xl justify-start text-muted-foreground"

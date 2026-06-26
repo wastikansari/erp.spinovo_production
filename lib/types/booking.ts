@@ -1,3 +1,292 @@
+// import { BaseEntity } from './index';
+// import { Customer, Address } from './customer';
+
+// export interface BookingCustomerDetails {
+//   _id: string;
+//   name: string;
+//   mobile: string;
+//   email: string;
+//   gender: string;
+//   profile_pic: string;
+//   isActive: boolean;
+// }
+
+// export interface BookingAddressDetails {
+//   _id: string;
+//   customer_id: string;
+//   address_type: string;
+//   address_label: string;
+//   flat_no: string;
+//   building: string;
+//   street: string;
+//   landmark: string;
+//   city: string;
+//   state: string;
+//   pincode: string;
+//   format_address: string;
+//   isPrimary: boolean;
+//   petsAtHome: string;
+//   latitude: string;
+//   longitude: string;
+//   createdAt: string;
+//   updatedAt: string;
+// }
+
+// export interface SubOrder extends BaseEntity {
+//   order_id: string;
+//   customer_id: string;
+//   address_id: string;
+//   service_id: string;
+//   service_name: string;
+//   order_no: string;
+//   sub_order_no: string;
+//   order_stage_id: number;
+//   booking_date: string;
+//   booking_time: string;
+//   service_duration_hours: number;
+//   expected_delivery_date: string;
+//   expected_delivery_time: string;
+//   garment_details: string;
+//   garment_qty: number;
+//   garment_amount: number;
+//   no_of_bag: number;
+//   no_of_bag_outward: number;
+//   no_of_bag_return: number;
+//   ord_status: string;
+//   no_of_garments_picked: number;
+//   no_of_garments_processed: number;
+//   no_of_garments_delivered: number;
+//   extra_garments_amount: number;
+//   quality_check: boolean;
+//   is_suborder_cancel: number;
+//   cancel_charge: number;
+// }
+
+// export interface Booking extends BaseEntity {
+//   customer_id: string;
+//   order_no: number;
+//   order_display_no: string;
+//   order_stage_id: number;
+//   order_type: string;
+//   service_id: number;
+//   service_name: string;
+//   garment_qty: number;
+//   garment_original_amount: number;
+//   garment_discount_amount: number;
+//   service_charges: number;
+//   slot_charges: number;
+//   order_amount: number;
+//   transaction_id: string;
+//   booking_date: string;
+//   booking_time: string;
+//   address_id: string;
+//   ord_status: string;
+//   delivery_charge: number;
+//   tip_amount: number;
+//   spinovo_bonus_discount: number;
+//   total_billing: number;
+//   payment_mode: string;
+//   payment_status: string;
+//   handling_charges: number;
+//   offer_code: string;
+//   offer_id: string;
+//   offer_amount: number;
+//   order_details: any;
+//   no_of_garemtn_picked: number;
+//   no_of_garemtn_processed: number;
+//   no_of_garemtn_delivered: number;
+//   paid_amount: number;
+//   unpaid_amount: number;
+//   quality_check: boolean;
+//   is_suborder_cancel: number;
+//   cancel_charge: number;
+//   sub_orders?: SubOrder[];
+//   customer_details?: BookingCustomerDetails;
+//   address_details?: BookingAddressDetails;
+// }
+
+// export interface PendingQCOrder {
+//   _id: string;
+//   customer_id: string;
+//   order_no: number;
+//   order_display_no: string;
+//   order_stage_id: number;
+//   order_type: string;
+//   service_id: number;
+//   service_name: string;
+//   garment_qty: number;
+//   garment_original_amount: number;
+//   garment_discount_amount: number;
+//   delivery_charge: number;
+//   offer_code: string;
+//   offer_id: string;
+//   offer_amount: number;
+//   order_amount: number;
+//   order_details: any;
+//   slot_charges: number;
+//   handling_charges: number;
+//   service_charges: number;
+//   tip_amount: number;
+//   spinovo_bonus_discount: number;
+//   total_billing: number;
+//   unpaid_amount: number;
+//   paid_amount: number;
+//   quality_check: boolean;
+//   payment_mode: string;
+//   payment_status: string;
+//   transaction_id: string;
+//   booking_date: string;
+//   booking_time: string;
+//   address_id: string;
+//   no_of_garments_picked: number;
+//   no_of_garments_processed: number;
+//   no_of_garments_delivered: number;
+//   ord_status: string;
+//   createdAt: string;
+//   updatedAt: string;
+
+// }
+
+// export interface PendingQCListData {
+//   totalCount: number;
+//   currentPage: number;
+//   totalPages: number;
+//   Orders: PendingQCOrder[];
+// }
+
+// export interface BookingListData {
+//   totalOrders: number;
+//   total_pages: number;
+//   currentPage: number;
+//   bookingList: Booking[];
+// }
+
+// export interface BookingDetailsData {
+//   order: Booking;
+//   customer: Customer;
+//   address: Address;
+//   subOrders: SubOrder[];
+//   pickupAssignments: any[];
+//   processAssignments: any[];
+//   deliveryAssignments: any[];
+// }
+
+// export interface SubOrderDetailsData {
+//   subOrder: SubOrder;
+//   address: Address;
+//   pickupAssignment: any;
+//   processAssignment: any;
+//   deliveryAssignment: any;
+// }
+
+// export interface UpdateGarmentRequest {
+//   sub_order_id: string;
+//   garment_details: string;
+//   unpaid_amount: number;
+// }
+
+// export interface CategoryItem {
+//   _id: string;
+//   category_id: number;
+//   category: string;
+//   description: string;
+//   price: string;
+//   types_of_Clothes: string[];
+// }
+
+// export interface ServiceCategoryData {
+//   service: {
+//     _id: string;
+//     service_id: number;
+//     service: string;
+//     description: string;
+//     duration: string;
+//     category_list: CategoryItem[];
+//   };
+// }
+
+// export interface FullServiceCategory {
+//   _id: string;
+//   service_id: number;
+//   service: string;
+//   min_qty: number;
+//   original: number;
+//   discounted: number;
+//   service_duration_hours: number;
+//   duration: string;
+//   description: string;
+//   prices_by_qty: { qty: number }[];
+//   category_list: CategoryItem[];
+// }
+
+// export interface ServiceCategoryListData {
+//   service: FullServiceCategory[];
+// }
+
+// export interface MainOrderDetailsData {
+//   order: PendingQCOrder;
+//   subOrders: SubOrder[];
+// }
+
+// export interface AddServiceRequest {
+//   order_id: string;
+//   service_id: number;
+//   garment_details: string;
+//   garment_qty: number;
+//   garment_amount: number;
+// }
+
+// // import { BaseEntity } from './index';
+
+// // export interface Booking extends BaseEntity {
+// //   customer_id: string;
+// //   order_no: number;
+// //   order_display_no: string;
+// //   order_stage_id: number;
+// //   order_type: string;
+// //   service_id: number;
+// //   service_name: string;
+// //   garment_qty: number;
+// //   garment_original_amount: number;
+// //   garment_discount_amount: number;
+// //   service_charges: number;
+// //   slot_charges: number;
+// //   order_amount: number;
+// //   transaction_id: string;
+// //   booking_date: string;
+// //   booking_time: string;
+// //   address_id: string;
+// //   ord_status: string;
+// //   delivery_charge: number;
+// //   tip_amount: number;
+// //   total_billing: number;
+// //   payment_mode: string;
+// //   payment_status: string;
+// //   handling_charges: number;
+// //   order_details: string;
+
+
+// // }
+
+// // export interface BookingListData {
+// //   totalOrders: number;
+// //   total_pages: number;
+// //   page: number;
+// //   bookingList: Booking[];
+// // }
+
+// // export interface BookingDetailsData {
+// //   order: Booking;
+// //   customer: Customer;
+// //   address: Address;
+// // }
+
+// // // Import from other type files
+// // import { Customer, Address } from './customer';
+
+
+
+
 import { BaseEntity } from './index';
 import { Customer, Address } from './customer';
 
@@ -144,7 +433,6 @@ export interface PendingQCOrder {
   ord_status: string;
   createdAt: string;
   updatedAt: string;
-
 }
 
 export interface PendingQCListData {
@@ -171,12 +459,49 @@ export interface BookingDetailsData {
   deliveryAssignments: any[];
 }
 
+// ─── Assignment Interfaces ────────────────────────────────────────────────────
+
+export interface PickupAssignment {
+  _id: string;
+  order_id: string;
+  copilot_id: string;
+  status: number;
+  isStarted: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProcessAssignment {
+  _id: string;
+  order_id: string;
+  sub_order_id: string;
+  vendor_id: string;
+  status: number;
+  isStarted: number;
+  reject_reason: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeliveryAssignment {
+  _id: string;
+  order_id: string;
+  sub_order_id: string;
+  copilot_id: string;
+  status: number;
+  isStarted: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface SubOrderDetailsData {
   subOrder: SubOrder;
   address: Address;
-  pickupAssignment: any;
-  processAssignment: any;
-  deliveryAssignment: any;
+  pickupAssignment: PickupAssignment;
+  processAssignment: ProcessAssignment;
+  deliveryAssignment: DeliveryAssignment;
 }
 
 export interface UpdateGarmentRequest {
@@ -235,51 +560,3 @@ export interface AddServiceRequest {
   garment_qty: number;
   garment_amount: number;
 }
-
-// import { BaseEntity } from './index';
-
-// export interface Booking extends BaseEntity {
-//   customer_id: string;
-//   order_no: number;
-//   order_display_no: string;
-//   order_stage_id: number;
-//   order_type: string;
-//   service_id: number;
-//   service_name: string;
-//   garment_qty: number;
-//   garment_original_amount: number;
-//   garment_discount_amount: number;
-//   service_charges: number;
-//   slot_charges: number;
-//   order_amount: number;
-//   transaction_id: string;
-//   booking_date: string;
-//   booking_time: string;
-//   address_id: string;
-//   ord_status: string;
-//   delivery_charge: number;
-//   tip_amount: number;
-//   total_billing: number;
-//   payment_mode: string;
-//   payment_status: string;
-//   handling_charges: number;
-//   order_details: string;
-
-
-// }
-
-// export interface BookingListData {
-//   totalOrders: number;
-//   total_pages: number;
-//   page: number;
-//   bookingList: Booking[];
-// }
-
-// export interface BookingDetailsData {
-//   order: Booking;
-//   customer: Customer;
-//   address: Address;
-// }
-
-// // Import from other type files
-// import { Customer, Address } from './customer';
