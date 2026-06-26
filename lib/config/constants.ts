@@ -3,7 +3,7 @@ export const APP_CONFIG = {
   version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL ||
     // "http://[IP_ADDRESS]/api/v1",
-  'https://api.spinovo.in/api/v1',
+    'https://api.spinovo.in/api/v1',
   enableDebug: process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true',
   isDevelopment: process.env.NODE_ENV === 'development',
   isProduction: process.env.NODE_ENV === 'production',
@@ -43,17 +43,21 @@ export const API_URL = {
   VENDOR_LIST_ACTIVE: '/admin/vendor/list/active',
 
   // Vendor Outward / Inward (service_id-driven routing, no hardcoded names)
-  VENDOR_OUTWARD:          '/admin/vendor/orders/outward',
-  VENDOR_INWARD_PENDING:   '/admin/vendor/orders/inward-pending',
+  VENDOR_OUTWARD: '/admin/vendor/orders/outward',
+  VENDOR_INWARD_PENDING: '/admin/vendor/orders/inward-pending',
 
   // Process Pending service summary
   PROCESS_PENDING_SUMMARY: '/admin/orders/process-pending/summary',
-WASH_DC_PENDING: '/admin/order/washDc/suborder/pending',
+  WASH_DC_PENDING: '/admin/order/washDc/suborder/pending',
   // Ironing workflow
-  IRONING_PENDING:   '/admin/order/ironing/suborder/pending',
+  IRONING_PENDING: '/admin/order/ironing/suborder/pending',
 
   // Service vendor config
-  SERVICE_VENDOR_CONFIG:   '/admin/service/vendor-config',
+  SERVICE_VENDOR_CONFIG: '/admin/service/vendor-config',
+
+  // Add this entry inside API_URL in your existing constants.ts:
+
+  ORDER_TIMELINE: '/admin/orders/pickup/process/time/details',
 
 } as const;
 

@@ -14,6 +14,8 @@ import {
 } from '../types/booking';
 import { API_URL } from '../config/constants';
 import { AuthService } from '../auth';
+import { OrderTimelineResponse } from '../types/orderTimeline';
+
 
 export class BookingApiService extends BaseApiService {
   // ORDER LIST V2
@@ -174,6 +176,25 @@ const response = await fetch(
       { method: 'PATCH' }
     );
   }
+
+
+
+// ORDER TIMELINE — pickup / process / delivery timestamps for all sub-orders
+static async getOrderTimeline(
+  page: number = 1,
+  limit: number = 20,
+  ord_status?: string
+): Promise<ApiResponse<OrderTimelineResponse>> {
+  const params = new URLSearchParams({
+    page: String(page),
+    limit: String(limit),
+  });
+  if (ord_status) params.set('ord_status', ord_status);
+  return this.makeRequest<OrderTimelineResponse>(
+    `/admin/orders/pickup/process/time/details?${params.toString()}`,
+    { method: 'GET' }
+  );
+}
 }
 
 

@@ -88,7 +88,7 @@ const navigation = [
   { name: 'Delivery Assigned', href: '/dashboard/orders/delivery-assigned', icon: UserCheck },
   { name: 'Delivered', href: '/dashboard/orders/delivery', icon: UserCheck },
 
-
+  { name: 'Order Timeline', href: '/dashboard/order-timeline', icon: Clock },
   { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
   { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
   { name: 'Copilots', href: '/dashboard/copilots', icon: UserCog },
