@@ -23,6 +23,9 @@ import {
     Truck,
     IndianRupee,
     MapPin,
+    Search,
+    X,
+    Filter,
 } from 'lucide-react';
 import { AssignApiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +39,13 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { DeliveryPendingSubOrder } from '@/lib/types/delivery-assign';
 import { DeliverySubOrderAssignForm } from '@/components/forms/delivery-suborder-assign-form';
 
@@ -112,6 +122,21 @@ function resolveServiceKey(name: string): ServiceColorKey {
     if (n.includes('wash')) return 'wash';
     return 'default';
 }
+
+// ── NEW: service filter options ───────────────────────────────────────────────
+const SERVICE_FILTER_OPTIONS: {
+    value: ServiceColorKey | 'all';
+    label: string;
+    icon: React.ReactNode;
+}[] = [
+        { value: 'all', label: 'All Services', icon: <Filter className="h-3.5 w-3.5" /> },
+        { value: 'quick-ironing', label: 'Quick Ironing', icon: <Flame className="h-3.5 w-3.5" /> },
+        { value: 'ironing', label: 'Ironing', icon: <Shirt className="h-3.5 w-3.5" /> },
+        { value: 'wash', label: 'Wash', icon: <Droplets className="h-3.5 w-3.5" /> },
+        { value: 'wash-ironing', label: 'Wash + Ironing', icon: <Sparkles className="h-3.5 w-3.5" /> },
+        { value: 'dry-cleaning', label: 'Dry Cleaning', icon: <Wind className="h-3.5 w-3.5" /> },
+        { value: 'shoes-cleaning', label: 'Shoes Cleaning', icon: <Footprints className="h-3.5 w-3.5" /> },
+    ];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -202,8 +227,8 @@ function PaginationBar({
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-const COL_STYLE = 'grid gap-x-3 px-5 items-center' as const;
-const COL_TEMPLATE = { gridTemplateColumns: '1.8fr 1.4fr 72px 64px 90px 130px 110px 130px 48px' } as const;
+const COL_STYLE = 'grid px-4 items-center' as const;
+const COL_TEMPLATE = { gridTemplateColumns: 'minmax(120px,1.4fr) minmax(120px,1.3fr) minmax(80px,1fr) 56px 44px 80px minmax(120px,1.2fr) minmax(140px,1.4fr) minmax(160px,1.6fr) 44px', gap: '0 10px' } as const;
 
 export default function DeliveryPendingPage() {
     const [subOrders, setSubOrders] = useState<DeliveryPendingSubOrder[]>([]);
@@ -214,6 +239,8 @@ export default function DeliveryPendingPage() {
     const [error, setError] = useState('');
     const [showAssignForm, setShowAssignForm] = useState(false);
     const [selectedSubOrder, setSelectedSubOrder] = useState<DeliveryPendingSubOrder | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedService, setSelectedService] = useState<ServiceColorKey | 'all'>('all');
 
     const router = useRouter();
     const { toast } = useToast();
@@ -242,6 +269,31 @@ export default function DeliveryPendingPage() {
     }, [toast]);
 
     useEffect(() => { fetchList(currentPage); }, [currentPage, fetchList]);
+
+    // ── NEW: combined search + service filter ─────────────────────────────────
+    const filteredSubOrders = subOrders.filter((sub) => {
+        // 1. Search: sub_order_no or order_no
+        const q = searchQuery.toLowerCase().trim();
+        const matchesSearch =
+            !q ||
+            sub.sub_order_no?.toLowerCase().includes(q) ||
+            sub.order_no?.toLowerCase().includes(q);
+
+        // 2. Service: match service_name against selected key
+        const matchesService =
+            selectedService === 'all' ||
+            resolveServiceKey(sub.service_name) === selectedService;
+
+        return matchesSearch && matchesService;
+    });
+
+    const activeFilterCount =
+        (searchQuery.trim() ? 1 : 0) + (selectedService !== 'all' ? 1 : 0);
+
+    const clearAllFilters = () => {
+        setSearchQuery('');
+        setSelectedService('all');
+    };
 
     return (
         <div className="space-y-5 p-4 md:p-6">
@@ -287,18 +339,112 @@ export default function DeliveryPendingPage() {
             </div>
 
             {/* SERVICE LEGEND */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide shrink-0">Service Types:</span>
                 <ServiceLegend />
-            </div>
+            </div> */}
 
             {/* MAIN TABLE */}
             <Card className="rounded-2xl border shadow-sm overflow-hidden">
                 <CardHeader className="border-b bg-muted/20 py-4">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                        <ListOrdered className="h-5 w-5" />
-                        Pending Delivery Assignment
-                    </CardTitle>
+                    <div className="flex flex-col gap-3">
+
+                        {/* Row 1: title + active filter count + clear all */}
+                        <div className="flex items-center justify-between gap-2">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <ListOrdered className="h-5 w-5" />
+                                Pending Delivery Assignment
+                                {activeFilterCount > 0 && (
+                                    <span className="ml-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                                        {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''}
+                                    </span>
+                                )}
+                            </CardTitle>
+                            {activeFilterCount > 0 && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                    Clear all
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Row 2: search input + service dropdown */}
+                        <div className="flex flex-col sm:flex-row gap-2">
+
+                            {/* Search by sub-order no or order no */}
+                            <div className="relative flex-1 min-w-0">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by sub-order no or order no..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-9 pr-8 py-1.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Service dropdown */}
+                            <Select
+                                value={selectedService}
+                                onValueChange={(v) => setSelectedService(v as ServiceColorKey | 'all')}
+                            >
+                                <SelectTrigger className="h-9 w-full sm:w-52 rounded-lg text-sm">
+                                    <div className="flex items-center gap-2">
+                                        {/* {SERVICE_FILTER_OPTIONS.find((o) => o.value === selectedService)?.icon} */}
+                                        <SelectValue placeholder="Filter by service" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {SERVICE_FILTER_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            <div className="flex items-center gap-2">
+                                                {opt.icon}
+                                                <span>{opt.label}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Row 3: quick-select pill buttons */}
+                        <div className="flex flex-wrap gap-1.5">
+                            {SERVICE_FILTER_OPTIONS.map((opt) => {
+                                const isActive = selectedService === opt.value;
+                                const theme = opt.value !== 'all' ? SERVICE_THEMES[opt.value as ServiceColorKey] : null;
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        onClick={() => setSelectedService(opt.value as ServiceColorKey | 'all')}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all
+                                            ${isActive
+                                                ? theme
+                                                    ? `${theme.badge} ring-2 ring-offset-1 ring-current`
+                                                    : 'bg-primary text-primary-foreground border-primary ring-2 ring-offset-1 ring-primary'
+                                                : theme
+                                                    ? `${theme.badge} opacity-60 hover:opacity-100`
+                                                    : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
+                                            }`}
+                                    >
+                                        {opt.icon}
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                    </div>
                 </CardHeader>
 
                 <CardContent className="p-0">
@@ -313,18 +459,19 @@ export default function DeliveryPendingPage() {
 
                     {/* TABLE HEADER — desktop */}
                     <div
-                        className={`hidden lg:grid ${COL_STYLE} py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide`}
+                        className={`hidden lg:grid ${COL_STYLE} py-2.5 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide`}
                         style={COL_TEMPLATE}
                     >
                         <div>Sub Order</div>
+                        <div>Service</div>
                         <div>Order</div>
-                        <div>Garment QTY</div>
+                        <div>Qty</div>
                         <div>Bag</div>
                         <div>Amount</div>
                         <div>Delivery Date</div>
                         <div>Delivery Time</div>
                         <div>Status</div>
-                        <div className="text-right">Action</div>
+                        <div className="flex justify-end">Action</div>
                     </div>
 
                     {/* LOADING */}
@@ -333,14 +480,28 @@ export default function DeliveryPendingPage() {
                             <RefreshCw className="h-7 w-7 animate-spin text-muted-foreground" />
                             <p className="text-sm text-muted-foreground">Loading sub-orders…</p>
                         </div>
-                    ) : subOrders.length === 0 ? (
+                    ) : filteredSubOrders.length === 0 ? (
                         <div className="py-24 text-center">
                             <Truck className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                            <p className="font-semibold text-lg">No Pending Delivery Sub-Orders</p>
-                            <p className="text-sm text-muted-foreground mt-1">All sub-orders have been assigned for delivery</p>
+                            <p className="font-semibold text-lg">
+                                {activeFilterCount > 0 ? 'No matching sub-orders found' : 'No Pending Delivery Sub-Orders'}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                {activeFilterCount > 0
+                                    ? 'Try adjusting the search or service filter'
+                                    : 'All sub-orders have been assigned for delivery'}
+                            </p>
+                            {activeFilterCount > 0 && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="mt-3 text-sm text-primary hover:underline"
+                                >
+                                    Clear all filters
+                                </button>
+                            )}
                         </div>
                     ) : (
-                        subOrders.map((sub, idx) => {
+                        filteredSubOrders.map((sub, idx) => {
                             const theme = SERVICE_THEMES[resolveServiceKey(sub.service_name)];
                             return (
                                 <div
@@ -349,19 +510,26 @@ export default function DeliveryPendingPage() {
                                 >
                                     {/* DESKTOP ROW */}
                                     <div
-                                        className={`hidden lg:grid ${COL_STYLE} py-3.5 hover:bg-muted/5 transition-colors`}
+                                        className={`hidden lg:grid ${COL_STYLE} py-3 hover:bg-muted/5 transition-colors`}
                                         style={COL_TEMPLATE}
                                     >
-                                        {/* Sub Order */}
+                                        {/* Sub Order No */}
                                         <div className="min-w-0">
-                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
-                                                {theme.icon}
+                                            <span className="text-sm font-medium font-mono text-foreground">
                                                 {sub.sub_order_no}
                                             </span>
                                         </div>
 
-                                        {/* Order */}
-                                        <div className="text-sm font-medium text-primary">
+                                        {/* Service — colored badge */}
+                                        <div>
+                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${theme.badge}`}>
+                                                {theme.icon}
+                                                {sub.service_name}
+                                            </span>
+                                        </div>
+
+                                        {/* Order No */}
+                                        <div className="text-sm font-medium text-primary truncate">
                                             {sub.order_no}
                                         </div>
 
@@ -369,29 +537,31 @@ export default function DeliveryPendingPage() {
                                         <div className="text-sm font-semibold">{sub.garment_qty}</div>
 
                                         {/* Bag */}
-                                        <div className="text-sm text-muted-foreground">{sub.no_of_bag > 0 ? sub.no_of_bag : '—'}</div>
+                                        <div className="text-sm text-muted-foreground">
+                                            {sub.no_of_bag > 0 ? sub.no_of_bag : '—'}
+                                        </div>
 
                                         {/* Amount */}
-                                        <div className="flex items-center gap-0.5 text-sm font-semibold">
+                                        <div className="flex items-center gap-0.5 text-sm font-semibold whitespace-nowrap">
                                             <IndianRupee className="h-3.5 w-3.5 shrink-0" />
                                             {sub.garment_amount?.toLocaleString('en-IN')}
                                         </div>
 
                                         {/* Delivery Date */}
-                                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground whitespace-nowrap">
                                             <Calendar className="h-3.5 w-3.5 shrink-0" />
                                             {formatDate(sub.expected_delivery_date)}
                                         </div>
 
                                         {/* Delivery Time */}
-                                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground whitespace-nowrap">
                                             <Clock className="h-3.5 w-3.5 shrink-0" />
                                             {sub.expected_delivery_time || '—'}
                                         </div>
 
                                         {/* Status */}
                                         <div>
-                                            <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${getStatusClass(sub.ord_status)}`}>
+                                            <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs border font-medium whitespace-nowrap ${getStatusClass(sub.ord_status)}`}>
                                                 {sub.ord_status || 'Pending'}
                                             </span>
                                         </div>

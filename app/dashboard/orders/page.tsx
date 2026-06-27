@@ -1,4 +1,3 @@
-
 'use client';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
@@ -27,6 +26,9 @@ import {
     Clock,
     User,
     Phone,
+    Search,   // ← NEW
+    X,        // ← NEW
+    Filter,   // ← NEW
 } from 'lucide-react';
 
 import { BookingApiService, Booking, SubOrder } from '@/lib/api';
@@ -143,6 +145,21 @@ const SERVICE_THEMES: Record<ServiceColorKey, ServiceTheme> = {
     },
 };
 
+// ── NEW: service filter options list ─────────────────────────────────────────
+const SERVICE_FILTER_OPTIONS: {
+    value: ServiceColorKey | 'all';
+    label: string;
+    icon: React.ReactNode;
+}[] = [
+        { value: 'all', label: 'All Services', icon: <Filter className="h-3.5 w-3.5" /> },
+        { value: 'quick-ironing', label: 'Quick Ironing', icon: <Flame className="h-3.5 w-3.5" /> },
+        { value: 'ironing', label: 'Ironing', icon: <Shirt className="h-3.5 w-3.5" /> },
+        { value: 'wash', label: 'Wash', icon: <Droplets className="h-3.5 w-3.5" /> },
+        { value: 'wash-ironing', label: 'Wash + Ironing', icon: <Sparkles className="h-3.5 w-3.5" /> },
+        { value: 'dry-cleaning', label: 'Dry Cleaning', icon: <Wind className="h-3.5 w-3.5" /> },
+        { value: 'shoes-cleaning', label: 'Shoes Cleaning', icon: <Footprints className="h-3.5 w-3.5" /> },
+    ];
+
 function resolveServiceKey(name: string): ServiceColorKey {
     const n = name?.toLowerCase() ?? '';
     if (n.includes('quick') && n.includes('iron')) return 'quick-ironing';
@@ -174,7 +191,6 @@ function getStatusClass(status: string) {
 function formatDate(dateString: string) {
     if (!dateString) return '—';
     try {
-        // Handle DD/MM/YYYY from API
         if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
             const [dd, mm, yyyy] = dateString.split('/');
             return format(new Date(`${yyyy}-${mm}-${dd}`), 'dd MMM yyyy');
@@ -328,94 +344,10 @@ function SubOrderCard({
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Sub Order
                             </DropdownMenuItem>
-                            {/* <DropdownMenuSeparator />
-                            <DropdownMenuItem>
-                                <UserCheck className="mr-2 h-4 w-4" />
-                                Assign Sub Order
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Package className="mr-2 h-4 w-4" />
-                                Update Status
-                            </DropdownMenuItem> */}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </div>
-
-            {/* Garment details */}
-            {/* {garmentDetails.length > 0 && (
-                <div className="px-4 py-4 space-y-4">
-                    {garmentDetails.map((svc: any, i: number) => (
-                        <div key={i}>
-                         
-                            {(svc.service || svc.description) && (
-                                <div className="mb-3">
-                                    {svc.service && (
-                                        <p className="font-semibold text-sm">{svc.service}</p>
-                                    )}
-                                    {svc.description && (
-                                        <p className="text-xs text-muted-foreground mt-0.5">
-                                            {svc.description}
-                                        </p>
-                                    )}
-                                </div>
-                            )}
-
-                            {svc.categorys?.length > 0 && (
-                                <div className="space-y-3">
-                                    {svc.categorys.map((cat: any, ci: number) => (
-                                        <div
-                                            key={ci}
-                                            className="rounded-lg border bg-muted/20 p-3 space-y-2"
-                                        >
-                                          
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-sm font-medium">
-                                                    {cat.category}
-                                                </p>
-                                                {cat.category_prices !== undefined && (
-                                                    <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/20">
-                                                        <IndianRupee className="h-3 w-3" />
-                                                        {cat.category_prices}
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                        
-                                            {cat.types_of_Clothes?.length > 0 && (
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {cat.types_of_Clothes.map(
-                                                        (cloth: string, ci2: number) => (
-                                                            <span
-                                                                key={ci2}
-                                                                className={`px-2 py-0.5 rounded-full border text-xs font-medium ${theme.badge}`}
-                                                            >
-                                                                {cloth}
-                                                            </span>
-                                                        )
-                                                    )}
-                                                </div>
-                                            )}
-
-                                            {cat.items !== undefined && (
-                                                <div className="flex items-center gap-1.5 text-xs text-muted-foreground pt-1 border-t">
-                                                    <Shirt className="h-3 w-3" />
-                                                    <span>
-                                                        Items:{' '}
-                                                        <span className="font-semibold text-foreground">
-                                                            {cat.items}
-                                                        </span>
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            )} */}
         </div>
     );
 }
@@ -465,7 +397,6 @@ function PaginationBar({
 
     return (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t">
-            {/* Left: rows-per-page + info */}
             <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                     <span className="shrink-0">Rows per page:</span>
@@ -496,7 +427,6 @@ function PaginationBar({
                 )}
             </div>
 
-            {/* Right: page buttons */}
             {totalPages > 1 && (
                 <div className="flex items-center gap-1">
                     <Button
@@ -552,6 +482,8 @@ export default function BookingsPage() {
     const [pageSize, setPageSize] = useState(20);
     const [error, setError] = useState('');
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');                                      // ← NEW
+    const [selectedService, setSelectedService] = useState<ServiceColorKey | 'all'>('all'); // ← NEW
     // const [showAssignForm, setShowAssignForm] = useState(false);
     // const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
@@ -605,22 +537,41 @@ export default function BookingsPage() {
         setCurrentPage(1);
     };
 
-    const pendingOrders = bookings.filter(
-        (order) => order.ord_status === 'Pending'
-    ).length;
+    const pendingOrders = bookings.filter((o) => o.ord_status === 'Pending').length;
+    const pickupAssignedOrders = bookings.filter((o) => o.ord_status === 'Pickup Assigned').length;
+    const processingAssignedOrders = bookings.filter((o) => o.ord_status === 'Processing Assigned').length;
+    const deliveryAssignedOrders = bookings.filter((o) => o.ord_status === 'Delivery Assigned').length;
 
-    const pickupAssignedOrders = bookings.filter(
-        (order) => order.ord_status === 'Pickup Assigned'
-    ).length;
+    // ── NEW: combined search + service filter ─────────────────────────────────
+    const filteredBookings = bookings.filter((booking) => {
+        // 1. Search: order ID / customer name / customer mobile
+        const q = searchQuery.toLowerCase().trim();
+        const matchesSearch =
+            !q ||
+            booking.order_display_no?.toLowerCase().includes(q) ||
+            booking.customer_details?.name?.toLowerCase().includes(q) ||
+            booking.customer_details?.mobile?.toLowerCase().includes(q);
 
-    const processingAssignedOrders = bookings.filter(
-        (order) =>
-            order.ord_status === 'Processing Assigned'
-    ).length;
+        // 2. Service: at least one sub_order matches the selected service key
+        const matchesService =
+            selectedService === 'all' ||
+            booking.sub_orders?.some((sub) => {
+                const abbrev = abbrevFromSubOrderNo(sub.sub_order_no);
+                const keyFromAbbrev = SERVICE_ABBREV[abbrev];
+                if (keyFromAbbrev) return keyFromAbbrev === selectedService;
+                return resolveServiceKey(sub.service_name) === selectedService;
+            });
 
-    const deliveryAssignedOrders = bookings.filter(
-        (order) => order.ord_status === 'Delivery Assigned'
-    ).length;
+        return matchesSearch && matchesService;
+    });
+
+    const activeFilterCount =
+        (searchQuery.trim() ? 1 : 0) + (selectedService !== 'all' ? 1 : 0);
+
+    const clearAllFilters = () => {
+        setSearchQuery('');
+        setSelectedService('all');
+    };
 
     return (
         <div className="space-y-5 p-4 md:p-6">
@@ -692,20 +643,123 @@ export default function BookingsPage() {
             </div>
 
             {/* LEGEND */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide shrink-0">
                     Service Types:
                 </span>
                 <ServiceLegend />
-            </div>
+            </div> */}
 
             {/* MAIN CARD */}
             <Card className="rounded-2xl border shadow-sm overflow-hidden">
+
+                {/* ── UPDATED CardHeader: search + service filter ── */}
                 <CardHeader className="border-b bg-muted/20 py-4">
-                    <CardTitle className="flex items-center gap-2 text-base">
-                        <ListOrdered className="h-5 w-5" />
-                        Orders List
-                    </CardTitle>
+                    <div className="flex flex-col gap-3">
+
+                        {/* Row 1: title + active filter count + clear all */}
+                        <div className="flex items-center justify-between gap-2">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <ListOrdered className="h-5 w-5" />
+                                Orders List
+                                {activeFilterCount > 0 && (
+                                    <span className="ml-1 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                                        {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''}
+                                    </span>
+                                )}
+                            </CardTitle>
+                            {activeFilterCount > 0 && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
+                                >
+                                    <X className="h-3.5 w-3.5" />
+                                    Clear all
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Row 2: search input + service dropdown */}
+                        <div className="flex flex-col sm:flex-row gap-2">
+
+                            {/* Search */}
+                            <div className="relative flex-1 min-w-0">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by order ID, customer name or mobile..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-9 pr-8 py-1.5 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                    >
+                                        <X className="h-3.5 w-3.5" />
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Service dropdown */}
+                            <Select
+                                value={selectedService}
+                                onValueChange={(v) =>
+                                    setSelectedService(v as ServiceColorKey | 'all')
+                                }
+                            >
+                                <SelectTrigger className="h-9 w-full sm:w-52 rounded-lg text-sm">
+                                    <div className="flex items-center gap-2">
+                                        {/* {SERVICE_FILTER_OPTIONS.find((o) => o.value === selectedService)?.icon} */}
+                                        <SelectValue placeholder="Filter by service" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {SERVICE_FILTER_OPTIONS.map((opt) => (
+                                        <SelectItem key={opt.value} value={opt.value}>
+                                            <div className="flex items-center gap-2">
+                                                {opt.icon}
+                                                <span>{opt.label}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        {/* Row 3: quick-select pill buttons — one per service */}
+                        <div className="flex flex-wrap gap-1.5">
+                            {SERVICE_FILTER_OPTIONS.map((opt) => {
+                                const isActive = selectedService === opt.value;
+                                const theme =
+                                    opt.value !== 'all'
+                                        ? SERVICE_THEMES[opt.value as ServiceColorKey]
+                                        : null;
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        onClick={() =>
+                                            setSelectedService(opt.value as ServiceColorKey | 'all')
+                                        }
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all
+                                            ${isActive
+                                                ? theme
+                                                    ? `${theme.badge} ring-2 ring-offset-1 ring-current`
+                                                    : 'bg-primary text-primary-foreground border-primary ring-2 ring-offset-1 ring-primary'
+                                                : theme
+                                                    ? `${theme.badge} opacity-60 hover:opacity-100`
+                                                    : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
+                                            }`}
+                                    >
+                                        {opt.icon}
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                    </div>
                 </CardHeader>
 
                 <CardContent className="p-0">
@@ -731,29 +785,40 @@ export default function BookingsPage() {
                         <div className="text-right">Actions</div>
                     </div>
 
-                    {/* LOADING */}
+                    {/* ROWS */}
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-24 gap-3">
                             <RefreshCw className="h-7 w-7 animate-spin text-muted-foreground" />
                             <p className="text-sm text-muted-foreground">Loading orders…</p>
                         </div>
-                    ) : bookings.length === 0 ? (
+                    ) : filteredBookings.length === 0 ? (
                         <div className="py-24 text-center">
                             <Package className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                            <p className="font-semibold text-lg">No Orders Found</p>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Try refreshing or changing filters
+                            <p className="font-semibold text-lg">
+                                {activeFilterCount > 0 ? 'No matching orders found' : 'No Orders Found'}
                             </p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                                {activeFilterCount > 0
+                                    ? 'Try adjusting the search or service filter'
+                                    : 'Try refreshing or changing filters'}
+                            </p>
+                            {activeFilterCount > 0 && (
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="mt-3 text-sm text-primary hover:underline"
+                                >
+                                    Clear all filters
+                                </button>
+                            )}
                         </div>
                     ) : (
-                        bookings.map((booking) => {
+                        filteredBookings.map((booking) => {
                             const isExpanded = expandedRows.includes(booking._id);
                             const subCount = booking.sub_orders?.length ?? 0;
                             return (
                                 <div key={booking._id} className="border-b last:border-b-0">
                                     {/* MOBILE CARD */}
                                     <div className={`lg:hidden px-4 py-4 space-y-3 transition-colors ${isExpanded ? 'bg-muted/10' : 'hover:bg-muted/5'}`}>
-                                        {/* Order no + status */}
                                         <div className="flex items-center justify-between gap-2">
                                             <button
                                                 onClick={() => toggleRow(booking._id)}
@@ -766,7 +831,6 @@ export default function BookingsPage() {
                                             </span>
                                         </div>
 
-                                        {/* Customer info */}
                                         {booking.customer_details && (
                                             <div className="flex items-center gap-3 text-sm">
                                                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -784,7 +848,6 @@ export default function BookingsPage() {
                                             </div>
                                         )}
 
-                                        {/* Details */}
                                         <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
                                             <div className="flex items-center gap-1.5">
                                                 <Shirt className="h-3.5 w-3.5 shrink-0" />
@@ -801,7 +864,6 @@ export default function BookingsPage() {
                                             </div>
                                         </div>
 
-                                        {/* Footer: sub-orders + actions */}
                                         <div className="flex items-center justify-between">
                                             {subCount > 0 ? (
                                                 <button
@@ -834,7 +896,6 @@ export default function BookingsPage() {
 
                                     {/* DESKTOP ROW */}
                                     <div className={`hidden lg:grid lg:grid-cols-9 gap-3 px-5 py-4 items-center transition-colors ${isExpanded ? 'bg-muted/10' : 'hover:bg-muted/5'}`}>
-                                        {/* ORDER ID */}
                                         <div>
                                             <button
                                                 onClick={() => toggleRow(booking._id)}
@@ -848,7 +909,6 @@ export default function BookingsPage() {
                                                 </div>
                                             )}
                                         </div>
-                                        {/* SERVICE */}
                                         <div className="flex flex-wrap gap-1">
                                             {booking.sub_orders?.map((sub) => {
                                                 const abbrev = abbrevFromSubOrderNo(sub.sub_order_no);
@@ -867,7 +927,6 @@ export default function BookingsPage() {
                                             })}
                                         </div>
 
-                                        {/* CUSTOMER */}
                                         <div className="min-w-0">
                                             {booking.customer_details ? (
                                                 <>
@@ -884,37 +943,29 @@ export default function BookingsPage() {
                                             )}
                                         </div>
 
-                                        {/* QTY */}
-                                        <div className="font-medium text-sm">
-                                            {booking.garment_qty}
-                                        </div>
+                                        <div className="font-medium text-sm">{booking.garment_qty}</div>
 
-                                        {/* PICKUP DATE */}
                                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                             <Calendar className="h-3.5 w-3.5 shrink-0" />
                                             {formatDate(booking.booking_date)}
                                         </div>
 
-                                        {/* PICKUP TIME */}
                                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                                             <Clock className="h-3.5 w-3.5 shrink-0" />
                                             {booking.booking_time}
                                         </div>
 
-                                        {/* AMOUNT */}
                                         <div className="font-semibold text-sm flex items-center gap-0.5">
                                             <IndianRupee className="h-3.5 w-3.5" />
                                             {booking.total_billing?.toLocaleString('en-IN')}
                                         </div>
 
-                                        {/* ORDER STATUS */}
                                         <div>
                                             <span className={`px-2.5 py-0.5 rounded-full text-xs border font-medium ${getStatusClass(booking.ord_status)}`}>
                                                 {booking.ord_status}
                                             </span>
                                         </div>
 
-                                        {/* ACTIONS */}
                                         <div className="flex justify-end">
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -942,9 +993,7 @@ export default function BookingsPage() {
                                         <div className="bg-muted/10 border-t px-5 py-5">
                                             <div className="flex items-center gap-2 mb-4">
                                                 <div className="h-6 w-1 rounded-full bg-primary" />
-                                                <h3 className="font-semibold text-sm">
-                                                    Sub Orders
-                                                </h3>
+                                                <h3 className="font-semibold text-sm">Sub Orders</h3>
                                                 {subCount > 0 && (
                                                     <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
                                                         {subCount}
@@ -959,9 +1008,7 @@ export default function BookingsPage() {
                                                             key={sub._id}
                                                             sub={sub}
                                                             onViewDetails={(id) =>
-                                                                router.push(
-                                                                    `/dashboard/bookings/sub-order/${id}`
-                                                                )
+                                                                router.push(`/dashboard/bookings/sub-order/${id}`)
                                                             }
                                                         />
                                                     ))}
@@ -969,9 +1016,7 @@ export default function BookingsPage() {
                                             ) : (
                                                 <div className="text-center py-8 border rounded-xl bg-background">
                                                     <Package className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                                                    <p className="text-sm font-medium">
-                                                        No Sub Orders
-                                                    </p>
+                                                    <p className="text-sm font-medium">No Sub Orders</p>
                                                     <p className="text-xs text-muted-foreground">
                                                         Sub orders will appear here once created
                                                     </p>
