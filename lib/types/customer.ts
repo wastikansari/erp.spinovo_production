@@ -17,6 +17,8 @@ export interface Customer extends BaseEntity {
   isActive: boolean;
   soures: number;
   lastActive: string;
+  total_orders: number;
+  total_spending: number;
 }
 
 export interface CustomerListData {

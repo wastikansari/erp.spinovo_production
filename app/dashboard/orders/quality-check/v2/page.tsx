@@ -582,8 +582,9 @@ export default function QualityCheckPendingPage() {
                     )}
 
                     {/* TABLE HEADER — desktop */}
-                    <div className="hidden lg:grid grid-cols-8 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                    <div className="hidden lg:grid grid-cols-9 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         <div>Order ID</div>
+                        <div>Sub Order</div>
                         <div>Services</div>
                         <div>Qty</div>
                         <div>Pickup Qty</div>
@@ -623,7 +624,7 @@ export default function QualityCheckPendingPage() {
                     ) : (
                         filteredOrders.map((order) => (
                             <div key={order._id} className="border-b last:border-b-0">
-                                <div className="grid grid-cols-1 lg:grid-cols-8 gap-3 px-5 py-4 items-center hover:bg-muted/5 transition-colors">
+                                <div className="grid grid-cols-1 lg:grid-cols-9 gap-3 px-5 py-4 items-center hover:bg-muted/5 transition-colors">
 
                                     {/* ORDER ID */}
                                     <div>
@@ -640,6 +641,25 @@ export default function QualityCheckPendingPage() {
                                         <div className="text-xs text-muted-foreground mt-0.5 font-mono">
                                             #{order.order_no}
                                         </div>
+                                    </div>
+
+                                    {/* SUB ORDER */}
+                                    <div>
+                                        {order.sub_order_no ? (
+                                            <span className="text-sm font-medium font-mono text-foreground">
+                                                {order.sub_order_no}
+                                            </span>
+                                        ) : order.sub_orders?.length > 0 ? (
+                                            <div className="flex flex-col gap-0.5">
+                                                {order.sub_orders.map((sub: any, i: number) => (
+                                                    <span key={i} className="text-xs font-mono text-foreground">
+                                                        {sub.sub_order_no}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground">—</span>
+                                        )}
                                     </div>
 
                                     {/* SERVICES */}

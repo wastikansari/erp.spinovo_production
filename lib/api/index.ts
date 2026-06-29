@@ -1,5 +1,6 @@
 // Export all API services
 export { CustomerApiService } from './customer';
+export type { CustomerFilters } from './customer';
 export { BookingApiService } from './booking';
 export { TransactionApiService } from './transaction';
 export { OTPApiService } from './otp';

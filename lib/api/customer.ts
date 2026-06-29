@@ -4,9 +4,27 @@ import { CustomerListData, CustomerDetailsData } from '../types/customer';
 import { APP_CONFIG, API_URL } from '../config/constants';
 import { AuthService } from '../auth';
 
+export interface CustomerFilters {
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  minSpending?: string;
+  maxSpending?: string;
+  minOrders?: string;
+  maxOrders?: string;
+}
+
 export class CustomerApiService extends BaseApiService {
-  static async getCustomers(page: number = 1, limit: number = 20): Promise<ApiResponse<CustomerListData>> {
-    return this.makeRequest<CustomerListData>(`/admin/customer/list?page=${page}&limit=${limit}`, {
+  static async getCustomers(page: number = 1, limit: number = 20, filters: CustomerFilters = {}): Promise<ApiResponse<CustomerListData>> {
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (filters.search) params.set('search', filters.search);
+    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
+    if (filters.dateTo) params.set('dateTo', filters.dateTo);
+    if (filters.minSpending) params.set('minSpending', filters.minSpending);
+    if (filters.maxSpending) params.set('maxSpending', filters.maxSpending);
+    if (filters.minOrders) params.set('minOrders', filters.minOrders);
+    if (filters.maxOrders) params.set('maxOrders', filters.maxOrders);
+    return this.makeRequest<CustomerListData>(`/admin/customer/list?${params.toString()}`, {
       method: 'GET',
     });
   }
