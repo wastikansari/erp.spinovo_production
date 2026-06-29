@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +27,10 @@ import {
   AlertCircle,
   CreditCard,
   Package,
-  Home
+  Home,
+  ShoppingBag,
+  TrendingUp,
+  TrendingDown,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -37,7 +40,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function CustomerDetailsPage() {
   const params = useParams();
-  const router = useRouter();
   const customerId = params.id as string;
   const { toast } = useToast();
 
@@ -185,20 +187,85 @@ export default function CustomerDetailsPage() {
 
   const { user, orders, transactions, addresses } = customerData;
 
+  const totalOrders = orders ? orders.length : 0;
+  const totalPaid = orders ? orders.reduce((sum, o) => sum + (o.paid_amount || 0), 0) : 0;
+  const totalUnpaid = orders ? orders.reduce((sum, o) => sum + (o.unpaid_amount || 0), 0) : 0;
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/customers">
-          <Button variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Customers
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold tracking-tight">Customer Details</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard/customers">
+            <Button variant="outline" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Customers
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight">Customer Details</h1>
+        </div>
         <Button onClick={fetchCustomerDetails} variant="outline" size="sm">
           <RefreshCw className="mr-2 h-4 w-4" />
           Refresh
         </Button>
+      </div>
+
+      {/* Summary Stat Boxes */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Orders</p>
+                <p className="text-3xl font-bold mt-1">{totalOrders}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+                <ShoppingBag className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Paid Amount</p>
+                <p className="text-3xl font-bold mt-1 text-green-600">₹{totalPaid}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Unpaid Amount</p>
+                <p className="text-3xl font-bold mt-1 text-red-500">₹{totalUnpaid}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+                <TrendingDown className="h-6 w-6 text-red-500 dark:text-red-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Wallet Balance</p>
+                <p className="text-3xl font-bold mt-1 text-green-600">₹{user.wallet_balance}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center">
+                <Wallet className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Customer Profile Card */}
