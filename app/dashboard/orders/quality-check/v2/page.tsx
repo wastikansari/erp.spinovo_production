@@ -584,7 +584,7 @@ export default function QualityCheckPendingPage() {
                     {/* TABLE HEADER — desktop */}
                     <div className="hidden lg:grid grid-cols-9 gap-3 px-5 py-3 border-b bg-muted/30 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                         <div>Order ID</div>
-                        <div>Sub Order</div>
+                        {/* <div>Sub Order</div> */}
                         <div>Services</div>
                         <div>Qty</div>
                         <div>Pickup Qty</div>
@@ -644,7 +644,7 @@ export default function QualityCheckPendingPage() {
                                     </div>
 
                                     {/* SUB ORDER */}
-                                    <div>
+                                    {/* <div>
                                         {order.sub_order_no ? (
                                             <span className="text-sm font-medium font-mono text-foreground">
                                                 {order.sub_order_no}
@@ -660,7 +660,7 @@ export default function QualityCheckPendingPage() {
                                         ) : (
                                             <span className="text-xs text-muted-foreground">—</span>
                                         )}
-                                    </div>
+                                    </div> */}
 
                                     {/* SERVICES */}
                                     <div className="flex flex-wrap gap-1">
