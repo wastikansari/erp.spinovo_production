@@ -168,6 +168,30 @@ const response = await fetch(
     return data;
   }
 
+  // UPDATE GARMENT SEGREGATION (QC v3)
+  static async updateGarmentSegregation(
+    subOrderId: string,
+    garmentSegregated: Array<{
+      category_id: number;
+      category: string;
+      category_prices: string;
+      clothes: Array<{ name: string; qty: number }>;
+      total_items: number;
+      total_amount: number;
+    }>
+  ): Promise<ApiResponse<unknown>> {
+    const token = AuthService.getToken();
+    if (!token) throw new Error('No authentication token found');
+    const response = await fetch(`${this.API_BASE_URL}/admin/suborder/garment/segregation/update`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sub_order_id: subOrderId, garment_segregated: garmentSegregated }),
+    });
+    const data = await response.json();
+    if (!data.status) throw new Error(data.msg || 'Failed to save garment segregation');
+    return data;
+  }
+
   // CANCEL SUB-ORDER
   static async cancelSubOrder(subOrderId: string): Promise<ApiResponse<unknown>> {
     if (!subOrderId) throw new Error('Invalid sub-order id');
