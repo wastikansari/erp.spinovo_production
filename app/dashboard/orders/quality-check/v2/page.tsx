@@ -520,7 +520,7 @@ export default function QualityCheckPendingPage() {
                             >
                                 <SelectTrigger className="h-9 w-full sm:w-52 rounded-lg text-sm">
                                     <div className="flex items-center gap-2">
-                                        {SERVICE_FILTER_OPTIONS.find((o) => o.value === selectedService)?.icon}
+                                        {/* {SERVICE_FILTER_OPTIONS.find((o) => o.value === selectedService)?.icon} */}
                                         <SelectValue placeholder="Filter by service" />
                                     </div>
                                 </SelectTrigger>
