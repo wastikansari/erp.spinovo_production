@@ -638,9 +638,9 @@ export default function QualityCheckPendingPage() {
                                         >
                                             {order.order_display_no}
                                         </button>
-                                        <div className="text-xs text-muted-foreground mt-0.5 font-mono">
+                                        {/* <div className="text-xs text-muted-foreground mt-0.5 font-mono">
                                             #{order.order_no}
-                                        </div>
+                                        </div> */}
                                     </div>
 
                                     {/* SUB ORDER */}
