@@ -1,20 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { DateRange } from 'react-day-picker';
+import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Users,
   Package,
   IndianRupee,
-  ArrowUpRight,
-  ArrowDownRight,
   Loader2,
   RefreshCw,
   AlertCircle,
-  Calendar,
-  Eye
+  CalendarDays,
+  Eye,
+  X,
 } from 'lucide-react';
 import {
   Area,
@@ -25,6 +28,7 @@ import {
   YAxis,
 } from 'recharts';
 import { DashboardApiService, DashboardData } from '@/lib/api';
+import { DashboardFilterType } from '@/lib/types/dashboard';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
@@ -43,19 +47,45 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const FILTER_OPTIONS: { label: string; value: DashboardFilterType }[] = [
+  { label: 'All Time', value: 'all' },
+  { label: 'Today', value: 'today' },
+  { label: 'This Week', value: 'week' },
+  { label: 'This Month', value: 'month' },
+];
+
+function formatDateLabel(date: Date) {
+  return format(date, 'dd MMM yyyy');
+}
+
 export default function DashboardPage() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [activeFilter, setActiveFilter] = useState<DashboardFilterType>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (
+    filter: DashboardFilterType = activeFilter,
+    range?: DateRange
+  ) => {
     try {
       setLoading(true);
       setError('');
 
-      const response = await DashboardApiService.getDashboard();
+      let response;
+      if (filter === 'custom' && range?.from) {
+        const from = format(range.from, 'yyyy-MM-dd');
+        const to = format(range.to ?? range.from, 'yyyy-MM-dd');
+        response = await DashboardApiService.getDashboardByRange(from, to);
+      } else if (filter === 'all') {
+        response = await DashboardApiService.getDashboard();
+      } else {
+        response = await DashboardApiService.getDashboardFiltered(filter);
+      }
 
       if (response.status && response.data) {
         setDashboardData(response.data);
@@ -67,8 +97,8 @@ export default function DashboardPage() {
           variant: 'destructive',
         });
       }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Network error occurred';
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Network error occurred';
       setError(errorMessage);
       toast({
         title: 'Error',
@@ -80,8 +110,27 @@ export default function DashboardPage() {
     }
   };
 
+  const handleFilterChange = (filter: DashboardFilterType) => {
+    setActiveFilter(filter);
+    setDateRange(undefined);
+    fetchDashboardData(filter);
+  };
+
+  const handleApplyDateRange = () => {
+    if (!dateRange?.from) return;
+    setActiveFilter('custom');
+    setCalendarOpen(false);
+    fetchDashboardData('custom', dateRange);
+  };
+
+  const handleClearDateRange = () => {
+    setDateRange(undefined);
+    setActiveFilter('all');
+    fetchDashboardData('all');
+  };
+
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData('all');
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -102,6 +151,19 @@ export default function DashboardPage() {
   const handleViewBookingDetails = (bookingId: string) => {
     router.push(`/dashboard/bookings/${bookingId}`);
   };
+
+  const dateRangeLabel = dateRange?.from
+    ? dateRange.to && dateRange.to.toDateString() !== dateRange.from.toDateString()
+      ? `${formatDateLabel(dateRange.from)} – ${formatDateLabel(dateRange.to)}`
+      : formatDateLabel(dateRange.from)
+    : 'Custom Range';
+
+  const bookingListLabel =
+    activeFilter === 'all' ? 'All' :
+    activeFilter === 'today' ? "Today's" :
+    activeFilter === 'week' ? "This Week's" :
+    activeFilter === 'month' ? "This Month's" :
+    dateRange?.from ? dateRangeLabel : 'Custom';
 
   if (loading) {
     return (
@@ -126,7 +188,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-          <Button onClick={fetchDashboardData} variant="outline" size="sm">
+          <Button onClick={() => fetchDashboardData()} variant="outline" size="sm">
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
@@ -138,7 +200,7 @@ export default function DashboardPage() {
               <AlertDescription>
                 {error || 'Failed to load dashboard data'}
                 <div className="mt-2">
-                  <Button onClick={fetchDashboardData} variant="outline" size="sm">
+                  <Button onClick={() => fetchDashboardData()} variant="outline" size="sm">
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Try Again
                   </Button>
@@ -156,42 +218,129 @@ export default function DashboardPage() {
       title: 'Total Customers',
       value: dashboardData.totalCustomers.toLocaleString(),
       icon: Users,
-      trend: '+12.5%',
-      trendUp: true,
     },
     {
       title: 'Total Bookings',
       value: dashboardData.totalBooking.toLocaleString(),
       icon: Package,
-      trend: `+${dashboardData.orderGrowth}%`,
-      trendUp: dashboardData.orderGrowth >= 0,
     },
     {
-      title: 'Today\'s Bookings',
+      title: "Today's Bookings",
       value: dashboardData.todayTotalBooking.toLocaleString(),
-      icon: Calendar,
-      trend: 'Today',
-      trendUp: true,
+      icon: CalendarDays,
     },
     {
       title: 'Total Revenue',
       value: `₹${dashboardData.totalRevenue.toLocaleString()}`,
       icon: IndianRupee,
-      trend: `+${dashboardData.revenueGrowth}%`,
-      trendUp: dashboardData.revenueGrowth >= 0,
     },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <Button onClick={fetchDashboardData} variant="outline" size="sm">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Quick filter tabs */}
+          <div className="flex items-center rounded-lg border bg-muted p-1 gap-1">
+            {FILTER_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => handleFilterChange(opt.value)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  activeFilter === opt.value
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Calendar date range picker */}
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant={activeFilter === 'custom' ? 'default' : 'outline'}
+                size="sm"
+                className="gap-2 text-xs"
+              >
+                <CalendarDays className="h-3.5 w-3.5" />
+                {activeFilter === 'custom' ? dateRangeLabel : 'Custom Range'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <div className="p-3 border-b">
+                <p className="text-sm font-medium">Select date or range</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Click a date, or click two dates to select a range
+                </p>
+              </div>
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+                disabled={{ after: new Date() }}
+                initialFocus
+              />
+              <div className="flex items-center justify-between gap-2 p-3 border-t">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setDateRange(undefined);
+                    setCalendarOpen(false);
+                  }}
+                  className="text-xs"
+                >
+                  Clear
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleApplyDateRange}
+                  disabled={!dateRange?.from}
+                  className="text-xs"
+                >
+                  Apply
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Clear custom filter badge */}
+          {activeFilter === 'custom' && (
+            <button
+              onClick={handleClearDateRange}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3 w-3" />
+              Clear
+            </button>
+          )}
+
+          <Button onClick={() => fetchDashboardData()} variant="outline" size="sm">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </div>
       </div>
 
+      {/* Active date range banner */}
+      {activeFilter === 'custom' && dateRange?.from && (
+        <div className="flex items-center gap-2 rounded-lg border bg-primary/5 px-4 py-2 text-sm">
+          <CalendarDays className="h-4 w-4 text-primary shrink-0" />
+          <span>
+            Showing data for{' '}
+            <span className="font-medium">{dateRangeLabel}</span>
+          </span>
+        </div>
+      )}
+
+      {/* Stats cards */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
           <Card key={stat.title}>
@@ -203,21 +352,6 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                {stat.trendUp ? (
-                  <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
-                ) : (
-                  <ArrowDownRight className="mr-1 h-4 w-4 text-red-500" />
-                )}
-                <span
-                  className={stat.trendUp ? 'text-green-500' : 'text-red-500'}
-                >
-                  {stat.trend}
-                </span>
-                {stat.title !== 'Today\'s Bookings' && (
-                  <span className="ml-1">from last period</span>
-                )}
-              </div>
             </CardContent>
           </Card>
         ))}
@@ -279,18 +413,18 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Today's Bookings */}
+        {/* Bookings List */}
         <Card className="md:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Today&apos;s Bookings ({dashboardData.TodayBookingList.length})
+              <CalendarDays className="h-5 w-5" />
+              {bookingListLabel} Bookings ({dashboardData.TodayBookingList.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
             {dashboardData.TodayBookingList.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                No bookings for today.
+                No bookings for this period.
               </div>
             ) : (
               <div className="space-y-4 max-h-[300px] overflow-y-auto">

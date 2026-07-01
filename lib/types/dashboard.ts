@@ -1,5 +1,7 @@
 import { Booking } from './booking';
 
+export type DashboardFilterType = 'all' | 'today' | 'week' | 'month' | 'custom';
+
 export interface MonthlyRevenue {
   month: string;
   value: number;
@@ -14,4 +16,5 @@ export interface DashboardData {
   orderGrowth: number;
   monthlyRevenueOverview: MonthlyRevenue[];
   TodayBookingList: Booking[];
+  filter_type?: DashboardFilterType;
 }
