@@ -65,6 +65,7 @@ export default function DashboardPage() {
   const [activeFilter, setActiveFilter] = useState<DashboardFilterType>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -130,6 +131,7 @@ export default function DashboardPage() {
   };
 
   useEffect(() => {
+    setMounted(true);
     fetchDashboardData('all');
   }, []);
 
@@ -260,56 +262,58 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Calendar date range picker */}
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant={activeFilter === 'custom' ? 'default' : 'outline'}
-                size="sm"
-                className="gap-2 text-xs"
-              >
-                <CalendarDays className="h-3.5 w-3.5" />
-                {activeFilter === 'custom' ? dateRangeLabel : 'Custom Range'}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <div className="p-3 border-b">
-                <p className="text-sm font-medium">Select date or range</p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Click a date, or click two dates to select a range
-                </p>
-              </div>
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                numberOfMonths={2}
-                disabled={{ after: new Date() }}
-                initialFocus
-              />
-              <div className="flex items-center justify-between gap-2 p-3 border-t">
+          {/* Calendar date range picker — only rendered client-side */}
+          {mounted && (
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant={activeFilter === 'custom' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => {
-                    setDateRange(undefined);
-                    setCalendarOpen(false);
-                  }}
-                  className="text-xs"
+                  className="gap-2 text-xs"
                 >
-                  Clear
+                  <CalendarDays className="h-3.5 w-3.5" />
+                  {activeFilter === 'custom' ? dateRangeLabel : 'Custom Range'}
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleApplyDateRange}
-                  disabled={!dateRange?.from}
-                  className="text-xs"
-                >
-                  Apply
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <div className="p-3 border-b">
+                  <p className="text-sm font-medium">Select date or range</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Click one date, or click two to select a range
+                  </p>
+                </div>
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={1}
+                  disabled={{ after: new Date() }}
+                  initialFocus
+                />
+                <div className="flex items-center justify-between gap-2 p-3 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDateRange(undefined);
+                      setCalendarOpen(false);
+                    }}
+                    className="text-xs"
+                  >
+                    Clear
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleApplyDateRange}
+                    disabled={!dateRange?.from}
+                    className="text-xs"
+                  >
+                    Apply
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
 
           {/* Clear custom filter badge */}
           {activeFilter === 'custom' && (
