@@ -27,6 +27,7 @@ import {
   Clock,
   Timer,
   FileDown,
+  Send,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -99,6 +100,7 @@ const navigation = [
   { name: 'Services', href: '/dashboard/services', icon: Wallet },
   { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
   { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
+  { name: 'Notification Campaigns', href: '/dashboard/notification-campaigns', icon: Send },
   { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
 ];
 

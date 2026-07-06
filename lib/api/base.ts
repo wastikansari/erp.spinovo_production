@@ -24,7 +24,10 @@ export class BaseApiService {
       }
 
       const headers = {
-        'Content-Type': 'application/json',
+        // Omit Content-Type for FormData bodies so fetch can set the
+        // multipart boundary itself — an explicit 'application/json' here
+        // would break multer's multipart parsing on the server.
+        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         'Authorization': `Bearer ${token}`,
         'X-App-Version': APP_CONFIG.version,
         ...options.headers,

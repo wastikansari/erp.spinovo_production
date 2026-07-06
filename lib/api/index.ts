@@ -9,11 +9,13 @@ export { DashboardApiService } from './dashboard';
 export { AssignApiService } from './assign';
 export { LocationApiService } from './location';
 export { VendorApiService } from './vendor';
+export { NotificationCampaignApiService } from './notification-campaign';
 
 
 // Export types
 
 export * from '../types/pickup-assign';
+export * from '../types/notification-campaign';
 export * from '../types/booking';
 export * from '../types/copilot';
 export * from '../types/customer';
