@@ -1,8 +1,14 @@
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
-import { DashboardData, DashboardFilterType } from '../types/dashboard';
+import { DashboardData, DashboardFilterType, RevenueSummary } from '../types/dashboard';
 
 export class DashboardApiService extends BaseApiService {
+  static async getRevenueSummary(): Promise<ApiResponse<RevenueSummary>> {
+    return this.makeRequest<RevenueSummary>('/admin/dashboard/revenue', {
+      method: 'GET',
+    });
+  }
+
   static async getDashboard(): Promise<ApiResponse<DashboardData>> {
     return this.makeRequest<DashboardData>('/admin/dashboard', {
       method: 'GET',

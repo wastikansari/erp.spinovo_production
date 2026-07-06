@@ -220,21 +220,25 @@ export default function DashboardPage() {
       title: 'Total Customers',
       value: dashboardData.totalCustomers.toLocaleString(),
       icon: Users,
+      href: '/dashboard/customers',
     },
     {
       title: 'Total Bookings',
       value: dashboardData.totalBooking.toLocaleString(),
       icon: Package,
+      href: '/dashboard/orders',
     },
     {
       title: "Today's Bookings",
       value: dashboardData.todayTotalBooking.toLocaleString(),
       icon: CalendarDays,
+      href: '/dashboard/orders/today',
     },
     {
       title: 'Total Revenue',
       value: `₹${dashboardData.totalRevenue.toLocaleString()}`,
       icon: IndianRupee,
+      href: '/dashboard/revenue',
     },
   ];
 
@@ -347,7 +351,11 @@ export default function DashboardPage() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.title}>
+          <Card
+            key={stat.title}
+            onClick={() => router.push(stat.href)}
+            className="cursor-pointer transition-colors hover:bg-muted/40"
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
                 {stat.title}

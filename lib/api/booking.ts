@@ -31,6 +31,19 @@ export class BookingApiService extends BaseApiService {
     );
   }
 
+  // TODAY'S ORDERS ONLY
+  static async getTodayBookings(
+    page: number = 1,
+    limit: number = 20
+  ): Promise<ApiResponse<BookingListData>> {
+    return this.makeRequest<BookingListData>(
+      `/admin/order/list/v2?page=${page}&limit=${limit}&today=true`,
+      {
+        method: 'GET',
+      }
+    );
+  }
+
   // PENDING QUALITY CHECK MAIN ORDERS
   static async getPendingQualityCheckOrders(
     page: number = 1,

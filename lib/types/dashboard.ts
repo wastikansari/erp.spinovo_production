@@ -18,3 +18,20 @@ export interface DashboardData {
   TodayBookingList: Booking[];
   filter_type?: DashboardFilterType;
 }
+
+export interface RevenueSummary {
+  totalOrders: number;
+  totalRevenue: number;
+  totalTipAmount: number;
+  totalOfferAmount: number;
+  totalSlotCharges: number;
+  totalHandlingCharges: number;
+  totalServiceCharges: number;
+  totalDeliveryCharge: number;
+  totalGarmentOriginalAmount: number;
+  totalGarmentDiscountAmount: number;
+  totalBilling: number;
+  totalPaidAmount: number;
+  totalUnpaidAmount: number;
+  totalCancelCharge: number;
+}
