@@ -28,6 +28,7 @@ import {
   Timer,
   FileDown,
   Send,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -88,6 +89,7 @@ const navigation = [
   { name: 'Cancel Order', href: '/dashboard/orders/cancel', icon: UserCheck },
   { name: 'Delivery Assigned', href: '/dashboard/orders/delivery-assigned', icon: UserCheck },
   { name: 'Delivered', href: '/dashboard/orders/delivery', icon: UserCheck },
+  { name: 'Customer Feedback', href: '/dashboard/feedback', icon: Star },
 
   { name: 'Order Timeline', href: '/dashboard/order-timeline', icon: Clock },
   { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },

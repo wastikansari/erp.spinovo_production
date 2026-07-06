@@ -29,6 +29,12 @@ export interface DeliveryPendingSubOrder {
   updatedAt: string;
   order_details: Booking;
   address_details: Address;
+  customer_details?: {
+    _id: string;
+    name: string;
+    mobile: string;
+    wallet_balance: number;
+  };
 }
 
 export interface DeliveryPendingSubOrderListData {
@@ -105,6 +111,7 @@ export interface DeliveryAssignBookingRequest {
   order_id: string;
   sub_order_id: string;
   copilot_id: string;
+  enforce_wallet_check?: boolean;
 }
 
 export interface DeliveryAssignBookingResponse {

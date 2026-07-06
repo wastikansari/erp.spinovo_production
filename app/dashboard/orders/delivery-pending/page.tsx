@@ -503,6 +503,8 @@ export default function DeliveryPendingPage() {
                     ) : (
                         filteredSubOrders.map((sub, idx) => {
                             const theme = SERVICE_THEMES[resolveServiceKey(sub.service_name)];
+                            const walletBalance = sub.customer_details?.wallet_balance;
+                            const hasOutstandingDue = typeof walletBalance === 'number' && walletBalance < 0;
                             return (
                                 <div
                                     key={`${sub._id}-${idx}`}
@@ -560,10 +562,19 @@ export default function DeliveryPendingPage() {
                                         </div>
 
                                         {/* Status */}
-                                        <div>
+                                        <div className="flex flex-col items-start gap-1">
                                             <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs border font-medium whitespace-nowrap ${getStatusClass(sub.ord_status)}`}>
                                                 {sub.ord_status || 'Pending'}
                                             </span>
+                                            {hasOutstandingDue && (
+                                                <span
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border font-medium bg-red-100 text-red-700 border-red-200 whitespace-nowrap"
+                                                    title="Customer has an outstanding wallet due"
+                                                >
+                                                    <AlertCircle className="h-3 w-3" />
+                                                    Due ₹{Math.abs(walletBalance as number).toLocaleString('en-IN')}
+                                                </span>
+                                            )}
                                         </div>
 
                                         {/* Action */}
@@ -591,8 +602,11 @@ export default function DeliveryPendingPage() {
                                                     )} */}
                                                     <DropdownMenuSeparator />
                                                     <DropdownMenuItem
-                                                        className="text-primary font-medium"
+                                                        className={hasOutstandingDue ? 'text-muted-foreground opacity-50 cursor-not-allowed' : 'text-primary font-medium'}
+                                                        disabled={hasOutstandingDue}
+                                                        title={hasOutstandingDue ? 'Customer has an outstanding wallet due — clear it before assigning delivery' : undefined}
                                                         onClick={() => {
+                                                            if (hasOutstandingDue) return;
                                                             setSelectedSubOrder(sub);
                                                             setShowAssignForm(true);
                                                         }}
@@ -616,6 +630,12 @@ export default function DeliveryPendingPage() {
                                                 {sub.ord_status || 'Pending'}
                                             </span>
                                         </div>
+                                        {hasOutstandingDue && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border font-medium bg-red-100 text-red-700 border-red-200">
+                                                <AlertCircle className="h-3 w-3" />
+                                                Outstanding due ₹{Math.abs(walletBalance as number).toLocaleString('en-IN')}
+                                            </span>
+                                        )}
                                         <div className="text-xs text-muted-foreground">Order: <span className="font-medium text-foreground">{sub.order_no}</span></div>
                                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                             <span>Qty: <b>{sub.garment_qty}</b></span>
@@ -640,7 +660,10 @@ export default function DeliveryPendingPage() {
                                                 size="sm"
                                                 variant="default"
                                                 className="h-7 text-xs rounded-lg"
+                                                disabled={hasOutstandingDue}
+                                                title={hasOutstandingDue ? 'Customer has an outstanding wallet due — clear it before assigning delivery' : undefined}
                                                 onClick={() => {
+                                                    if (hasOutstandingDue) return;
                                                     setSelectedSubOrder(sub);
                                                     setShowAssignForm(true);
                                                 }}
@@ -670,6 +693,7 @@ export default function DeliveryPendingPage() {
                 onOpenChange={setShowAssignForm}
                 subOrder={selectedSubOrder}
                 onSuccess={() => { setShowAssignForm(false); fetchList(currentPage); }}
+                enforceWalletCheck
             />
         </div>
     );

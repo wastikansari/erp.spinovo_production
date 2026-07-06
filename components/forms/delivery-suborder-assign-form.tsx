@@ -21,10 +21,11 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Loader2, UserCheck, Shirt, Calendar, Clock, MapPin, IndianRupee } from 'lucide-react';
+import { Loader2, UserCheck, Shirt, Calendar, Clock, MapPin, IndianRupee, AlertCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AssignApiService, CopilotApiService, Copilot } from '@/lib/api';
 import { DeliveryPendingSubOrder, CancelPendingSubOrder } from '@/lib/types/delivery-assign';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const assignSchema = z.object({
     copilot_id: z.string().min(1, 'Please select a copilot'),
@@ -37,9 +38,11 @@ interface DeliverySubOrderAssignFormProps {
     onOpenChange: (open: boolean) => void;
     subOrder: DeliveryPendingSubOrder | CancelPendingSubOrder | null;
     onSuccess: () => void;
+    /** Blocks assignment when the customer's wallet_balance is negative. Only enabled from the Delivery Pending page. */
+    enforceWalletCheck?: boolean;
 }
 
-export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuccess }: DeliverySubOrderAssignFormProps) {
+export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuccess, enforceWalletCheck }: DeliverySubOrderAssignFormProps) {
     const [loading, setLoading] = useState(false);
     const [copilots, setCopilots] = useState<Copilot[]>([]);
     const [loadingCopilots, setLoadingCopilots] = useState(false);
@@ -56,6 +59,9 @@ export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuc
     });
 
     const selectedCopilotId = watch('copilot_id');
+
+    const walletBalance = (subOrder as DeliveryPendingSubOrder | null)?.customer_details?.wallet_balance;
+    const isWalletBlocked = !!enforceWalletCheck && typeof walletBalance === 'number' && walletBalance < 0;
 
     useEffect(() => {
         if (open) {
@@ -81,13 +87,14 @@ export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuc
     };
 
     const onSubmit = async (data: AssignFormData) => {
-        if (!subOrder) return;
+        if (!subOrder || isWalletBlocked) return;
         try {
             setLoading(true);
             const response = await AssignApiService.deliveryAssign({
                 order_id: subOrder.order_id,
                 sub_order_id: subOrder._id,
                 copilot_id: data.copilot_id,
+                ...(enforceWalletCheck ? { enforce_wallet_check: true } : {}),
             });
             if (response.status) {
                 toast({ title: 'Success', description: 'Delivery assigned successfully' });
@@ -159,6 +166,17 @@ export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuc
                         </div>
                     )}
 
+                    {/* Wallet due block */}
+                    {isWalletBlocked && (
+                        <Alert variant="destructive">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>
+                                Cannot assign delivery. Customer has an outstanding due of ₹{Math.abs(walletBalance as number).toLocaleString('en-IN')} in their wallet.
+                                Please clear the due before assigning delivery.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
                     {/* Copilot selector */}
                     <div className="space-y-2">
                         <Label>Select Copilot</Label>
@@ -171,7 +189,7 @@ export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuc
                             <Select
                                 value={selectedCopilotId}
                                 onValueChange={(value) => setValue('copilot_id', value)}
-                                disabled={loading}
+                                disabled={loading || isWalletBlocked}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Choose a copilot" />
@@ -201,7 +219,7 @@ export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuc
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Cancel
                         </Button>
-                        <Button type="submit" disabled={loading || loadingCopilots}>
+                        <Button type="submit" disabled={loading || loadingCopilots || isWalletBlocked}>
                             {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
