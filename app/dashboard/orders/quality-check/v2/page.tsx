@@ -726,7 +726,7 @@ export default function QualityCheckPendingPage() {
                                             size="sm"
                                             onClick={() =>
                                                 router.push(
-                                                    `/dashboard/orders/quality-check/v2/update?id=${order._id}`
+                                                    `/dashboard/orders/quality-check/v2/update2?id=${order._id}`
                                                 )
                                             }
                                         >
