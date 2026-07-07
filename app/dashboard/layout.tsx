@@ -93,6 +93,7 @@ const navigation = [
 
   { name: 'Order Timeline', href: '/dashboard/order-timeline', icon: Clock },
   { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
+  { name: 'Payment Reconciliation', href: '/dashboard/payments-v2', icon: AlertTriangle },
   { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
   { name: 'Copilots', href: '/dashboard/copilots', icon: UserCog },
   { name: 'Vendors', href: '/dashboard/vendor', icon: Users },
