@@ -29,6 +29,7 @@ import {
   FileDown,
   Send,
   Star,
+  Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -101,6 +102,7 @@ const navigation = [
   { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
   { name: 'Package', href: '/dashboard/package', icon: Store },
   { name: 'Services', href: '/dashboard/services', icon: Wallet },
+  { name: 'B2B Services', href: '/dashboard/b2b-services', icon: Building2 },
   { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
   { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
   { name: 'Notification Campaigns', href: '/dashboard/notification-campaigns', icon: Send },

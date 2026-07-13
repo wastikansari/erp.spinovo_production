@@ -36,6 +36,9 @@ export const API_URL = {
   SERVICE_CATEGORY_LIST: '/admin/service/category',
   SERVICE_CATEGORY_BASE: '/admin/service/category',
 
+  // B2B service management endpoints (separate catalog, admin-controlled pricing)
+  B2B_SERVICE_CATEGORY_BASE: '/admin/b2b/service/category',
+
   // Vendor order management
   VENDOR_ORDERS: '/admin/vendor/orders',
   VENDOR_ORDERS_STATS: '/admin/vendor/orders/stats',
