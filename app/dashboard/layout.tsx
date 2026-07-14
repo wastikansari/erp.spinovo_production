@@ -30,6 +30,8 @@ import {
   Send,
   Star,
   Building2,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -61,60 +63,172 @@ import { useFCM, unregisterFCM } from '@/hooks/useFCM';
 import NotificationBell from '@/components/NotificationBell';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
 
-const navigation = [
+type NavLeaf = { name: string; href: string; icon: typeof LayoutDashboard };
+type NavGroup = { name: string; icon: typeof LayoutDashboard; children: NavLeaf[] };
+type NavEntry = NavLeaf | NavGroup;
+
+function isNavGroup(item: NavEntry): item is NavGroup {
+  return 'children' in item;
+}
+
+const navigation: NavEntry[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
 
-  { name: 'Orders', href: '/dashboard/orders', icon: Package },
+  {
+    name: 'Orders Management',
+    icon: Package,
+    children: [
+      { name: 'Orders', href: '/dashboard/orders', icon: Package },
+      { name: 'Pickup Pending', href: '/dashboard/orders/pickup-pending', icon: UserCheck },
+      { name: 'Pickup Assigned', href: '/dashboard/orders/pickup-assigned', icon: UserCheck },
+      { name: 'Quality Check', href: '/dashboard/orders/quality-check/v2', icon: UserCheck },
+      { name: 'Wash Pending', href: '/dashboard/orders/wash-pending', icon: UserCheck },
+      { name: 'Ironing Pending', href: '/dashboard/orders/ironing-pending', icon: UserCheck },
+      { name: 'Process Assigned (Inhouse)', href: '/dashboard/orders/process-assigned', icon: UserCheck },
+      { name: 'Vendor Orders', href: '/dashboard/orders/vendor-assigned', icon: Store },
+      { name: 'Vendor Outward', href: '/dashboard/orders/vendor-outward', icon: Store },
+      { name: 'Vendor Rejected', href: '/dashboard/orders/vendor-rejected', icon: AlertTriangle },
+      { name: 'Overdue Orders', href: '/dashboard/orders/vendor-overdue', icon: Clock },
+      { name: 'Vendor Inward', href: '/dashboard/orders/vendor-inward', icon: UserCheck },
+      { name: 'Delivery Pending', href: '/dashboard/orders/delivery-pending', icon: UserCheck },
+      { name: 'Cancel Order', href: '/dashboard/orders/cancel', icon: UserCheck },
+      { name: 'Delivery Assigned', href: '/dashboard/orders/delivery-assigned', icon: UserCheck },
+      { name: 'Delivered', href: '/dashboard/orders/delivery', icon: UserCheck },
+    ],
+  },
 
-  { name: 'Pickup Pending', href: '/dashboard/orders/pickup-pending', icon: UserCheck },
-  { name: 'Pickup Assigned', href: '/dashboard/orders/pickup-assigned', icon: UserCheck },
+  {
+    name: 'B2B Management',
+    icon: Building2,
+    children: [
+      { name: 'B2B Company List', href: '/dashboard/b2b-companies', icon: Building2 },
+      { name: 'B2B Orders', href: '/dashboard/b2b-orders', icon: Package },
+      { name: 'B2B Services', href: '/dashboard/b2b-services', icon: Wallet },
+    ],
+  },
 
-  { name: 'Quality Check', href: '/dashboard/orders/quality-check/v2', icon: UserCheck },
-
-  // { name: 'Quality Check', href: '/dashboard/orders/quality-check', icon: UserCheck },
-
-  { name: 'Wash Pending', href: '/dashboard/orders/wash-pending', icon: UserCheck },
-  { name: 'Ironing Pending', href: '/dashboard/orders/ironing-pending', icon: UserCheck },
-  { name: 'Process Assigned (Inhouse)', href: '/dashboard/orders/process-assigned', icon: UserCheck },
-
-  // ── Vendor order management ──
-  { name: 'Vendor Orders', href: '/dashboard/orders/vendor-assigned', icon: Store },
-  { name: 'Vendor Outward', href: '/dashboard/orders/vendor-outward', icon: Store },
-  { name: 'Vendor Rejected', href: '/dashboard/orders/vendor-rejected', icon: AlertTriangle },
-  { name: 'Overdue Orders', href: '/dashboard/orders/vendor-overdue', icon: Clock },
-  { name: 'Vendor Inward', href: '/dashboard/orders/vendor-inward', icon: UserCheck },
-  // { name: 'Ironing Pending', href: '/dashboard/orders/ironing-pending', icon: Timer },
-
-  { name: 'Delivery Pending', href: '/dashboard/orders/delivery-pending', icon: UserCheck },
-  { name: 'Cancel Order', href: '/dashboard/orders/cancel', icon: UserCheck },
-  { name: 'Delivery Assigned', href: '/dashboard/orders/delivery-assigned', icon: UserCheck },
-  { name: 'Delivered', href: '/dashboard/orders/delivery', icon: UserCheck },
   { name: 'Customer Feedback', href: '/dashboard/feedback', icon: Star },
 
   { name: 'Order Timeline', href: '/dashboard/order-timeline', icon: Clock },
-  { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
-  { name: 'Payment Reconciliation', href: '/dashboard/payments-v2', icon: AlertTriangle },
-  { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
   { name: 'Copilots', href: '/dashboard/copilots', icon: UserCog },
   { name: 'Vendors', href: '/dashboard/vendor', icon: Users },
   { name: 'Vendor Performance', href: '/dashboard/vendor/performance', icon: BarChart2 },
-  { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
-  { name: 'Package', href: '/dashboard/package', icon: Store },
-  { name: 'Services', href: '/dashboard/services', icon: Wallet },
-  { name: 'B2B Services', href: '/dashboard/b2b-services', icon: Building2 },
-  { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
-  { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
-  { name: 'Notification Campaigns', href: '/dashboard/notification-campaigns', icon: Send },
-  { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
+
+  {
+    name: 'Settings',
+    icon: Settings,
+    children: [
+      { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
+      { name: 'Payment Reconciliation', href: '/dashboard/payments-v2', icon: AlertTriangle },
+      { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
+      { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
+      { name: 'Package', href: '/dashboard/package', icon: Store },
+      { name: 'Services', href: '/dashboard/services', icon: Wallet },
+      { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
+      { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
+      { name: 'Notification Campaigns', href: '/dashboard/notification-campaigns', icon: Send },
+      { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
+    ],
+  },
 ];
+
+function SidebarNavList({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    navigation.forEach((item) => {
+      if (isNavGroup(item) && item.children.some((child) => child.href === pathname)) {
+        initial[item.name] = true;
+      }
+    });
+    return initial;
+  });
+
+  const toggleGroup = (name: string) => {
+    setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
+  };
+
+  return (
+    <>
+      {navigation.map((item) => {
+        if (isNavGroup(item)) {
+          const isOpen = !!openGroups[item.name];
+          const isChildActive = item.children.some((child) => child.href === pathname);
+          return (
+            <div key={item.name}>
+              <button
+                type="button"
+                onClick={() => toggleGroup(item.name)}
+                className={`group flex w-full items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${isChildActive ? 'text-primary' : 'text-muted-foreground hover:bg-muted'
+                  }`}
+              >
+                <span className="flex items-center">
+                  <item.icon className="mr-3 h-5 w-5" />
+                  {item.name}
+                </span>
+                {isOpen ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </button>
+              {isOpen && (
+                <div className="ml-4 space-y-1 border-l pl-2">
+                  {item.children.map((child) => (
+                    <Link
+                      key={child.name}
+                      href={child.href}
+                      onClick={onNavigate}
+                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === child.href
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:bg-muted'
+                        }`}
+                    >
+                      <child.icon
+                        className={`mr-3 h-4 w-4 ${pathname === child.href
+                          ? 'text-primary-foreground'
+                          : 'text-muted-foreground'
+                          }`}
+                      />
+                      {child.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <Link
+            key={item.name}
+            href={item.href}
+            onClick={onNavigate}
+            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === item.href
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-muted'
+              }`}
+          >
+            <item.icon
+              className={`mr-3 h-5 w-5 ${pathname === item.href
+                ? 'text-primary-foreground'
+                : 'text-muted-foreground'
+                }`}
+            />
+            {item.name}
+          </Link>
+        );
+      })}
+    </>
+  );
+}
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
@@ -265,25 +379,7 @@ export default function DashboardLayout({
             <SheetTitle>Spinovo Admin</SheetTitle>
           </SheetHeader>
           <nav className="space-y-1 px-2">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === item.href
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-                  }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <item.icon
-                  className={`mr-3 h-5 w-5 ${pathname === item.href
-                    ? 'text-primary-foreground'
-                    : 'text-muted-foreground'
-                    }`}
-                />
-                {item.name}
-              </Link>
-            ))}
+            <SidebarNavList onNavigate={() => setIsMobileMenuOpen(false)} />
           </nav>
         </SheetContent>
       </Sheet>
@@ -296,24 +392,7 @@ export default function DashboardLayout({
               <h1 className="text-xl font-bold">Spinovo Admin</h1>
             </div>
             <nav className="mt-5 flex-1 space-y-1 px-2">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === item.href
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted'
-                    }`}
-                >
-                  <item.icon
-                    className={`mr-3 h-5 w-5 ${pathname === item.href
-                      ? 'text-primary-foreground'
-                      : 'text-muted-foreground'
-                      }`}
-                  />
-                  {item.name}
-                </Link>
-              ))}
+              <SidebarNavList />
             </nav>
           </div>
           <div className="flex flex-shrink-0 border-t p-4">
