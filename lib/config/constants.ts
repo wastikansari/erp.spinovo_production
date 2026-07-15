@@ -38,6 +38,8 @@ export const API_URL = {
 
   // B2B service management endpoints (separate catalog, admin-controlled pricing)
   B2B_SERVICE_CATEGORY_BASE: '/admin/b2b/service/category',
+  B2B_COMPANY_BASE: '/admin/b2b/companies',
+  B2B_ORDER_BASE: '/admin/b2b/orders',
 
   // Vendor order management
   VENDOR_ORDERS: '/admin/vendor/orders',

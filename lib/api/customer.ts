@@ -14,8 +14,17 @@ export interface CustomerFilters {
   maxOrders?: string;
 }
 
+export type CustomerSortField = 'wallet_balance' | 'total_spending' | 'createdAt';
+export type SortOrder = 'asc' | 'desc';
+
 export class CustomerApiService extends BaseApiService {
-  static async getCustomers(page: number = 1, limit: number = 20, filters: CustomerFilters = {}): Promise<ApiResponse<CustomerListData>> {
+  static async getCustomers(
+    page: number = 1,
+    limit: number = 20,
+    filters: CustomerFilters = {},
+    sortBy?: CustomerSortField,
+    sortOrder?: SortOrder
+  ): Promise<ApiResponse<CustomerListData>> {
     const params = new URLSearchParams({ page: String(page), limit: String(limit) });
     if (filters.search) params.set('search', filters.search);
     if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
@@ -24,6 +33,8 @@ export class CustomerApiService extends BaseApiService {
     if (filters.maxSpending) params.set('maxSpending', filters.maxSpending);
     if (filters.minOrders) params.set('minOrders', filters.minOrders);
     if (filters.maxOrders) params.set('maxOrders', filters.maxOrders);
+    if (sortBy) params.set('sortBy', sortBy);
+    if (sortOrder) params.set('sortOrder', sortOrder);
     return this.makeRequest<CustomerListData>(`/admin/customer/list?${params.toString()}`, {
       method: 'GET',
     });

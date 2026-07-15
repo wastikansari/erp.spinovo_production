@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
   AlertCircle, Users, MoreHorizontal, Eye, Phone, User, Calendar,
-  Search, Filter, X, IndianRupee, ShoppingBag,
+  Search, Filter, X, IndianRupee, ShoppingBag, ArrowUp, ArrowDown, ArrowUpDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { CustomerApiService, CustomerFilters, Customer } from '@/lib/api';
+import { CustomerApiService, CustomerFilters, Customer, CustomerSortField, SortOrder } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -51,14 +51,24 @@ export default function CustomersPage() {
   const [minOrders, setMinOrders] = useState('');
   const [maxOrders, setMaxOrders] = useState('');
 
+  // Sort state
+  const [sortBy, setSortBy] = useState<CustomerSortField>('createdAt');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+
   const router = useRouter();
   const { toast } = useToast();
 
-  const fetchCustomers = useCallback(async (page: number, activeFilters: CustomerFilters, limit: number = pageSize) => {
+  const fetchCustomers = useCallback(async (
+    page: number,
+    activeFilters: CustomerFilters,
+    limit: number = pageSize,
+    sortField: CustomerSortField = sortBy,
+    sortDir: SortOrder = sortOrder,
+  ) => {
     try {
       setLoading(true);
       setError('');
-      const response = await CustomerApiService.getCustomers(page, limit, activeFilters);
+      const response = await CustomerApiService.getCustomers(page, limit, activeFilters, sortField, sortDir);
       if (response.status && response.data) {
         setCustomers(response.data.customerList || []);
         setTotalPages(response.data.total_pages || 1);
@@ -77,7 +87,7 @@ export default function CustomersPage() {
     } finally {
       setLoading(false);
     }
-  }, [toast, pageSize]);
+  }, [toast, pageSize, sortBy, sortOrder]);
 
   // Debounce search input → update filters.search
   useEffect(() => {
@@ -136,6 +146,31 @@ export default function CustomersPage() {
     router.push(`/dashboard/customers/${customerId}`);
   };
 
+  const handleSort = (field: CustomerSortField) => {
+    if (sortBy === field) {
+      setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortOrder('desc');
+    }
+    setCurrentPage(1);
+  };
+
+  const SortableHeader = ({ field, label }: { field: CustomerSortField; label: string }) => {
+    const isActive = sortBy === field;
+    const Icon = isActive ? (sortOrder === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown;
+    return (
+      <button
+        type="button"
+        className={`flex items-center gap-1 hover:text-foreground ${isActive ? 'text-foreground font-semibold' : ''}`}
+        onClick={() => handleSort(field)}
+      >
+        {label}
+        <Icon className="h-3.5 w-3.5" />
+      </button>
+    );
+  };
+
   const columns = [
     {
       key: 'name',
@@ -162,7 +197,7 @@ export default function CustomersPage() {
     },
     {
       key: 'wallet_balance',
-      header: 'Wallet Balance',
+      header: <SortableHeader field="wallet_balance" label="Wallet Balance" />,
       render: (customer: Customer) => (
         <span className="font-medium text-green-600">₹{customer.wallet_balance}</span>
       ),
@@ -179,7 +214,7 @@ export default function CustomersPage() {
     },
     {
       key: 'total_spending',
-      header: 'Total Spending',
+      header: <SortableHeader field="total_spending" label="Total Spending" />,
       render: (customer: Customer) => (
         <span className="font-medium text-green-600">₹{customer.total_spending ?? 0}</span>
       ),
