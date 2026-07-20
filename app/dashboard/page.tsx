@@ -18,10 +18,12 @@ import {
   CalendarDays,
   Eye,
   X,
+  Building2,
 } from 'lucide-react';
 import {
   Area,
   AreaChart,
+  Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -36,11 +38,13 @@ import { useRouter } from 'next/navigation';
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card border rounded-lg shadow-sm p-3">
+      <div className="bg-card border rounded-lg shadow-sm p-3 space-y-1">
         <p className="text-sm font-medium">{label}</p>
-        <p className="text-sm text-muted-foreground">
-          Revenue: ₹{payload[0].value}
-        </p>
+        {payload.map((entry: any) => (
+          <p key={entry.dataKey} className="text-sm text-muted-foreground">
+            {entry.name}: ₹{Number(entry.value).toLocaleString('en-IN')}
+          </p>
+        ))}
       </div>
     );
   }
@@ -224,7 +228,8 @@ export default function DashboardPage() {
     },
     {
       title: 'Total Bookings',
-      value: dashboardData.totalBooking.toLocaleString(),
+      value: dashboardData.combinedTotalBooking.toLocaleString(),
+      subtitle: `${dashboardData.totalBooking.toLocaleString()} retail + ${dashboardData.totalB2BBooking.toLocaleString()} B2B`,
       icon: Package,
       href: '/dashboard/orders',
     },
@@ -236,9 +241,16 @@ export default function DashboardPage() {
     },
     {
       title: 'Total Revenue',
-      value: `₹${dashboardData.totalRevenue.toLocaleString()}`,
+      value: `₹${dashboardData.combinedTotalRevenue.toLocaleString()}`,
+      subtitle: `₹${dashboardData.totalRevenue.toLocaleString()} retail + ₹${dashboardData.totalB2BRevenue.toLocaleString()} B2B`,
       icon: IndianRupee,
       href: '/dashboard/revenue',
+    },
+    {
+      title: 'Total B2B Companies',
+      value: dashboardData.totalB2BCompanies.toLocaleString(),
+      icon: Building2,
+      href: '/dashboard/b2b-companies',
     },
   ];
 
@@ -349,7 +361,7 @@ export default function DashboardPage() {
       )}
 
       {/* Stats cards */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3 xl:grid-cols-5">
         {stats.map((stat) => (
           <Card
             key={stat.title}
@@ -364,6 +376,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-lg sm:text-2xl font-bold">{stat.value}</div>
+              {stat.subtitle && (
+                <p className="text-[11px] text-muted-foreground mt-1 truncate">{stat.subtitle}</p>
+              )}
             </CardContent>
           </Card>
         ))}
@@ -395,6 +410,10 @@ export default function DashboardPage() {
                         stopOpacity={0}
                       />
                     </linearGradient>
+                    <linearGradient id="colorB2BValue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                    </linearGradient>
                   </defs>
                   <XAxis
                     dataKey="month"
@@ -411,12 +430,26 @@ export default function DashboardPage() {
                     tickFormatter={(value) => `₹${value}`}
                   />
                   <Tooltip content={<CustomTooltip />} />
+                  <Legend
+                    wrapperStyle={{ fontSize: 12 }}
+                    formatter={(value) => <span className="text-muted-foreground">{value}</span>}
+                  />
                   <Area
                     type="monotone"
                     dataKey="value"
+                    name="Retail"
                     stroke="hsl(var(--primary))"
                     fillOpacity={1}
                     fill="url(#colorValue)"
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="b2bValue"
+                    name="B2B"
+                    stroke="#f59e0b"
+                    fillOpacity={1}
+                    fill="url(#colorB2BValue)"
                     strokeWidth={2}
                   />
                 </AreaChart>
