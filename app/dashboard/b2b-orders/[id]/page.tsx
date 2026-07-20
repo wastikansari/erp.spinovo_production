@@ -100,7 +100,7 @@ export default function B2BOrderDetailPage() {
             {order.items.map((item, i) => (
               <div key={i} className="flex items-center justify-between text-sm py-2 border-b last:border-0">
                 <div>
-                  <p className="font-medium">{item.serviceName} · {item.categoryName}</p>
+                  <p className="font-medium">{item.serviceName} · {item.garmentName}</p>
                   <p className="text-muted-foreground">Qty: {item.qty}</p>
                 </div>
                 <p className="font-medium">₹{item.amount.toLocaleString('en-IN')}</p>

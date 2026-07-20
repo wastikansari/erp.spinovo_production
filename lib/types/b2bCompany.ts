@@ -1,3 +1,13 @@
+export interface B2BTransaction {
+  id: string;
+  date: string;
+  type: 'credit' | 'debit';
+  amount: number;
+  balanceAfter: number;
+  reason: string;
+  orderNo?: string;
+}
+
 export interface B2BCompany {
   _id: string;
   companyName: string;

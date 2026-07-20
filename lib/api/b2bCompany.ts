@@ -1,6 +1,6 @@
 import { AuthService } from '../auth';
 import { API_URL } from '../config/constants';
-import { B2BCompany } from '../types/b2bCompany';
+import { B2BCompany, B2BTransaction } from '../types/b2bCompany';
 
 function authHeaders() {
   return {
@@ -32,6 +32,21 @@ export async function getB2BCompanyById(companyId: string): Promise<B2BCompany |
   } catch (error) {
     console.error('getB2BCompanyById Error:', error);
     return null;
+  }
+}
+
+// GET /admin/b2b/companies/:companyId/transactions
+export async function getB2BCompanyTransactions(companyId: string): Promise<B2BTransaction[]> {
+  try {
+    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_COMPANY_BASE}/${companyId}/transactions`, {
+      headers: authHeaders(),
+    });
+    const json = await res.json();
+    if (!json.status) throw new Error(json.msg || 'Failed to fetch transactions');
+    return json.data.transactions || [];
+  } catch (error) {
+    console.error('getB2BCompanyTransactions Error:', error);
+    return [];
   }
 }
 

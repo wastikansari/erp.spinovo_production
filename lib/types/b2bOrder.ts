@@ -1,8 +1,8 @@
 export interface B2BOrderLineItem {
   serviceId: string;
-  categoryId: number;
+  garmentId: string;
   serviceName: string;
-  categoryName: string;
+  garmentName: string;
   qty: number;
   amount: number;
 }

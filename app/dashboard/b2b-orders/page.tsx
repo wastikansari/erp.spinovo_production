@@ -66,7 +66,7 @@ export default function B2BOrdersPage() {
               {
                 key: 'items',
                 header: 'Service',
-                render: (o) => o.items.map((i) => `${i.serviceName} (${i.categoryName})`).join(', '),
+                render: (o) => o.items.map((i) => `${i.serviceName} (${i.garmentName})`).join(', '),
               },
               { key: 'bookingDate', header: 'Pickup Date' },
               {

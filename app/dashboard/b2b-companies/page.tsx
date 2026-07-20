@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { HeaderSection } from '@/components/ui/header-section';
 import { Card, CardContent } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
@@ -16,7 +17,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Pencil, Building2 } from 'lucide-react';
+import { Pencil, Building2, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getB2BCompanies, updateB2BCompany } from '@/lib/api/b2bCompany';
 import { B2BCompany } from '@/lib/types/b2bCompany';
@@ -127,9 +128,16 @@ export default function B2BCompaniesPage() {
               },
             ]}
             actions={(c) => (
-              <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
-                <Pencil className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Link href={`/dashboard/b2b-companies/${c._id}`}>
+                  <Button variant="ghost" size="icon">
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="icon" onClick={() => openEdit(c)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           />
         </CardContent>

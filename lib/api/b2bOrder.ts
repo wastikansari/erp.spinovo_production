@@ -9,9 +9,10 @@ function authHeaders() {
   };
 }
 
-// GET /admin/b2b/orders
-export async function getB2BOrders(): Promise<B2BOrder[]> {
-  const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_ORDER_BASE}`, {
+// GET /admin/b2b/orders[?companyId=]
+export async function getB2BOrders(companyId?: string): Promise<B2BOrder[]> {
+  const query = companyId ? `?companyId=${companyId}` : '';
+  const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_ORDER_BASE}${query}`, {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
