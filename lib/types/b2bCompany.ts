@@ -8,6 +8,19 @@ export interface B2BTransaction {
   orderNo?: string;
 }
 
+export type B2BSettlementPaymentMethod = 'razorpay' | 'cash' | 'cheque' | 'bank_transfer' | 'upi' | 'other';
+
+export interface B2BSettlement {
+  id: string;
+  amount: number;
+  status: 'created' | 'paid' | 'failed';
+  paymentMethod: B2BSettlementPaymentMethod;
+  notes: string;
+  orderCount: number;
+  paidAt: string | null;
+  createdAt: string;
+}
+
 export interface B2BCompany {
   _id: string;
   companyName: string;

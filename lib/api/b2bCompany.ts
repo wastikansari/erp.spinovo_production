@@ -1,6 +1,6 @@
 import { AuthService } from '../auth';
 import { API_URL } from '../config/constants';
-import { B2BCompany, B2BTransaction } from '../types/b2bCompany';
+import { B2BCompany, B2BSettlement, B2BSettlementPaymentMethod, B2BTransaction } from '../types/b2bCompany';
 
 function authHeaders() {
   return {
@@ -47,6 +47,41 @@ export async function getB2BCompanyTransactions(companyId: string): Promise<B2BT
   } catch (error) {
     console.error('getB2BCompanyTransactions Error:', error);
     return [];
+  }
+}
+
+// GET /admin/b2b/companies/:companyId/settlements
+export async function getB2BCompanySettlements(companyId: string): Promise<B2BSettlement[]> {
+  try {
+    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_COMPANY_BASE}/${companyId}/settlements`, {
+      headers: authHeaders(),
+    });
+    const json = await res.json();
+    if (!json.status) throw new Error(json.msg || 'Failed to fetch settlements');
+    return json.data.settlements || [];
+  } catch (error) {
+    console.error('getB2BCompanySettlements Error:', error);
+    return [];
+  }
+}
+
+// POST /admin/b2b/companies/:companyId/settlements — records an offline
+// (cash/cheque/bank transfer/UPI) collection against selected Unpaid orders.
+export async function createB2BManualSettlement(
+  companyId: string,
+  payload: { orderIds: string[]; paymentMethod: B2BSettlementPaymentMethod; notes?: string }
+): Promise<{ success: boolean; message: string; settlement?: B2BSettlement }> {
+  try {
+    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_COMPANY_BASE}/${companyId}/settlements`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    return { success: json.status === true, message: json.msg || 'Done', settlement: json.data?.settlement };
+  } catch (error) {
+    console.error('createB2BManualSettlement Error:', error);
+    return { success: false, message: 'Network error' };
   }
 }
 

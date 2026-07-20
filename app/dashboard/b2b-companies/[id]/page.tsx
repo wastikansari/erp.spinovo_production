@@ -9,6 +9,15 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
@@ -44,14 +53,39 @@ import {
   TrendingUp,
   TrendingDown,
   Eye,
+  Receipt,
+  HandCoins,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { getB2BCompanyById, getB2BCompanyTransactions, updateB2BCompany } from '@/lib/api/b2bCompany';
+import {
+  createB2BManualSettlement,
+  getB2BCompanyById,
+  getB2BCompanySettlements,
+  getB2BCompanyTransactions,
+  updateB2BCompany,
+} from '@/lib/api/b2bCompany';
 import { getB2BOrders } from '@/lib/api/b2bOrder';
-import { B2BCompany, B2BTransaction } from '@/lib/types/b2bCompany';
+import { B2BCompany, B2BSettlement, B2BSettlementPaymentMethod, B2BTransaction } from '@/lib/types/b2bCompany';
 import { B2BOrder, B2BOrderStatus } from '@/lib/types/b2bOrder';
+
+const PAYMENT_METHOD_OPTIONS: { value: B2BSettlementPaymentMethod; label: string }[] = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'cheque', label: 'Cheque' },
+  { value: 'bank_transfer', label: 'Bank Transfer' },
+  { value: 'upi', label: 'UPI' },
+  { value: 'other', label: 'Other' },
+];
+
+const paymentMethodLabel: Record<B2BSettlementPaymentMethod, string> = {
+  razorpay: 'Razorpay (Online)',
+  cash: 'Cash',
+  cheque: 'Cheque',
+  bank_transfer: 'Bank Transfer',
+  upi: 'UPI',
+  other: 'Other',
+};
 
 const statusColor: Record<B2BOrderStatus, string> = {
   Pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300',
@@ -81,6 +115,7 @@ export default function B2BCompanyProfilePage() {
   const [company, setCompany] = useState<B2BCompany | null>(null);
   const [orders, setOrders] = useState<B2BOrder[]>([]);
   const [transactions, setTransactions] = useState<B2BTransaction[]>([]);
+  const [settlements, setSettlements] = useState<B2BSettlement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -89,14 +124,21 @@ export default function B2BCompanyProfilePage() {
   const [isActiveInput, setIsActiveInput] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [settleOpen, setSettleOpen] = useState(false);
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [paymentMethod, setPaymentMethod] = useState<B2BSettlementPaymentMethod>('cash');
+  const [settleNotes, setSettleNotes] = useState('');
+  const [settling, setSettling] = useState(false);
+
   const load = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
-      const [companyData, ordersData, transactionsData] = await Promise.all([
+      const [companyData, ordersData, transactionsData, settlementsData] = await Promise.all([
         getB2BCompanyById(params.id),
         getB2BOrders(params.id),
         getB2BCompanyTransactions(params.id),
+        getB2BCompanySettlements(params.id),
       ]);
       if (!companyData) {
         setError('Company not found');
@@ -105,6 +147,7 @@ export default function B2BCompanyProfilePage() {
       setCompany(companyData);
       setOrders(ordersData);
       setTransactions(transactionsData);
+      setSettlements(settlementsData);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Network error occurred';
       setError(msg);
@@ -119,11 +162,63 @@ export default function B2BCompanyProfilePage() {
     load();
   }, [load]);
 
+  const unpaidOrders = useMemo(() => orders.filter((o) => o.paymentStatus === 'Unpaid'), [orders]);
+
   const stats = useMemo(() => {
     const totalPaid = orders.filter((o) => o.paymentStatus === 'Paid').reduce((sum, o) => sum + o.totalBilling, 0);
-    const totalUnpaid = orders.filter((o) => o.paymentStatus === 'Unpaid').reduce((sum, o) => sum + o.totalBilling, 0);
+    const totalUnpaid = unpaidOrders.reduce((sum, o) => sum + o.totalBilling, 0);
     return { totalOrders: orders.length, totalPaid, totalUnpaid };
-  }, [orders]);
+  }, [orders, unpaidOrders]);
+
+  const selectedTotal = useMemo(
+    () => unpaidOrders.filter((o) => selectedOrderIds.has(o.id)).reduce((sum, o) => sum + o.totalBilling, 0),
+    [unpaidOrders, selectedOrderIds]
+  );
+
+  const openSettleDialog = () => {
+    setSelectedOrderIds(new Set());
+    setPaymentMethod('cash');
+    setSettleNotes('');
+    setSettleOpen(true);
+  };
+
+  const toggleOrderSelection = (orderId: string) => {
+    setSelectedOrderIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(orderId)) next.delete(orderId);
+      else next.add(orderId);
+      return next;
+    });
+  };
+
+  const toggleSelectAllUnpaid = () => {
+    setSelectedOrderIds((prev) =>
+      prev.size === unpaidOrders.length ? new Set() : new Set(unpaidOrders.map((o) => o.id))
+    );
+  };
+
+  const submitSettlement = async () => {
+    if (!company || selectedOrderIds.size === 0) return;
+    setSettling(true);
+    const result = await createB2BManualSettlement(company._id, {
+      orderIds: Array.from(selectedOrderIds),
+      paymentMethod,
+      notes: settleNotes.trim(),
+    });
+    setSettling(false);
+
+    if (!result.success) {
+      toast({ title: 'Settlement failed', description: result.message, variant: 'destructive' });
+      return;
+    }
+
+    toast({
+      title: 'Settlement recorded',
+      description: `${formatCurrency(selectedTotal)} settled via ${paymentMethodLabel[paymentMethod]}.`,
+    });
+    setSettleOpen(false);
+    load();
+  };
 
   const openEdit = () => {
     if (!company) return;
@@ -232,7 +327,13 @@ export default function B2BCompanyProfilePage() {
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
-          <Button onClick={openEdit} size="sm">
+          {unpaidOrders.length > 0 && (
+            <Button onClick={openSettleDialog} size="sm" className="bg-green-600 hover:bg-green-700">
+              <HandCoins className="mr-2 h-4 w-4" />
+              Settle Dues
+            </Button>
+          )}
+          <Button onClick={openEdit} size="sm" variant="outline">
             <Pencil className="mr-2 h-4 w-4" />
             Edit
           </Button>
@@ -383,9 +484,9 @@ export default function B2BCompanyProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Tabs for Orders and Transactions */}
+      {/* Tabs for Orders, Transactions, and Settlements */}
       <Tabs defaultValue="orders" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="orders" className="flex items-center gap-2">
             <Package className="h-4 w-4" />
             Orders ({orders.length})
@@ -393,6 +494,10 @@ export default function B2BCompanyProfilePage() {
           <TabsTrigger value="transactions" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
             Transactions ({transactions.length})
+          </TabsTrigger>
+          <TabsTrigger value="settlements" className="flex items-center gap-2">
+            <Receipt className="h-4 w-4" />
+            Settlements ({settlements.length})
           </TabsTrigger>
         </TabsList>
 
@@ -509,6 +614,64 @@ export default function B2BCompanyProfilePage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="settlements">
+          <Card>
+            <CardHeader>
+              <CardTitle>Settlement History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {settlements.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No settlements recorded for this company yet.
+                </div>
+              ) : (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead>Orders</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Notes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {settlements.map((s) => (
+                        <TableRow key={s.id}>
+                          <TableCell>{s.paidAt ? formatDate(s.paidAt) : formatDate(s.createdAt)}</TableCell>
+                          <TableCell className="font-medium">{formatCurrency(s.amount)}</TableCell>
+                          <TableCell>
+                            <Badge variant={s.paymentMethod === 'razorpay' ? 'default' : 'secondary'}>
+                              {paymentMethodLabel[s.paymentMethod]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{s.orderCount}</TableCell>
+                          <TableCell>
+                            <Badge
+                              className={
+                                s.status === 'paid'
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                                  : s.status === 'failed'
+                                  ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
+                                  : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300'
+                              }
+                            >
+                              {s.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-muted-foreground">{s.notes || '—'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       <Dialog open={editing} onOpenChange={setEditing}>
@@ -544,6 +707,80 @@ export default function B2BCompanyProfilePage() {
             </Button>
             <Button onClick={saveEdit} disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={settleOpen} onOpenChange={setSettleOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Settle Dues — {company.companyName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-sm">Select unpaid orders to mark as settled</Label>
+              <Button variant="link" size="sm" className="h-auto p-0" onClick={toggleSelectAllUnpaid}>
+                {selectedOrderIds.size === unpaidOrders.length ? 'Clear all' : 'Select all'}
+              </Button>
+            </div>
+
+            <div className="max-h-64 overflow-y-auto rounded-md border divide-y">
+              {unpaidOrders.map((order) => (
+                <label
+                  key={order.id}
+                  className="flex items-center gap-3 p-3 text-sm cursor-pointer hover:bg-muted/50"
+                >
+                  <Checkbox
+                    checked={selectedOrderIds.has(order.id)}
+                    onCheckedChange={() => toggleOrderSelection(order.id)}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium">{order.orderNo}</p>
+                    <p className="text-xs text-muted-foreground">{order.bookingDate}</p>
+                  </div>
+                  <span className="font-medium shrink-0">{formatCurrency(order.totalBilling)}</span>
+                </label>
+              ))}
+            </div>
+
+            <div className="flex justify-between items-center rounded-md border p-3 bg-muted/30">
+              <span className="text-sm text-muted-foreground">Selected total</span>
+              <span className="text-lg font-bold">{formatCurrency(selectedTotal)}</span>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">Payment Method</Label>
+              <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as B2BSettlementPaymentMethod)}>
+                <SelectTrigger id="paymentMethod">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHOD_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="settleNotes">Reference / Notes (optional)</Label>
+              <Textarea
+                id="settleNotes"
+                placeholder="e.g. Cheque no. 123456, received 20 Jul"
+                value={settleNotes}
+                onChange={(e) => setSettleNotes(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSettleOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={submitSettlement} disabled={settling || selectedOrderIds.size === 0}>
+              {settling ? 'Recording...' : `Settle ${formatCurrency(selectedTotal)}`}
             </Button>
           </DialogFooter>
         </DialogContent>
