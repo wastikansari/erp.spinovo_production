@@ -74,12 +74,12 @@ function isNavGroup(item: NavEntry): item is NavGroup {
 const navigation: NavEntry[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
+  { name: 'Orders', href: '/dashboard/orders', icon: Package },
 
   {
     name: 'Orders Management',
     icon: Package,
     children: [
-      { name: 'Orders', href: '/dashboard/orders', icon: Package },
       { name: 'Pickup Pending', href: '/dashboard/orders/pickup-pending', icon: UserCheck },
       { name: 'Pickup Assigned', href: '/dashboard/orders/pickup-assigned', icon: UserCheck },
       { name: 'Quality Check', href: '/dashboard/orders/quality-check/v2', icon: UserCheck },

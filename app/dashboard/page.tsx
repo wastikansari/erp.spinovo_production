@@ -166,10 +166,10 @@ export default function DashboardPage() {
 
   const bookingListLabel =
     activeFilter === 'all' ? 'All' :
-    activeFilter === 'today' ? "Today's" :
-    activeFilter === 'week' ? "This Week's" :
-    activeFilter === 'month' ? "This Month's" :
-    dateRange?.from ? dateRangeLabel : 'Custom';
+      activeFilter === 'today' ? "Today's" :
+        activeFilter === 'week' ? "This Week's" :
+          activeFilter === 'month' ? "This Month's" :
+            dateRange?.from ? dateRangeLabel : 'Custom';
 
   if (loading) {
     return (
@@ -221,6 +221,18 @@ export default function DashboardPage() {
 
   const stats = [
     {
+      title: "Today's Bookings",
+      value: dashboardData.todayTotalBooking.toLocaleString(),
+      icon: CalendarDays,
+      href: '/dashboard/orders/today',
+    },
+    {
+      title: 'Total B2B Companies',
+      value: dashboardData.totalB2BCompanies.toLocaleString(),
+      icon: Building2,
+      href: '/dashboard/b2b-companies',
+    },
+    {
       title: 'Total Customers',
       value: dashboardData.totalCustomers.toLocaleString(),
       icon: Users,
@@ -233,12 +245,7 @@ export default function DashboardPage() {
       icon: Package,
       href: '/dashboard/orders',
     },
-    {
-      title: "Today's Bookings",
-      value: dashboardData.todayTotalBooking.toLocaleString(),
-      icon: CalendarDays,
-      href: '/dashboard/orders/today',
-    },
+
     {
       title: 'Total Revenue',
       value: `₹${dashboardData.combinedTotalRevenue.toLocaleString()}`,
@@ -246,12 +253,7 @@ export default function DashboardPage() {
       icon: IndianRupee,
       href: '/dashboard/revenue',
     },
-    {
-      title: 'Total B2B Companies',
-      value: dashboardData.totalB2BCompanies.toLocaleString(),
-      icon: Building2,
-      href: '/dashboard/b2b-companies',
-    },
+
   ];
 
   return (
@@ -267,11 +269,10 @@ export default function DashboardPage() {
               <button
                 key={opt.value}
                 onClick={() => handleFilterChange(opt.value)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  activeFilter === opt.value
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeFilter === opt.value
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+                  }`}
               >
                 {opt.label}
               </button>
