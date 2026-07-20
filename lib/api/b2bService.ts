@@ -2,17 +2,19 @@ import { AuthService } from "../auth";
 import { API_URL } from "../config/constants";
 import { B2BFullServiceCategory } from "../types/b2bService";
 
-export interface UpdateB2BCategoryPayload {
-  category?: string;
-  price?: string;
-  types_of_Clothes?: string[];
+export interface UpdateB2BServicePayload {
+  service?: string;
+  description?: string;
 }
 
-export interface AddB2BCategoryPayload {
-  category: string;
-  description: string;
+export interface AddB2BGarmentPayload {
+  name: string;
   price: string;
-  types_of_Clothes: string[];
+}
+
+export interface UpdateB2BGarmentPayload {
+  name?: string;
+  price?: string;
 }
 
 function authHeaders() {
@@ -22,9 +24,9 @@ function authHeaders() {
   };
 }
 
-// GET /admin/b2b/service/category
-export async function getB2BServiceCategories(): Promise<B2BFullServiceCategory[]> {
-  const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_CATEGORY_BASE}`, {
+// GET /admin/b2b/service
+export async function getB2BServices(): Promise<B2BFullServiceCategory[]> {
+  const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_BASE}`, {
     headers: authHeaders(),
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -33,28 +35,28 @@ export async function getB2BServiceCategories(): Promise<B2BFullServiceCategory[
   return json.data.service || [];
 }
 
-// GET /admin/b2b/service/category/:serviceId
-export async function getB2BServiceCategoryById(serviceId: string): Promise<B2BFullServiceCategory | null> {
+// GET /admin/b2b/service/:serviceId
+export async function getB2BServiceById(serviceId: string): Promise<B2BFullServiceCategory | null> {
   try {
-    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_CATEGORY_BASE}/${serviceId}`, {
+    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_BASE}/${serviceId}`, {
       headers: authHeaders(),
     });
     const json = await res.json();
     if (!json.status) throw new Error(json.msg || 'Service not found');
     return json.data.service ?? null;
   } catch (error) {
-    console.error('getB2BServiceCategoryById Error:', error);
+    console.error('getB2BServiceById Error:', error);
     return null;
   }
 }
 
-// PATCH /admin/b2b/service/category/:serviceId  (updates service_duration_hours)
+// PATCH /admin/b2b/service/:serviceId  (updates service name/description)
 export async function updateB2BService(
   serviceId: string,
-  payload: { service_duration_hours: number }
+  payload: UpdateB2BServicePayload
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_CATEGORY_BASE}/${serviceId}`, {
+    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_BASE}/${serviceId}`, {
       method: 'PATCH',
       headers: authHeaders(),
       body: JSON.stringify(payload),
@@ -67,13 +69,13 @@ export async function updateB2BService(
   }
 }
 
-// POST /admin/b2b/service/category/:serviceId/category
-export async function addNewB2BCategory(
+// POST /admin/b2b/service/:serviceId/garment
+export async function addB2BGarment(
   serviceId: string,
-  payload: AddB2BCategoryPayload
+  payload: AddB2BGarmentPayload
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_CATEGORY_BASE}/${serviceId}/category`, {
+    const res = await fetch(`${API_URL.BASE_URL}${API_URL.B2B_SERVICE_BASE}/${serviceId}/garment`, {
       method: 'POST',
       headers: authHeaders(),
       body: JSON.stringify(payload),
@@ -81,20 +83,20 @@ export async function addNewB2BCategory(
     const json = await res.json();
     return { success: json.status === true, message: json.msg || 'Done' };
   } catch (error) {
-    console.error('addNewB2BCategory Error:', error);
+    console.error('addB2BGarment Error:', error);
     return { success: false, message: 'Network error' };
   }
 }
 
-// PATCH /admin/b2b/service/category/:serviceId/category/:categoryId
-export async function updateB2BCategory(
+// PATCH /admin/b2b/service/:serviceId/garment/:garmentId
+export async function updateB2BGarment(
   serviceId: string,
-  categoryId: number,
-  payload: UpdateB2BCategoryPayload
+  garmentId: string,
+  payload: UpdateB2BGarmentPayload
 ): Promise<{ success: boolean; message: string }> {
   try {
     const res = await fetch(
-      `${API_URL.BASE_URL}${API_URL.B2B_SERVICE_CATEGORY_BASE}/${serviceId}/category/${categoryId}`,
+      `${API_URL.BASE_URL}${API_URL.B2B_SERVICE_BASE}/${serviceId}/garment/${garmentId}`,
       {
         method: 'PATCH',
         headers: authHeaders(),
@@ -104,7 +106,7 @@ export async function updateB2BCategory(
     const json = await res.json();
     return { success: json.status === true, message: json.msg || 'Done' };
   } catch (error) {
-    console.error('updateB2BCategory Error:', error);
+    console.error('updateB2BGarment Error:', error);
     return { success: false, message: 'Network error' };
   }
 }

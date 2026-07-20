@@ -2,47 +2,52 @@
 
 import { useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, Loader2, CheckCircle, AlertCircle, Pencil } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle, AlertCircle, Shirt, IndianRupee } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { updateB2BService } from '@/lib/api/b2bService';
+import { addB2BGarment } from '@/lib/api/b2bService';
 
-export default function EditB2BServicePage() {
+export default function AddB2BGarmentPage() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const serviceId = params.serviceId as string;
-  const initialServiceName = searchParams.get('serviceName') ?? '';
-  const initialDescription = searchParams.get('description') ?? '';
+  const serviceName = searchParams.get('serviceName') ?? '';
 
-  const [serviceName, setServiceName] = useState(initialServiceName);
-  const [description, setDescription] = useState(initialDescription);
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState('');
+
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   async function handleSave() {
-    if (!serviceName.trim()) {
-      setAlert({ type: 'error', message: 'Service name is required.' });
+    if (!name.trim()) {
+      setAlert({ type: 'error', message: 'Garment name is required.' });
       return;
     }
+    if (!price || isNaN(Number(price)) || Number(price) < 0) {
+      setAlert({ type: 'error', message: 'Enter a valid price.' });
+      return;
+    }
+
     setSaving(true);
     setAlert(null);
 
-    const result = await updateB2BService(serviceId, {
-      service: serviceName.trim(),
-      description: description.trim(),
+    const result = await addB2BGarment(serviceId, {
+      name: name.trim(),
+      price: price.trim(),
     });
 
     setSaving(false);
     if (result.success) {
-      setAlert({ type: 'success', message: 'Service updated successfully!' });
+      setAlert({ type: 'success', message: 'Garment added successfully!' });
       setTimeout(() => router.push('/dashboard/b2b-services'), 1500);
     } else {
-      setAlert({ type: 'error', message: result.message || 'Update failed. Please try again.' });
+      setAlert({ type: 'error', message: result.message || 'Failed to add garment. Please try again.' });
     }
   }
 
@@ -56,9 +61,10 @@ export default function EditB2BServicePage() {
 
       {/* TITLE */}
       <div>
+        <p className="text-sm text-muted-foreground capitalize">{serviceName}</p>
         <h1 className="text-2xl font-semibold flex items-center gap-2 mt-1">
-          <Pencil className="h-5 w-5 text-indigo-500" />
-          Edit Service
+          <Shirt className="h-5 w-5 text-indigo-500" />
+          Add New Garment
         </h1>
       </div>
 
@@ -73,34 +79,42 @@ export default function EditB2BServicePage() {
         </Alert>
       )}
 
-      {/* FORM */}
+      {/* FORM CARD */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Service Details</CardTitle>
+          <CardTitle className="text-base">Garment Details</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
+
           <div className="space-y-2">
-            <Label htmlFor="serviceName">
-              Service Name <span className="text-red-500">*</span>
-            </Label>
+            <Label htmlFor="name">Garment Name <span className="text-red-500">*</span></Label>
             <Input
-              id="serviceName"
-              value={serviceName}
-              onChange={(e) => setServiceName(e.target.value)}
-              placeholder="e.g. Ironing, Wash"
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. T-shirt, Pant"
               disabled={saving}
             />
           </div>
+
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Short description of this service"
-              disabled={saving}
-            />
+            <Label htmlFor="price">Price (₹) <span className="text-red-500">*</span></Label>
+            <div className="relative">
+              <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="price"
+                type="number"
+                min={0}
+                step={0.01}
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="pl-9"
+                placeholder="0.00"
+                disabled={saving}
+              />
+            </div>
           </div>
+
         </CardContent>
       </Card>
 
@@ -117,7 +131,7 @@ export default function EditB2BServicePage() {
           {saving ? (
             <><Loader2 className="h-4 w-4 animate-spin mr-2" />Saving...</>
           ) : (
-            'Save Changes'
+            'Add Garment'
           )}
         </Button>
       </div>

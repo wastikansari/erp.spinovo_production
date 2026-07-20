@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getB2BServiceCategories } from '@/lib/api/b2bService';
+import { getB2BServices } from '@/lib/api/b2bService';
 import { B2BFullServiceCategory } from '@/lib/types/b2bService';
 import { B2BServiceCard } from '@/app/dashboard/b2b-services/service-card';
 import { HeaderSection } from '@/components/ui/header-section';
@@ -19,7 +19,7 @@ export default function B2BServicesPage() {
     setLoading(true);
     setError('');
     try {
-      const data = await getB2BServiceCategories();
+      const data = await getB2BServices();
       setServices(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load B2B services');
