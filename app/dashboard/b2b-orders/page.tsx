@@ -122,10 +122,7 @@ export default function B2BOrdersPage() {
               {
                 key: 'items',
                 header: 'Service',
-                render: (o) =>
-                  o.items
-                    .map((i) => `${i.serviceName} (${i.garment.map((g) => g.garmentName).join(', ')})`)
-                    .join(', '),
+                render: (o) => o.items.map((i) => i.serviceName).join(', '),
               },
               {
                 key: 'garmentQty',

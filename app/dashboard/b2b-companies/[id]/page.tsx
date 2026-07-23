@@ -530,9 +530,7 @@ export default function B2BCompanyProfilePage() {
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">{order.orderNo}</TableCell>
                           <TableCell>
-                            {order.items
-                              .map((i) => `${i.serviceName} (${i.garment.map((g) => g.garmentName).join(', ')})`)
-                              .join(', ')}
+                            {order.items.map((i) => i.serviceName).join(', ')}
                           </TableCell>
                           <TableCell>{order.bookingDate}</TableCell>
                           <TableCell>{formatCurrency(order.totalBilling)}</TableCell>
