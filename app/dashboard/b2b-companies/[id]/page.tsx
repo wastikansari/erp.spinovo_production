@@ -529,7 +529,11 @@ export default function B2BCompanyProfilePage() {
                       {orders.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">{order.orderNo}</TableCell>
-                          <TableCell>{order.items.map((i) => `${i.serviceName} (${i.garmentName})`).join(', ')}</TableCell>
+                          <TableCell>
+                            {order.items
+                              .map((i) => `${i.serviceName} (${i.garment.map((g) => g.garmentName).join(', ')})`)
+                              .join(', ')}
+                          </TableCell>
                           <TableCell>{order.bookingDate}</TableCell>
                           <TableCell>{formatCurrency(order.totalBilling)}</TableCell>
                           <TableCell>

@@ -97,13 +97,15 @@ export default function B2BOrderDetailPage() {
             <CardTitle>Order Items</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {order.items.map((item, i) => (
-              <div key={i} className="flex items-center justify-between text-sm py-2 border-b last:border-0">
-                <div>
-                  <p className="font-medium">{item.serviceName} · {item.garmentName}</p>
-                  <p className="text-muted-foreground">Qty: {item.qty}</p>
-                </div>
-                <p className="font-medium">₹{item.amount.toLocaleString('en-IN')}</p>
+            {order.items.map((group, i) => (
+              <div key={i} className="py-2 border-b last:border-0 space-y-1.5">
+                <p className="font-medium">{group.serviceName}</p>
+                {group.garment.map((g, j) => (
+                  <div key={j} className="flex items-center justify-between text-sm pl-3">
+                    <p className="text-muted-foreground">{g.garmentName} · Qty: {g.qty}</p>
+                    <p>₹{g.amount.toLocaleString('en-IN')}</p>
+                  </div>
+                ))}
               </div>
             ))}
             <div className="pt-2 text-sm text-muted-foreground">

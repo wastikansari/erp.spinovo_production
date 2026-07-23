@@ -1,10 +1,14 @@
-export interface B2BOrderLineItem {
-  serviceId: string;
+export interface B2BOrderGarmentLine {
   garmentId: string;
-  serviceName: string;
   garmentName: string;
   qty: number;
   amount: number;
+}
+
+export interface B2BOrderLineItem {
+  serviceId: string;
+  serviceName: string;
+  garment: B2BOrderGarmentLine[];
 }
 
 export type B2BOrderStatus =

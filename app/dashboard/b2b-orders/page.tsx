@@ -47,7 +47,8 @@ export default function B2BOrdersPage() {
 
   const totalOrders = orders.length;
   const totalGarmentQty = orders.reduce(
-    (sum, o) => sum + o.items.reduce((itemSum, i) => itemSum + i.qty, 0),
+    (sum, o) =>
+      sum + o.items.reduce((itemSum, i) => itemSum + i.garment.reduce((s, g) => s + g.qty, 0), 0),
     0
   );
   const totalAmount = orders.reduce((sum, o) => sum + o.totalBilling, 0);
@@ -121,14 +122,17 @@ export default function B2BOrdersPage() {
               {
                 key: 'items',
                 header: 'Service',
-                render: (o) => o.items.map((i) => `${i.serviceName} (${i.garmentName})`).join(', '),
+                render: (o) =>
+                  o.items
+                    .map((i) => `${i.serviceName} (${i.garment.map((g) => g.garmentName).join(', ')})`)
+                    .join(', '),
               },
               {
                 key: 'garmentQty',
                 header: 'Garment Qty',
                 render: (o) => (
                   <span className="font-medium">
-                    {o.items.reduce((sum, i) => sum + i.qty, 0)}
+                    {o.items.reduce((sum, i) => sum + i.garment.reduce((s, g) => s + g.qty, 0), 0)}
                   </span>
                 ),
               },
