@@ -117,3 +117,13 @@ export interface DeliveryAssignBookingRequest {
 export interface DeliveryAssignBookingResponse {
   assign_id: string;
 }
+
+export interface DeliveryReassignRequest {
+  sub_order_id: string;
+  new_copilot_id: string;
+}
+
+export interface DeliveryReassignResponse {
+  assign_id: string;
+  copilot_name: string;
+}

@@ -26,6 +26,7 @@ import {
   Hash,
   CheckCircle2,
   XCircle,
+  Repeat,
 } from 'lucide-react';
 import { AssignApiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -41,6 +42,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { PickupAssignBooking } from '@/lib/types/pickup-assign';
 import { SubOrder } from '@/lib/types/booking';
 import { ProcessAssignForm } from '@/components/forms/process-assign-form';
+import { ReassignCopilotForm } from '@/components/forms/reassign-copilot-form';
 
 // ─── Service Color System ────────────────────────────────────────────────────
 
@@ -344,6 +346,8 @@ export default function PickupAssignedPage() {
   const [showAssignForm, setShowAssignForm] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedSubOrderId, setSelectedSubOrderId] = useState<string | null>(null);
+  const [showReassignForm, setShowReassignForm] = useState(false);
+  const [reassignTarget, setReassignTarget] = useState<PickupAssignBooking | null>(null);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -591,6 +595,17 @@ export default function PickupAssignedPage() {
                             <Eye className="mr-2 h-4 w-4" />
                             {isExpanded ? 'Hide Sub-Orders' : 'View Sub-Orders'}
                           </DropdownMenuItem>
+                          {item.status === 1 && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setReassignTarget(item);
+                                setShowReassignForm(true);
+                              }}
+                            >
+                              <Repeat className="mr-2 h-4 w-4" />
+                              Reassign Copilot
+                            </DropdownMenuItem>
+                          )}
                           {/* {item.order_details.order_stage_id === 4 && item.sub_orders?.length > 0 && (
                             <DropdownMenuItem onClick={() => toggleRow(item._id)}>
                               <UserCheck className="mr-2 h-4 w-4" />
@@ -666,6 +681,21 @@ export default function PickupAssignedPage() {
         orderId={selectedOrderId}
         subOrderId={selectedSubOrderId}
         onSuccess={() => { setShowAssignForm(false); fetchList(currentPage); }}
+      />
+
+      <ReassignCopilotForm
+        open={showReassignForm}
+        onOpenChange={setShowReassignForm}
+        entityLabel={`order ${reassignTarget?.order_details.order_display_no ?? ''}`}
+        currentCopilotId={reassignTarget?.copilot_id ?? null}
+        currentCopilotName={reassignTarget?.copilot_details?.name}
+        onReassign={(newCopilotId) =>
+          AssignApiService.pickupReassign({
+            order_id: reassignTarget?.order_id ?? '',
+            new_copilot_id: newCopilotId,
+          })
+        }
+        onSuccess={() => { setShowReassignForm(false); fetchList(currentPage); }}
       />
     </div>
   );

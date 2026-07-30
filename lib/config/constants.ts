@@ -15,6 +15,7 @@ export const API_URL = {
   // Order related endpoints
   PICKUP_PENDING: '/admin/order/pickup/pending',
   PICKUP_ASSIGN: '/admin/order/pickup/assign',
+  PICKUP_REASSIGN: '/admin/order/pickup/reassign',
   PICKUP_LIST: '/admin/order/pickup/assigned/list',
   QUALITY_CHECK_LIST: '/admin/order/quality-check/suborder/pending',
   QUALITY_CHECK_MAIN_PENDING: '/admin/order/quality-check/mainorder/pending',
@@ -23,6 +24,7 @@ export const API_URL = {
   PROCESS_COMPLETED: '/admin/order/process/completed',
   PROCESS_SUBORDER_PENDING: '/admin/order/process/suborder/pending',
   DELIVERY_ASSIGN: '/admin/order/delivery/assign',
+  DELIVERY_REASSIGN: '/admin/order/delivery/reassign',
   DELIVERY_LIST: '/admin/order/delivery/assigned/list',
   DELIVERED_LIST: '/admin/order/delivery/delivered/list',
   DELIVERY_SUBORDER_PENDING: '/admin/order/delivery/suborder/pending',

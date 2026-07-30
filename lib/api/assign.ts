@@ -1,4 +1,4 @@
-import { PickupAssignBookingListData, PickupAssignBookingRequest, PickupAssignBookingResponse } from '../types/pickup-assign';
+import { PickupAssignBookingListData, PickupAssignBookingRequest, PickupAssignBookingResponse, PickupReassignRequest, PickupReassignResponse } from '../types/pickup-assign';
 import {
   ProcessAssignListData,
   ProcessAssignRequest,
@@ -12,7 +12,7 @@ import {
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
 import { API_URL } from '../config/constants';
-import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse, DeliveryPendingSubOrderListData, CancelPendingSubOrderListData } from '../types/delivery-assign';
+import { DeliveryAssignBookingListData, DeliveryAssignBookingRequest, DeliveryAssignBookingResponse, DeliveryPendingSubOrderListData, CancelPendingSubOrderListData, DeliveryReassignRequest, DeliveryReassignResponse } from '../types/delivery-assign';
 import { BookingListData } from '../types/booking';
 
 export class AssignApiService extends BaseApiService {
@@ -33,6 +33,13 @@ export class AssignApiService extends BaseApiService {
 
   static async pickupAssign(data: PickupAssignBookingRequest): Promise<ApiResponse<PickupAssignBookingResponse>> {
     return this.makeRequest<PickupAssignBookingResponse>(API_URL.PICKUP_ASSIGN, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async pickupReassign(data: PickupReassignRequest): Promise<ApiResponse<PickupReassignResponse>> {
+    return this.makeRequest<PickupReassignResponse>(API_URL.PICKUP_REASSIGN, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -180,6 +187,13 @@ export class AssignApiService extends BaseApiService {
 
   static async deliveryAssign(data: DeliveryAssignBookingRequest): Promise<ApiResponse<DeliveryAssignBookingResponse>> {
     return this.makeRequest<DeliveryAssignBookingResponse>(API_URL.DELIVERY_ASSIGN, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async deliveryReassign(data: DeliveryReassignRequest): Promise<ApiResponse<DeliveryReassignResponse>> {
+    return this.makeRequest<DeliveryReassignResponse>(API_URL.DELIVERY_REASSIGN, {
       method: 'POST',
       body: JSON.stringify(data),
     });

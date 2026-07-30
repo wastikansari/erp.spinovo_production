@@ -42,3 +42,13 @@ export interface PickupAssignBookingRequest {
 export interface PickupAssignBookingResponse {
   assign_id: string;
 }
+
+export interface PickupReassignRequest {
+  order_id: string;
+  new_copilot_id: string;
+}
+
+export interface PickupReassignResponse {
+  assign_id: string;
+  copilot_name: string;
+}

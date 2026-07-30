@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   Truck,
   MapPin,
+  Repeat,
 } from 'lucide-react';
 import { AssignApiService } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -39,6 +40,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DeliveryAssignBooking } from '@/lib/types/delivery-assign';
+import { ReassignCopilotForm } from '@/components/forms/reassign-copilot-form';
 
 // ─── Service Color System ─────────────────────────────────────────────────────
 
@@ -222,6 +224,8 @@ export default function DeliveryAssignedPage() {
   const [totalCount, setTotalCount] = useState(0);
   const [error, setError] = useState('');
   const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [showReassignForm, setShowReassignForm] = useState(false);
+  const [reassignTarget, setReassignTarget] = useState<DeliveryAssignBooking | null>(null);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -466,6 +470,17 @@ export default function DeliveryAssignedPage() {
                             <Eye className="mr-2 h-4 w-4" />
                             {isExpanded ? 'Hide Details' : 'View Details'}
                           </DropdownMenuItem>
+                          {item.status === 1 && (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setReassignTarget(item);
+                                setShowReassignForm(true);
+                              }}
+                            >
+                              <Repeat className="mr-2 h-4 w-4" />
+                              Reassign Copilot
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -516,6 +531,19 @@ export default function DeliveryAssignedPage() {
                       <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg" onClick={() => router.push(`/dashboard/bookings/sub-order/${item.sub_order_id}`)}>
                         <Eye className="mr-1 h-3 w-3" /> Sub-Order
                       </Button>
+                      {item.status === 1 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs rounded-lg"
+                          onClick={() => {
+                            setReassignTarget(item);
+                            setShowReassignForm(true);
+                          }}
+                        >
+                          <Repeat className="mr-1 h-3 w-3" /> Reassign
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -623,6 +651,21 @@ export default function DeliveryAssignedPage() {
           <PaginationBar currentPage={currentPage} totalPages={totalPages} totalCount={totalCount} loading={loading} onPageChange={handlePageChange} />
         </CardContent>
       </Card>
+
+      <ReassignCopilotForm
+        open={showReassignForm}
+        onOpenChange={setShowReassignForm}
+        entityLabel={`sub-order ${reassignTarget?.sub_order_details?.sub_order_no ?? ''}`}
+        currentCopilotId={reassignTarget?.copilot_id ?? null}
+        currentCopilotName={reassignTarget?.copilot_details?.name}
+        onReassign={(newCopilotId) =>
+          AssignApiService.deliveryReassign({
+            sub_order_id: reassignTarget?.sub_order_id ?? '',
+            new_copilot_id: newCopilotId,
+          })
+        }
+        onSuccess={() => { setShowReassignForm(false); fetchList(currentPage); }}
+      />
     </div>
   );
 }
