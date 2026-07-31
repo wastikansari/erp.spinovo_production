@@ -33,6 +33,10 @@ export const API_URL = {
   ADD_SERVICE: '/admin/order/update/addService',
   GARMENT_UPDATE: '/admin/suborder/garment/update',
   CANCEL_SUBORDER_PENDING: '/admin/order/cancel/suborder/delivery/pending',
+  ATTEMPTED_ORDERS: '/admin/order/attempted/list',
+  ATTEMPT_REASON_LIST: '/admin/attempt-reason/list',
+  ATTEMPT_REASON_CREATE: '/admin/attempt-reason/create',
+  ATTEMPT_REASON_UPDATE: '/admin/attempt-reason',
 
   // Service management endpoints
   SERVICE_CATEGORY_LIST: '/admin/service/category',

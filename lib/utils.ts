@@ -20,3 +20,11 @@ export function vendorKycImageUrl(filename?: string | null): string | null {
   if (/^https?:\/\//i.test(filename)) return filename;
   return `${getUploadsHost()}/uploads/vendor-kyc/${filename}`;
 }
+
+// Build a full URL for an order-attempt proof photo. Unlike vendor KYC,
+// photo_url already includes the "order-attempts/" subfolder.
+export function orderAttemptPhotoUrl(photoUrl?: string | null): string | null {
+  if (!photoUrl) return null;
+  if (/^https?:\/\//i.test(photoUrl)) return photoUrl;
+  return `${getUploadsHost()}/uploads/${photoUrl}`;
+}

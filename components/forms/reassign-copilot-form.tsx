@@ -40,6 +40,9 @@ interface ReassignCopilotFormProps {
   currentCopilotName?: string;
   onReassign: (newCopilotId: string) => Promise<ApiResponse<unknown>>;
   onSuccess: () => void;
+  // Attempted (status 4) assignments can be retried by the same copilot —
+  // regular (status 1) reassign keeps excluding the current copilot as a no-op.
+  allowSameCopilot?: boolean;
 }
 
 export function ReassignCopilotForm({
@@ -50,6 +53,7 @@ export function ReassignCopilotForm({
   currentCopilotName,
   onReassign,
   onSuccess,
+  allowSameCopilot = false,
 }: ReassignCopilotFormProps) {
   const [loading, setLoading] = useState(false);
   const [copilots, setCopilots] = useState<Copilot[]>([]);
@@ -82,7 +86,7 @@ export function ReassignCopilotForm({
 
       if (response.status && response.data) {
         const activeCopilots = response.data.copilotList.filter(
-          (copilot) => copilot.status === 1 && copilot._id !== currentCopilotId,
+          (copilot) => copilot.status === 1 && (allowSameCopilot || copilot._id !== currentCopilotId),
         );
         setCopilots(activeCopilots);
       } else {
