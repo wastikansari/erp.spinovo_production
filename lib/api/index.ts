@@ -7,6 +7,7 @@ export { OTPApiService } from './otp';
 export { CopilotApiService } from './copilot';
 export { DashboardApiService } from './dashboard';
 export { AssignApiService } from './assign';
+export { B2BAssignApiService } from './b2bAssign';
 export { LocationApiService } from './location';
 export { VendorApiService } from './vendor';
 export { NotificationCampaignApiService } from './notification-campaign';

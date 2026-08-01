@@ -47,6 +47,25 @@ export const API_URL = {
   B2B_COMPANY_BASE: '/admin/b2b/companies',
   B2B_ORDER_BASE: '/admin/b2b/orders',
 
+  // B2B order pipeline: Pickup → QC → Vendor Process → Delivery
+  // (mirrors the retail /admin/order/* set 1:1, isolated collections)
+  B2B_PICKUP_PENDING: '/admin/b2b/order/pickup/pending',
+  B2B_PICKUP_ASSIGN: '/admin/b2b/order/pickup/assign',
+  B2B_PICKUP_REASSIGN: '/admin/b2b/order/pickup/reassign',
+  B2B_PICKUP_LIST: '/admin/b2b/order/pickup/assigned/list',
+  B2B_QUALITY_CHECK_PENDING: '/admin/b2b/order/quality-check/pending',
+  B2B_QC_COMPLETED: '/admin/b2b/order/qc/completed',
+  B2B_PROCESS_PENDING: '/admin/b2b/order/process/pending',
+  B2B_PROCESS_ASSIGN: '/admin/b2b/order/process/assign',
+  B2B_PROCESS_LIST: '/admin/b2b/order/process/assigned/list',
+  B2B_PROCESS_COMPLETED: '/admin/b2b/order/process/completed',
+  B2B_PROCESS_INWARD_PENDING: '/admin/b2b/order/process/inward-pending',
+  B2B_DELIVERY_PENDING: '/admin/b2b/order/delivery/pending',
+  B2B_DELIVERY_ASSIGN: '/admin/b2b/order/delivery/assign',
+  B2B_DELIVERY_REASSIGN: '/admin/b2b/order/delivery/reassign',
+  B2B_DELIVERY_LIST: '/admin/b2b/order/delivery/assigned/list',
+  B2B_DELIVERED_LIST: '/admin/b2b/order/delivery/delivered/list',
+
   // Vendor order management
   VENDOR_ORDERS: '/admin/vendor/orders',
   VENDOR_ORDERS_STATS: '/admin/vendor/orders/stats',

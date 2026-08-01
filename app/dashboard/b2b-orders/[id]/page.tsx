@@ -1,39 +1,127 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { getB2BOrderById, updateB2BOrderStatus } from '@/lib/api/b2bOrder';
-import { B2BOrder, B2BOrderStatus } from '@/lib/types/b2bOrder';
+  ArrowLeft,
+  ArrowRight,
+  Ban,
+  Check,
+  Loader2,
+  ShieldCheck,
+} from 'lucide-react';
+import { getB2BOrderById } from '@/lib/api/b2bOrder';
+import { B2BOrder, B2B_ORDER_STAGE_LABELS } from '@/lib/types/b2bOrder';
 
-const ORDER_STATUSES: B2BOrderStatus[] = [
-  'Pending',
-  'Pickup Assigned',
-  'Processing',
-  'Out for Delivery',
-  'Delivered',
-  'Cancelled',
-];
+// Read-only pipeline timeline — admins can no longer free-jump stages here
+// (matches how retail's order detail avoids that). Cancelled (0) is handled
+// as a special case, not part of the linear 1-10 flow.
+const TIMELINE_STAGES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+function nextActionFor(order: B2BOrder): { label: string; href: string } | null {
+  const stage = order.orderStageId;
+  if (stage == null) return null;
+  switch (stage) {
+    case 1:
+      return { label: 'Go to Pickup Pending', href: '/dashboard/b2b-orders/pickup-pending' };
+    case 2:
+    case 3:
+      return { label: 'Go to Pickup Assigned', href: '/dashboard/b2b-orders/pickup-assigned' };
+    case 4:
+      return order.qualityCheck
+        ? { label: 'Go to Process Pending', href: '/dashboard/b2b-orders/process-pending' }
+        : { label: 'Go to Quality Check', href: '/dashboard/b2b-orders/quality-check' };
+    case 5:
+    case 6:
+      return { label: 'Go to Process Assigned', href: '/dashboard/b2b-orders/process-assigned' };
+    case 7:
+      return { label: 'Go to Delivery Pending', href: '/dashboard/b2b-orders/delivery-pending' };
+    case 8:
+    case 9:
+      return { label: 'Go to Delivery Assigned', href: '/dashboard/b2b-orders/delivery-assigned' };
+    case 10:
+      return { label: 'View in Delivered List', href: '/dashboard/b2b-orders/delivered' };
+    default:
+      return null;
+  }
+}
+
+function StageTimeline({ order }: { order: B2BOrder }) {
+  const stage = order.orderStageId;
+
+  if (stage === 0) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900 px-4 py-3">
+        <Ban className="h-5 w-5 text-red-600 shrink-0" />
+        <div>
+          <p className="text-sm font-semibold text-red-700 dark:text-red-400">Order Cancelled</p>
+          <p className="text-xs text-red-600/80 dark:text-red-400/70">This order has been cancelled and will not progress further.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (stage == null) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Pipeline stage unavailable for this order.
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {TIMELINE_STAGES.map((s, i) => {
+        const isDone = s < stage;
+        const isCurrent = s === stage;
+        const isLast = i === TIMELINE_STAGES.length - 1;
+        return (
+          <div key={s} className="flex gap-3">
+            <div className="flex flex-col items-center">
+              <div
+                className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold border ${
+                  isDone
+                    ? 'bg-green-600 border-green-600 text-white'
+                    : isCurrent
+                    ? 'bg-primary border-primary text-primary-foreground'
+                    : 'bg-muted border-border text-muted-foreground'
+                }`}
+              >
+                {isDone ? <Check className="h-3.5 w-3.5" /> : s}
+              </div>
+              {!isLast && (
+                <div className={`w-px flex-1 min-h-[18px] ${isDone ? 'bg-green-600' : 'bg-border'}`} />
+              )}
+            </div>
+            <div className={`pb-4 ${isCurrent ? '' : 'pt-0.5'}`}>
+              <p className={`text-sm ${isCurrent ? 'font-semibold text-foreground' : isDone ? 'text-foreground' : 'text-muted-foreground'}`}>
+                {B2B_ORDER_STAGE_LABELS[s]}
+              </p>
+              {isCurrent && s === 4 && (
+                <p className="text-xs text-muted-foreground mt-0.5 flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3" />
+                  Quality check: {order.qualityCheck ? 'Passed' : 'Pending'}
+                </p>
+              )}
+              {isCurrent && <Badge variant="secondary" className="mt-1">Current stage</Badge>}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function B2BOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
-  const { toast } = useToast();
   const [order, setOrder] = useState<B2BOrder | null>(null);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -45,20 +133,6 @@ export default function B2BOrderDetailPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
-
-  const handleStatusChange = async (status: B2BOrderStatus) => {
-    if (!order) return;
-    setUpdating(true);
-    const result = await updateB2BOrderStatus(order.id, status);
-    setUpdating(false);
-
-    if (!result.success) {
-      toast({ title: 'Update failed', description: result.message, variant: 'destructive' });
-      return;
-    }
-    setOrder(result.order ?? order);
-    toast({ title: 'Order status updated', description: `Now marked as ${status}.` });
-  };
 
   if (loading) {
     return (
@@ -78,6 +152,8 @@ export default function B2BOrderDetailPage() {
       </div>
     );
   }
+
+  const action = nextActionFor(order);
 
   return (
     <div className="space-y-6">
@@ -167,21 +243,26 @@ export default function B2BOrderDetailPage() {
 
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle>Order Status</CardTitle>
+              <CardTitle>Pipeline Status</CardTitle>
             </CardHeader>
-            <CardContent>
-              <Select value={order.orderStatus} onValueChange={handleStatusChange} disabled={updating}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ORDER_STATUSES.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      {status}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <CardContent className="space-y-4">
+              <StageTimeline order={order} />
+
+              {order.qcNote && (
+                <div className="rounded-lg border bg-muted/30 p-3 text-xs">
+                  <p className="font-medium text-foreground mb-0.5">QC Note</p>
+                  <p className="text-muted-foreground">{order.qcNote}</p>
+                </div>
+              )}
+
+              {action && (
+                <Link href={action.href}>
+                  <Button className="w-full rounded-xl">
+                    {action.label}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
             </CardContent>
           </Card>
         </div>

@@ -35,6 +35,12 @@ export interface B2BCompany {
   creditLimit: number;
   walletBalance: number; // negative = amount due
   isActive: boolean;
+  // Copilot navigation/contact (optional — no backfill, older companies won't have these yet)
+  latitude?: number;
+  longitude?: number;
+  landmark?: string;
+  siteContactName?: string;
+  siteContactMobile?: string;
   createdAt: string;
   updatedAt: string;
 }

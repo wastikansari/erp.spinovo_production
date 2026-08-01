@@ -33,6 +33,9 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardList,
+  ShieldCheck,
+  Truck,
+  PackageCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -107,6 +110,21 @@ const navigation: NavEntry[] = [
       { name: 'B2B Company List', href: '/dashboard/b2b-companies', icon: Building2 },
       { name: 'B2B Orders', href: '/dashboard/b2b-orders', icon: Package },
       { name: 'B2B Services', href: '/dashboard/b2b-services', icon: Wallet },
+    ],
+  },
+
+  {
+    name: 'B2B Order Management',
+    icon: Truck,
+    children: [
+      { name: 'Pickup Pending', href: '/dashboard/b2b-orders/pickup-pending', icon: UserCheck },
+      { name: 'Pickup Assigned', href: '/dashboard/b2b-orders/pickup-assigned', icon: UserCheck },
+      { name: 'Quality Check', href: '/dashboard/b2b-orders/quality-check', icon: ShieldCheck },
+      { name: 'Process Pending', href: '/dashboard/b2b-orders/process-pending', icon: Store },
+      { name: 'Process Assigned', href: '/dashboard/b2b-orders/process-assigned', icon: Store },
+      { name: 'Delivery Pending', href: '/dashboard/b2b-orders/delivery-pending', icon: Truck },
+      { name: 'Delivery Assigned', href: '/dashboard/b2b-orders/delivery-assigned', icon: Truck },
+      { name: 'Delivered', href: '/dashboard/b2b-orders/delivered', icon: PackageCheck },
     ],
   },
 
