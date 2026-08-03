@@ -11,6 +11,7 @@ import {
 } from '../types/b2b-pickup-assign';
 import {
   B2BQualityCheckPendingListData,
+  B2BQcCompletedPayload,
   B2BQcCompletedResponse,
   B2BProcessPendingListData,
   B2BProcessAssignedListData,
@@ -70,8 +71,9 @@ export class B2BAssignApiService extends BaseApiService {
     });
   }
 
-  static async qcCompleted(orderId: string, payload: { note?: string; photo?: File }): Promise<ApiResponse<B2BQcCompletedResponse>> {
+  static async qcCompleted(orderId: string, payload: B2BQcCompletedPayload): Promise<ApiResponse<B2BQcCompletedResponse>> {
     const formData = new FormData();
+    formData.append('items', JSON.stringify(payload.items));
     if (payload.note) formData.append('note', payload.note);
     if (payload.photo) formData.append('photo', payload.photo);
     return this.makeRequest<B2BQcCompletedResponse>(`${API_URL.B2B_QC_COMPLETED}/${orderId}`, {

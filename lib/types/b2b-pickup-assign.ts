@@ -42,8 +42,15 @@ export interface B2BOrderSummary {
   company_id: B2BCompanySummary | string;
   orderNo: string;
   items: B2BOrderItem[];
+  original_items?: B2BOrderItem[];
   bookingDate: string;
   bookingTime: string;
+  // Present on the raw document but not every route selects them explicitly
+  // — optional so existing callers that don't need them are unaffected.
+  serviceCharges?: number;
+  slotCharges?: number;
+  deliveryCharge?: number;
+  offerAmount?: number;
   totalBilling: number;
   orderStatus: string;
   settlementStatus: string;

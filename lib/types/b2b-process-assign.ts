@@ -3,7 +3,12 @@
 
 import { B2BOrderSummary, B2BCompanySummary } from './b2b-pickup-assign';
 
-// ── Quality Check (simple boolean gate — v1 scope, no per-garment detail) ──
+// ── Quality Check ────────────────────────────────────────────────────────
+// Admin corrects what was *actually* picked up against what the company
+// ordered, using the same garment-catalog picker as the portal's New Order
+// screen. Whatever is finalized here becomes the real, final billing amount
+// — the server recomputes serviceCharges/totalBilling and settles the
+// difference against the company wallet.
 
 export interface B2BQualityCheckPendingListData {
   totalCount: number;
@@ -12,8 +17,29 @@ export interface B2BQualityCheckPendingListData {
   orders: B2BOrderSummary[];
 }
 
+// Client only ever sends serviceId/garmentId/qty — unit price, names, and
+// line amounts are always re-derived server-side from the live catalog.
+export interface B2BQcGarmentPayload {
+  garmentId: string;
+  qty: number;
+}
+
+export interface B2BQcItemPayload {
+  serviceId: number;
+  garment: B2BQcGarmentPayload[];
+}
+
+export interface B2BQcCompletedPayload {
+  items: B2BQcItemPayload[];
+  note?: string;
+  photo?: File;
+}
+
 export interface B2BQcCompletedResponse {
   order: B2BOrderSummary;
+  previous_total: number;
+  corrected_total: number;
+  billing_difference: number;
 }
 
 // ── Vendor process assignment ───────────────────────────────────────────────

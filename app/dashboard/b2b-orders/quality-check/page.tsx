@@ -33,6 +33,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { B2BOrderSummary } from '@/lib/types/b2b-pickup-assign';
+import { B2BQcItemPayload } from '@/lib/types/b2b-process-assign';
+import { B2BQcGarmentEditor } from '@/components/forms/b2b-qc-garment-editor';
 
 function formatDate(dateString: string) {
   if (!dateString) return '—';
@@ -71,6 +73,8 @@ function QcConfirmDialog({
   const [note, setNote] = useState('');
   const [photo, setPhoto] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [items, setItems] = useState<B2BQcItemPayload[]>([]);
+  const [correctedTotal, setCorrectedTotal] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -78,16 +82,44 @@ function QcConfirmDialog({
     if (open) {
       setNote('');
       setPhoto(null);
+      setItems([]);
+      setCorrectedTotal(0);
     }
   }, [open]);
 
+  // Stable setter — safe as the editor's onChange dependency, won't trigger
+  // an effect-identity loop.
+  const handleEditorChange = useCallback(
+    (nextItems: B2BQcItemPayload[], _serviceCharges: number, nextTotal: number) => {
+      setItems(nextItems);
+      setCorrectedTotal(nextTotal);
+    },
+    [],
+  );
+
+  const hasGarments = items.some((group) => group.garment.length > 0);
+
   const handleSubmit = async () => {
-    if (!order) return;
+    if (!order || !hasGarments) return;
     setSubmitting(true);
     try {
-      const res = await B2BAssignApiService.qcCompleted(order._id, { note: note || undefined, photo: photo || undefined });
-      if (res.status) {
-        toast({ title: 'QC Passed', description: `Order ${order.orderNo} marked as quality checked.` });
+      const res = await B2BAssignApiService.qcCompleted(order._id, {
+        items,
+        note: note || undefined,
+        photo: photo || undefined,
+      });
+      if (res.status && res.data) {
+        const { previous_total, corrected_total, billing_difference } = res.data;
+        const diffCopy =
+          billing_difference === 0
+            ? 'No billing change.'
+            : billing_difference > 0
+              ? `Company wallet debited an extra ₹${Math.abs(billing_difference).toLocaleString('en-IN')}.`
+              : `Company wallet credited ₹${Math.abs(billing_difference).toLocaleString('en-IN')}.`;
+        toast({
+          title: 'QC Passed',
+          description: `Order ${order.orderNo} — billing corrected from ₹${previous_total.toLocaleString('en-IN')} to ₹${corrected_total.toLocaleString('en-IN')}. ${diffCopy}`,
+        });
         onOpenChange(false);
         onSuccess();
       } else {
@@ -102,14 +134,15 @@ function QcConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
             Quality Check — {order?.orderNo}
           </DialogTitle>
           <DialogDescription>
-            Review the garments below and mark quality check as passed. This is a simple pass gate — no per-garment count adjustment.
+            Correct the garments and quantities against what was actually picked up. This becomes the final billing
+            amount for this order.
           </DialogDescription>
         </DialogHeader>
 
@@ -121,28 +154,16 @@ function QcConfirmDialog({
                 <span className="font-medium">{companyName(order)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Garments</span>
+                <span className="text-muted-foreground">Ordered garments</span>
                 <span className="font-medium">{garmentQty(order)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Amount</span>
+                <span className="text-muted-foreground">Ordered amount</span>
                 <span className="font-medium">₹{order.totalBilling?.toLocaleString('en-IN')}</span>
               </div>
             </div>
 
-            <div className="rounded-lg border divide-y">
-              {order.items.map((svc, i) => (
-                <div key={i} className="p-3 space-y-1.5">
-                  <p className="font-medium text-sm">{svc.serviceName}</p>
-                  {svc.garment.map((g, j) => (
-                    <div key={j} className="flex items-center justify-between text-xs pl-3 text-muted-foreground">
-                      <span>{g.garmentName} · Qty: {g.qty}</span>
-                      <span>₹{g.amount?.toLocaleString('en-IN')}</span>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
+            <B2BQcGarmentEditor order={order} disabled={submitting} onChange={handleEditorChange} />
 
             <div className="space-y-2">
               <Label htmlFor="qc-note">Note (optional)</Label>
@@ -193,13 +214,13 @@ function QcConfirmDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || !hasGarments}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             {submitting ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Submitting…</>
             ) : (
-              <><CheckCircle2 className="mr-2 h-4 w-4" /> Mark QC Passed</>
+              <><CheckCircle2 className="mr-2 h-4 w-4" /> Mark QC Passed (₹{correctedTotal.toLocaleString('en-IN')})</>
             )}
           </Button>
         </DialogFooter>
