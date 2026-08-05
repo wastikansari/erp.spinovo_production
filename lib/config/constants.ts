@@ -89,6 +89,9 @@ export const API_URL = {
 
   ORDER_TIMELINE: '/admin/orders/pickup/process/time/details',
 
+  // Inventory Management (laundry-ops supplies: bags, baskets, butter paper, etc.)
+  INVENTORY_ITEMS: '/admin/inventory/items',
+
 } as const;
 
 export const API_ENDPOINTS = {

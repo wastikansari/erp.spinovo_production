@@ -28,3 +28,12 @@ export function orderAttemptPhotoUrl(photoUrl?: string | null): string | null {
   if (/^https?:\/\//i.test(photoUrl)) return photoUrl;
   return `${getUploadsHost()}/uploads/${photoUrl}`;
 }
+
+// Build a full URL for an inventory item photo. The backend already stores
+// the full "/uploads/inventory_icon/<file>" path (see
+// adminInventoryController.js), so this just prefixes the host.
+export function inventoryItemImageUrl(image?: string | null): string | null {
+  if (!image) return null;
+  if (/^https?:\/\//i.test(image)) return image;
+  return `${getUploadsHost()}${image}`;
+}

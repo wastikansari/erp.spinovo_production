@@ -36,6 +36,7 @@ import {
   ShieldCheck,
   Truck,
   PackageCheck,
+  Boxes,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -127,6 +128,8 @@ const navigation: NavEntry[] = [
       { name: 'Delivered', href: '/dashboard/b2b-orders/delivered', icon: PackageCheck },
     ],
   },
+
+  { name: 'Inventory', href: '/dashboard/inventory', icon: Boxes },
 
   { name: 'Customer Feedback', href: '/dashboard/feedback', icon: Star },
 
