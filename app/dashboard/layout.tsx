@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -37,6 +37,7 @@ import {
   Truck,
   PackageCheck,
   Boxes,
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -67,6 +68,7 @@ import { AuthService } from '@/lib/auth';
 import { useFCM, unregisterFCM } from '@/hooks/useFCM';
 import NotificationBell from '@/components/NotificationBell';
 import NotificationPermissionPrompt from '@/components/NotificationPermissionPrompt';
+import { pageKeyForPath, hasAccess, canAccessPath, type PermissionedUser } from '@/lib/permissions';
 
 type NavLeaf = { name: string; href: string; icon: typeof LayoutDashboard };
 type NavGroup = { name: string; icon: typeof LayoutDashboard; children: NavLeaf[] };
@@ -153,15 +155,49 @@ const navigation: NavEntry[] = [
       { name: 'Attempt Reasons', href: '/dashboard/settings/attempt-reasons', icon: ClipboardList },
       { name: 'Notification Campaigns', href: '/dashboard/notification-campaigns', icon: Send },
       { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
+      // Hardcoded super_admin-only on the backend (requirePermission("staff"))
+      // — filterNavigation() below hides this for everyone else too, since
+      // hasAccess() always returns false for the "staff" pageKey unless
+      // role === 'super_admin'.
+      { name: 'Staff', href: '/dashboard/staff', icon: Shield },
     ],
   },
 ];
 
-function SidebarNavList({ onNavigate }: { onNavigate?: () => void }) {
+// Hides nav items the logged-in user has no view access to. A group
+// disappears entirely once all of its children are filtered out.
+function filterNavigation(nav: NavEntry[], user: PermissionedUser | null): NavEntry[] {
+  return nav.reduce<NavEntry[]>((acc, item) => {
+    if (isNavGroup(item)) {
+      const children = item.children.filter((child) => {
+        const key = pageKeyForPath(child.href);
+        return !key || hasAccess(user, key);
+      });
+      if (children.length > 0) acc.push({ ...item, children });
+    } else {
+      const key = pageKeyForPath(item.href);
+      if (!key || hasAccess(user, key)) acc.push(item);
+    }
+    return acc;
+  }, []);
+}
+
+function firstAccessibleHref(nav: NavEntry[]): string | null {
+  for (const item of nav) {
+    if (isNavGroup(item)) {
+      if (item.children[0]) return item.children[0].href;
+    } else {
+      return item.href;
+    }
+  }
+  return null;
+}
+
+function SidebarNavList({ items, onNavigate }: { items: NavEntry[]; onNavigate?: () => void }) {
   const pathname = usePathname();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    navigation.forEach((item) => {
+    items.forEach((item) => {
       if (isNavGroup(item) && item.children.some((child) => child.href === pathname)) {
         initial[item.name] = true;
       }
@@ -175,7 +211,7 @@ function SidebarNavList({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      {navigation.map((item) => {
+      {items.map((item) => {
         if (isNavGroup(item)) {
           const isOpen = !!openGroups[item.name];
           const isChildActive = item.children.some((child) => child.href === pathname);
@@ -254,6 +290,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -263,6 +300,8 @@ export default function DashboardLayout({
   const [toast, setToast] = useState<any>(null);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission>('default');
   const [notifPromptDismissed, setNotifPromptDismissed] = useState(false);
+
+  const visibleNavigation = useMemo(() => filterNavigation(navigation, user), [user]);
 
   useFCM({ onForegroundMessage: (payload) => setToast(payload), enabled: !!user && notifPermission === 'granted' });
 
@@ -320,6 +359,26 @@ export default function DashboardLayout({
 
     initializeAuth();
   }, [router]);
+
+  // Route guard — blocks direct-URL access to a page the logged-in user
+  // has no view permission on. Re-checked whenever the route or the user's
+  // permissions change (e.g. a super_admin edits their access mid-session).
+  const [accessDenied, setAccessDenied] = useState(false);
+  useEffect(() => {
+    if (isLoading || !user) return;
+    if (canAccessPath(user, pathname)) {
+      setAccessDenied(false);
+      return;
+    }
+    const fallback = firstAccessibleHref(visibleNavigation);
+    if (fallback && fallback !== pathname) {
+      router.replace(fallback);
+    } else {
+      // Nothing else this user can see either — show a message instead of
+      // redirect-looping.
+      setAccessDenied(true);
+    }
+  }, [isLoading, user, pathname, visibleNavigation, router]);
 
   const handleLogout = () => {
     setShowLogoutDialog(true);
@@ -403,7 +462,7 @@ export default function DashboardLayout({
             <SheetTitle>Spinovo Admin</SheetTitle>
           </SheetHeader>
           <nav className="space-y-1 px-2">
-            <SidebarNavList onNavigate={() => setIsMobileMenuOpen(false)} />
+            <SidebarNavList items={visibleNavigation} onNavigate={() => setIsMobileMenuOpen(false)} />
           </nav>
         </SheetContent>
       </Sheet>
@@ -416,7 +475,7 @@ export default function DashboardLayout({
               <h1 className="text-xl font-bold">Spinovo Admin</h1>
             </div>
             <nav className="mt-5 flex-1 space-y-1 px-2">
-              <SidebarNavList />
+              <SidebarNavList items={visibleNavigation} />
             </nav>
           </div>
           <div className="flex flex-shrink-0 border-t p-4">
@@ -498,7 +557,21 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <div className="md:pl-64">
-        <main className="pt-20 pb-6 px-4 sm:px-6 md:pt-6 md:px-8">{children}</main>
+        <main className="pt-20 pb-6 px-4 sm:px-6 md:pt-6 md:px-8">
+          {accessDenied ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-24 text-center">
+              <p className="text-lg font-medium">You don't have access to any pages.</p>
+              <p className="text-sm text-muted-foreground">
+                Contact your super admin to get permissions assigned.
+              </p>
+              <Button variant="outline" className="mt-4" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
       </div>
 
       {/* Notification permission prompt */}

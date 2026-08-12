@@ -92,6 +92,9 @@ export const API_URL = {
   // Inventory Management (laundry-ops supplies: bags, baskets, butter paper, etc.)
   INVENTORY_ITEMS: '/admin/inventory/items',
 
+  // Staff (admin/supervisor account) management — super_admin only
+  STAFF_BASE: '/admin/staff',
+
 } as const;
 
 export const API_ENDPOINTS = {

@@ -15,6 +15,7 @@ export { FeedbackApiService } from './feedback';
 export { PaymentV2ApiService } from './payment-v2';
 export type { PaymentV2Filters } from './payment-v2';
 export { AttemptApiService } from './attempt';
+export { StaffApiService } from './staff';
 
 
 // Export types
@@ -33,3 +34,4 @@ export * from '../types/payment-v2';
 export * from '../types/vendor';
 export * from '../types/feedback';
 export * from '../types/attempt';
+export * from '../types/staff';
