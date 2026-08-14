@@ -105,7 +105,7 @@ export default function TodayBookingsPage() {
         <CardHeader className="border-b bg-muted/20 py-4">
           <CardTitle className="flex items-center gap-2 text-base">
             <Package className="h-5 w-5" />
-            Today's Orders ({totalOrders})
+            Today&apos;s Orders ({totalOrders})
           </CardTitle>
         </CardHeader>
 
@@ -133,7 +133,7 @@ export default function TodayBookingsPage() {
           {loading ? (
             <div className="flex flex-col items-center justify-center py-24 gap-3">
               <Package className="h-7 w-7 animate-pulse text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Loading today's bookings…</p>
+              <p className="text-sm text-muted-foreground">Loading today&apos;s bookings…</p>
             </div>
           ) : bookings.length === 0 ? (
             <div className="py-24 text-center">

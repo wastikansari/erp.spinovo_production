@@ -437,6 +437,12 @@ export default function DashboardLayout({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/profile">
+                  <User className="mr-2 h-4 w-4" />
+                  My Profile
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={handleTestNotification}>
                 <Bell className="mr-2 h-4 w-4" />
                 Test Notification
@@ -480,17 +486,17 @@ export default function DashboardLayout({
           </div>
           <div className="flex flex-shrink-0 border-t p-4">
             <div className="flex items-center justify-between w-full">
-              <div className="flex items-center">
+              <Link href="/dashboard/profile" className="flex items-center min-w-0 hover:opacity-80">
                 <div className="flex-shrink-0">
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <User className="h-4 w-4 text-primary" />
                   </div>
                 </div>
-                <div className="ml-3">
-                  <div className="text-sm font-medium">{user?.name || 'Admin'}</div>
+                <div className="ml-3 min-w-0">
+                  <div className="text-sm font-medium truncate">{user?.name || 'Admin'}</div>
                   <div className="text-xs text-muted-foreground">{user?.mobile}</div>
                 </div>
-              </div>
+              </Link>
               <div className="flex items-center gap-2">
                 {/* <NotificationBell /> */}
                 {/* <Button
@@ -511,8 +517,14 @@ export default function DashboardLayout({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {/* 
+                    {/*
                      */}
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard/profile">
+                        <User className="mr-2 h-4 w-4" />
+                        My Profile
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
                       {/* <Button
                         variant="ghost"
@@ -560,7 +572,7 @@ export default function DashboardLayout({
         <main className="pt-20 pb-6 px-4 sm:px-6 md:pt-6 md:px-8">
           {accessDenied ? (
             <div className="flex flex-col items-center justify-center gap-2 py-24 text-center">
-              <p className="text-lg font-medium">You don't have access to any pages.</p>
+              <p className="text-lg font-medium">You don&apos;t have access to any pages.</p>
               <p className="text-sm text-muted-foreground">
                 Contact your super admin to get permissions assigned.
               </p>
