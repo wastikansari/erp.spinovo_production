@@ -47,6 +47,10 @@ export const API_URL = {
   B2B_COMPANY_BASE: '/admin/b2b/companies',
   B2B_ORDER_BASE: '/admin/b2b/orders',
 
+  // B2B company-wise dynamic pricing (propose/approve workflow on top of
+  // the b2b_services master catalog)
+  B2B_PRICING_BASE: '/admin/b2b/pricing',
+
   // B2B order pipeline: Pickup → QC → Vendor Process → Delivery
   // (mirrors the retail /admin/order/* set 1:1, isolated collections)
   B2B_PICKUP_PENDING: '/admin/b2b/order/pickup/pending',

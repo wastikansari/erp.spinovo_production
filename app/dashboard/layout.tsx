@@ -113,6 +113,7 @@ const navigation: NavEntry[] = [
       { name: 'B2B Company List', href: '/dashboard/b2b-companies', icon: Building2 },
       { name: 'B2B Orders', href: '/dashboard/b2b-orders', icon: Package },
       { name: 'B2B Services', href: '/dashboard/b2b-services', icon: Wallet },
+      { name: 'B2B Pricing', href: '/dashboard/b2b-pricing', icon: CreditCard },
     ],
   },
 
