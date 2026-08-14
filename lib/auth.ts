@@ -23,7 +23,9 @@ interface AdminUser {
   profile_pic: string;
   access_token: string;
   city_id: number;
-  admin_role: number;
+  role: 'super_admin' | 'admin' | 'supervisor';
+  status: 'active' | 'inactive';
+  permissions: { key: string; level: 'view' | 'edit' | 'all' }[];
   createdAt: string;
   updatedAt: string;
 }
