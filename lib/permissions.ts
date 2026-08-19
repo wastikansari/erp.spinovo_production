@@ -83,3 +83,10 @@ export function canAccessPath(user: PermissionedUser | null | undefined, pathnam
   if (!pageKey) return true; // ungated page (e.g. the Settings links hub)
   return hasAccess(user, pageKey, 'view');
 }
+
+// B2B pricing approve/reject/reset is role-gated only (mirrors
+// middleware/requireRole.js on the backend) — a supervisor never sees
+// these actions regardless of their own b2b-pricing permission level.
+export function canApproveB2BPricing(user: PermissionedUser | null | undefined): boolean {
+  return user?.role === 'admin' || user?.role === 'super_admin';
+}
