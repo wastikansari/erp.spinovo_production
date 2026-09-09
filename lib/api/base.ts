@@ -52,13 +52,25 @@ export class BaseApiService {
         }, 'BaseApiService');
 
         if (!response.ok) {
+          // Read the body before throwing — the backend usually sends a
+          // real `msg` (Joi validation detail, or the caught err.message)
+          // even on 4xx/5xx responses. Without this, callers only ever see
+          // a generic fallback string and the actual cause is lost.
+          let serverMsg: string | undefined;
+          try {
+            const errBody = await response.json();
+            serverMsg = errBody?.msg;
+          } catch {
+            // Body wasn't JSON (e.g. a proxy error page) — fall through to generic message.
+          }
+
           if (response.status === 401) {
-            throw new AuthenticationError('Authentication failed');
+            throw new AuthenticationError(serverMsg || 'Authentication failed');
           }
           if (response.status >= 500) {
-            throw new ApiError(`Server error: ${response.status}`, response.status);
+            throw new ApiError(serverMsg || `Server error: ${response.status}`, response.status);
           }
-          throw new ApiError(`HTTP error: ${response.status}`, response.status);
+          throw new ApiError(serverMsg || `HTTP error: ${response.status}`, response.status);
         }
 
         const data = await response.json();

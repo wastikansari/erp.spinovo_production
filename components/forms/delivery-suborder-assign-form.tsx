@@ -104,8 +104,9 @@ export function DeliverySubOrderAssignForm({ open, onOpenChange, subOrder, onSuc
             } else {
                 toast({ title: 'Error', description: response.msg || 'Failed to assign delivery', variant: 'destructive' });
             }
-        } catch {
-            toast({ title: 'Error', description: 'Failed to assign delivery. Please try again.', variant: 'destructive' });
+        } catch (err) {
+            const description = err instanceof Error && err.message ? err.message : 'Failed to assign delivery. Please try again.';
+            toast({ title: 'Error', description, variant: 'destructive' });
         } finally {
             setLoading(false);
         }

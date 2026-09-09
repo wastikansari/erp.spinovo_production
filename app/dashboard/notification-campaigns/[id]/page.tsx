@@ -22,6 +22,7 @@ import { NotificationCampaignApiService } from '@/lib/api/notification-campaign'
 import { CampaignStatus, DeliveryStatusData, NotificationCampaign } from '@/lib/types/notification-campaign';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { campaignImageUrl } from '@/lib/utils';
 
 const STATUS_COLORS: Record<CampaignStatus, string> = {
     draft: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
@@ -185,7 +186,7 @@ export default function CampaignDetailsPage() {
                                 <div>
                                     <p className="text-sm text-muted-foreground">Image</p>
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={campaign.image} alt={campaign.title} className="mt-1 h-24 rounded-md border object-cover" />
+                                    <img src={campaignImageUrl(campaign.image) ?? undefined} alt={campaign.title} className="mt-1 h-24 rounded-md border object-cover" />
                                 </div>
                             )}
                         </div>
