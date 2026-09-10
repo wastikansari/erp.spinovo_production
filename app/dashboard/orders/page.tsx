@@ -929,15 +929,19 @@ export default function BookingsPage() {
 
                                         <div className="min-w-0">
                                             {booking.customer_details ? (
-                                                <>
-                                                    <p className="font-medium text-sm truncate">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => router.push(`/dashboard/customers/${booking.customer_details!._id}`)}
+                                                    className="text-left group"
+                                                >
+                                                    <p className="font-medium text-sm truncate text-primary group-hover:underline">
                                                         {booking.customer_details.name || '—'}
                                                     </p>
                                                     <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
                                                         <Phone className="h-3 w-3 shrink-0" />
                                                         {booking.customer_details.mobile || '—'}
                                                     </p>
-                                                </>
+                                                </button>
                                             ) : (
                                                 <span className="text-xs text-muted-foreground">—</span>
                                             )}
@@ -967,24 +971,15 @@ export default function BookingsPage() {
                                         </div>
 
                                         <div className="flex justify-end">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" className="h-8 w-8 p-0">
-                                                        <MoreHorizontal className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onClick={() => router.push(`/dashboard/bookings/${booking._id}`)}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        View Details
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => toggleRow(booking._id)}>
-                                                        <Eye className="mr-2 h-4 w-4" />
-                                                        View Sub-Orders
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 rounded-lg text-xs"
+                                                onClick={() => router.push(`/dashboard/bookings/${booking._id}`)}
+                                            >
+                                                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                                View Details
+                                            </Button>
                                         </div>
                                     </div>
 
