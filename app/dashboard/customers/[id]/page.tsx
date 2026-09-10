@@ -31,6 +31,7 @@ import {
   ShoppingBag,
   TrendingUp,
   TrendingDown,
+  Gift,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -210,7 +211,7 @@ export default function CustomerDetailsPage() {
       </div>
 
       {/* Summary Stat Boxes */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -266,6 +267,20 @@ export default function CustomerDetailsPage() {
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Spinovo Bonus</p>
+                <p className="text-3xl font-bold mt-1 text-amber-600">₹{user.spinovo_bonus ?? 0}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+                <Gift className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Customer Profile Card */}
@@ -309,7 +324,14 @@ export default function CustomerDetailsPage() {
                   <p className="text-sm text-muted-foreground">Wallet Balance</p>
                   <p className="font-medium text-green-600">₹{user.wallet_balance}</p>
                 </div>
-              </div>     
+              </div>
+              <div className="flex items-center gap-2">
+                <Gift className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-sm text-muted-foreground">Spinovo Bonus</p>
+                  <p className="font-medium text-amber-600">₹{user.spinovo_bonus ?? 0}</p>
+                </div>
+              </div>
               <div>
                 <p className="text-sm text-muted-foreground">Living Type</p>
                 <Badge variant="secondary">{user.living_type || 'Not specified'}</Badge>
