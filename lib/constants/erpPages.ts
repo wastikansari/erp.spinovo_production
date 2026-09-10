@@ -22,6 +22,7 @@ export interface ErpPage {
 // hardcoded to role === 'super_admin' regardless of any permission entry.
 export const ERP_PAGES: ErpPage[] = [
   { key: 'dashboard', label: 'Dashboard (home overview)', group: 'Retail' },
+  { key: 'daily-report', label: 'Daily Report', group: 'Retail' },
   { key: 'orders', label: 'Orders', group: 'Retail' },
   { key: 'order-timeline', label: 'Order Timeline', group: 'Retail' },
   { key: 'otp-requests', label: 'OTP Requests', group: 'Retail' },

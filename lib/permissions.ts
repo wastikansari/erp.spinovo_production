@@ -41,6 +41,7 @@ const ROUTE_PAGE_MAP: [string, string][] = [
   ['/dashboard/notification-campaigns', 'notification-campaigns'],
   ['/dashboard/export', 'export'],
   ['/dashboard/revenue', 'revenue'],
+  ['/dashboard/daily-report', 'daily-report'],
   ['/dashboard/notifications', 'notifications'],
   ['/dashboard/staff', 'staff'],
   ['/dashboard', 'dashboard'], // exact home page — must stay last (shortest prefix)
