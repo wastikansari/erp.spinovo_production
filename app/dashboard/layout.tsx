@@ -38,6 +38,7 @@ import {
   PackageCheck,
   Boxes,
   Shield,
+  FileBarChart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -145,6 +146,7 @@ const navigation: NavEntry[] = [
     name: 'Settings',
     icon: Settings,
     children: [
+      { name: 'Daily Report', href: '/dashboard/daily-report', icon: FileBarChart },
       { name: 'Transactions', href: '/dashboard/transactions', icon: CreditCard },
       { name: 'Payment Reconciliation', href: '/dashboard/payments-v2', icon: AlertTriangle },
       { name: 'OTP Requests', href: '/dashboard/otp-requests', icon: MessageSquare },
