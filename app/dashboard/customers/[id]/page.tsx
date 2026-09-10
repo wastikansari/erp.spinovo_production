@@ -410,7 +410,12 @@ export default function CustomerDetailsPage() {
                       {orders.map((order) => (
                         <TableRow key={order._id}>
                           <TableCell className="font-medium">
-                            {order.order_display_no}
+                            <Link
+                              href={`/dashboard/bookings/${order._id}`}
+                              className="text-primary hover:underline"
+                            >
+                              {order.order_display_no}
+                            </Link>
                           </TableCell>
                           <TableCell>{order.service_name}</TableCell>
                           <TableCell>{order.garment_qty}</TableCell>

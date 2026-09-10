@@ -5,9 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
-  AlertCircle, Users, MoreHorizontal, Eye, Phone, User, Calendar,
+  AlertCircle, Users, Phone, User, Calendar,
   Search, Filter, X, IndianRupee, ShoppingBag, ArrowUp, ArrowDown, ArrowUpDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -176,13 +175,17 @@ export default function CustomersPage() {
       key: 'name',
       header: 'Name',
       render: (customer: Customer) => (
-        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => handleViewDetails(customer._id)}
+          className="flex items-center gap-2 text-left group"
+        >
           <User className="h-4 w-4 text-muted-foreground" />
           <div className="flex flex-col">
-            <span className="font-medium">{customer.name}</span>
+            <span className="font-medium text-primary group-hover:underline">{customer.name}</span>
             <span className="text-xs text-muted-foreground">{customer.total_orders ?? 0} orders</span>
           </div>
-        </div>
+        </button>
       ),
     },
     {
@@ -232,22 +235,6 @@ export default function CustomersPage() {
       searchable: false,
     },
   ];
-
-  const renderActions = (customer: Customer) => (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <MoreHorizontal className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => handleViewDetails(customer._id)}>
-          <Eye className="mr-2 h-4 w-4" />
-          Details
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
 
   return (
     <div className="space-y-6">
@@ -432,7 +419,6 @@ export default function CustomersPage() {
             columns={columns}
             loading={loading}
             emptyMessage={error ? 'Failed to load customers.' : 'No customers found matching your filters.'}
-            actions={renderActions}
           />
 
           <div className="mt-4">
