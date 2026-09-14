@@ -1,10 +1,12 @@
 import { BaseApiService } from './base';
 import { ApiResponse } from '../types';
-import { 
-  CopilotListData, 
-  CopilotDetailsData, 
-  CreateCopilotRequest, 
-  CreateCopilotResponse 
+import {
+  CopilotListData,
+  CopilotDetailsData,
+  CreateCopilotRequest,
+  CreateCopilotResponse,
+  UpdateCopilotRequest,
+  UpdateCopilotResponse
 } from '../types/copilot';
 
 export class CopilotApiService extends BaseApiService {
@@ -27,6 +29,13 @@ export class CopilotApiService extends BaseApiService {
   static async createCopilot(data: CreateCopilotRequest): Promise<ApiResponse<CreateCopilotResponse>> {
     return this.makeRequest<CreateCopilotResponse>('/admin/copilot/create', {
       method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  static async updateCopilot(copilotId: string, data: UpdateCopilotRequest): Promise<ApiResponse<UpdateCopilotResponse>> {
+    return this.makeRequest<UpdateCopilotResponse>(`/admin/copilot/${copilotId}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }

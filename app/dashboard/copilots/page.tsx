@@ -19,7 +19,8 @@ import {
   Eye,
   Phone,
   User,
-  Calendar
+  Calendar,
+  KeyRound
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { CopilotApiService, Copilot } from '@/lib/api';
@@ -29,6 +30,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { DataTable } from '@/components/ui/data-table';
 import { Pagination } from '@/components/ui/pagination';
 import { CopilotForm } from '@/components/forms/copilot-form';
+import { ResetCopilotPasswordForm } from '@/components/forms/reset-copilot-password-form';
 
 export default function CopilotsPage() {
   const [copilots, setCopilots] = useState<Copilot[]>([]);
@@ -38,6 +40,7 @@ export default function CopilotsPage() {
   const [totalCopilots, setTotalCopilots] = useState(0);
   const [error, setError] = useState<string>('');
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [resetPasswordCopilot, setResetPasswordCopilot] = useState<Copilot | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -213,6 +216,10 @@ export default function CopilotsPage() {
           <Eye className="mr-2 h-4 w-4" />
           View Profile
         </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setResetPasswordCopilot(copilot)}>
+          <KeyRound className="mr-2 h-4 w-4" />
+          Reset Password
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -278,6 +285,17 @@ export default function CopilotsPage() {
         onOpenChange={setShowCreateForm}
         onSuccess={handleCreateSuccess}
       />
+
+      {resetPasswordCopilot && (
+        <ResetCopilotPasswordForm
+          open={!!resetPasswordCopilot}
+          onOpenChange={(open) => {
+            if (!open) setResetPasswordCopilot(null);
+          }}
+          copilotId={resetPasswordCopilot._id}
+          copilotName={resetPasswordCopilot.name}
+        />
+      )}
     </div>
   );
 }

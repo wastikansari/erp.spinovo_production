@@ -203,10 +203,12 @@ export default function WhatsappNotificationsPage() {
 
   const handleAddNumber = async () => {
     const digits = newNumber.replace(/\D/g, '');
-    if (!/^\d{10,15}$/.test(digits)) {
+    // Minimum 11 digits, not 10 — must include the country code (e.g.
+    // 918327724967) or Interakt silently fails to deliver the message.
+    if (!/^\d{11,15}$/.test(digits)) {
       toast({
         title: 'Error',
-        description: 'Enter the full number with country code, digits only (e.g. 919999999999).',
+        description: 'Enter the full number WITH country code, digits only (e.g. 918327724967, not just 8327724967).',
         variant: 'destructive',
       });
       return;

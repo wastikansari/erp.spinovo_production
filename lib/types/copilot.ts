@@ -34,3 +34,16 @@ export interface CreateCopilotRequest {
 export interface CreateCopilotResponse {
   user: Copilot;
 }
+
+export interface UpdateCopilotRequest {
+  name?: string;
+  email?: string;
+  city_id?: number;
+  role?: number;
+  status?: number;
+  password?: string;
+}
+
+export interface UpdateCopilotResponse {
+  copilotUser: Copilot;
+}

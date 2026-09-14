@@ -17,13 +17,15 @@ import {
   AlertCircle,
   Shield,
   Key,
-  Settings
+  Settings,
+  KeyRound
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { CopilotApiService, CopilotDetailsData } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ResetCopilotPasswordForm } from '@/components/forms/reset-copilot-password-form';
 
 export default function CopilotDetailsPage() {
   const params = useParams();
@@ -34,6 +36,7 @@ export default function CopilotDetailsPage() {
   const [copilotData, setCopilotData] = useState<CopilotDetailsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
 
   const fetchCopilotDetails = async () => {
     try {
@@ -207,6 +210,10 @@ export default function CopilotDetailsPage() {
           <RefreshCw className="mr-2 h-4 w-4" />
           Refresh
         </Button>
+        <Button onClick={() => setShowResetPassword(true)} variant="outline" size="sm">
+          <KeyRound className="mr-2 h-4 w-4" />
+          Reset Password
+        </Button>
       </div>
 
       {/* Copilot Profile Card */}
@@ -350,6 +357,13 @@ export default function CopilotDetailsPage() {
           <p>Status: {copilotUser?.status || 'N/A'}</p>
         </div>
       )}
+
+      <ResetCopilotPasswordForm
+        open={showResetPassword}
+        onOpenChange={setShowResetPassword}
+        copilotId={copilotUser._id}
+        copilotName={copilotUser.name}
+      />
     </div>
   );
 }
