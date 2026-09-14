@@ -39,6 +39,7 @@ import {
   Boxes,
   Shield,
   FileBarChart,
+  MessageCircle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -156,6 +157,7 @@ const navigation: NavEntry[] = [
       { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
       { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
       { name: 'Attempt Reasons', href: '/dashboard/settings/attempt-reasons', icon: ClipboardList },
+      { name: 'WhatsApp Notifications', href: '/dashboard/settings/whatsapp-notifications', icon: MessageCircle },
       { name: 'Notification Campaigns', href: '/dashboard/notification-campaigns', icon: Send },
       { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
       // Hardcoded super_admin-only on the backend (requirePermission("staff"))

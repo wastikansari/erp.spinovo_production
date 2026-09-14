@@ -38,6 +38,10 @@ export const API_URL = {
   ATTEMPT_REASON_CREATE: '/admin/attempt-reason/create',
   ATTEMPT_REASON_UPDATE: '/admin/attempt-reason',
 
+  // WhatsApp Notifications (Interakt) settings
+  WHATSAPP_SETTINGS: '/admin/settings/whatsapp-notifications',
+  WHATSAPP_SETTINGS_TOGGLE: '/admin/settings/whatsapp-notifications/toggle',
+
   // Service management endpoints
   SERVICE_CATEGORY_LIST: '/admin/service/category',
   SERVICE_CATEGORY_BASE: '/admin/service/category',

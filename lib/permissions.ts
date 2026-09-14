@@ -20,6 +20,7 @@ export interface PermissionedUser {
 const ROUTE_PAGE_MAP: [string, string][] = [
   ['/dashboard/settings/service-duration', 'settings-service-duration'],
   ['/dashboard/settings/attempt-reasons', 'settings-attempt-reasons'],
+  ['/dashboard/settings/whatsapp-notifications', 'settings-whatsapp-notifications'],
   ['/dashboard/b2b-pricing', 'b2b-pricing'],
   ['/dashboard/b2b-orders', 'b2b-orders'],
   ['/dashboard/b2b-services', 'b2b-services'],

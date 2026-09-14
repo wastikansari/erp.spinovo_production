@@ -52,6 +52,7 @@ export const ERP_PAGES: ErpPage[] = [
 
   { key: 'settings-attempt-reasons', label: 'Settings — Attempt Reasons', group: 'Settings' },
   { key: 'settings-service-duration', label: 'Settings — Service Duration', group: 'Settings' },
+  { key: 'settings-whatsapp-notifications', label: 'Settings — WhatsApp Notifications', group: 'Settings' },
 
   { key: 'staff', label: 'Staff Management', group: 'Admin' },
 ];
