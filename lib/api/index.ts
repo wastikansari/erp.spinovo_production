@@ -18,6 +18,8 @@ export type { PaymentV2Filters } from './payment-v2';
 export { AttemptApiService } from './attempt';
 export { StaffApiService } from './staff';
 export { WhatsappSettingsApiService } from './whatsappNotifications';
+export { PaymentAlertApiService } from './paymentAlert';
+export type { PaymentAlertFilters } from './paymentAlert';
 
 
 // Export types
@@ -38,4 +40,5 @@ export * from '../types/vendor';
 export * from '../types/feedback';
 export * from '../types/attempt';
 export * from '../types/staff';
+export * from '../types/paymentAlert';
 export * from '../types/whatsappNotifications';
