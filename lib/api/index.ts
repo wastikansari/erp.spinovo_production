@@ -1,6 +1,6 @@
 // Export all API services
-export { CustomerApiService } from './customer';
-export type { CustomerFilters, CustomerSortField, SortOrder } from './customer';
+export { CustomerApiService, CUSTOMER_EXPORT_FIELDS } from './customer';
+export type { CustomerFilters, CustomerExportFilters, CustomerSortField, SortOrder, ExportField } from './customer';
 export { BookingApiService } from './booking';
 export { TransactionApiService } from './transaction';
 export { OTPApiService } from './otp';

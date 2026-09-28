@@ -189,8 +189,9 @@ export default function CustomerDetailsPage() {
   const { user, orders, transactions, addresses } = customerData;
 
   const totalOrders = orders ? orders.length : 0;
-  const totalPaid = orders ? orders.reduce((sum, o) => sum + (o.paid_amount || 0), 0) : 0;
-  const totalUnpaid = orders ? orders.reduce((sum, o) => sum + (o.unpaid_amount || 0), 0) : 0;
+  const deliveredOrders = orders ? orders.filter((o) => o.ord_status === 'Delivered') : [];
+  const totalPaid = deliveredOrders.reduce((sum, o) => sum + (o.paid_amount || 0), 0);
+  const totalUnpaid = deliveredOrders.reduce((sum, o) => sum + (o.unpaid_amount || 0), 0);
 
   return (
     <div className="space-y-6">

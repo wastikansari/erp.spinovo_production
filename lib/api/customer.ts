@@ -14,8 +14,43 @@ export interface CustomerFilters {
   maxOrders?: string;
 }
 
+export interface CustomerExportFilters extends CustomerFilters {
+  gender?: string;
+  livingType?: string;
+  source?: string;
+  isActive?: string;
+  cityId?: string;
+}
+
 export type CustomerSortField = 'wallet_balance' | 'total_spending' | 'createdAt';
 export type SortOrder = 'asc' | 'desc';
+
+export interface ExportField {
+  key: string;
+  label: string;
+}
+
+// Keep in sync with FIELD_LABELS in spinovo_api adminController.exportCustomers
+export const CUSTOMER_EXPORT_FIELDS: ExportField[] = [
+  { key: 'srNo', label: '#' },
+  { key: 'name', label: 'Name' },
+  { key: 'mobile', label: 'Mobile' },
+  { key: 'alternateNumber', label: 'Alternate Mobile' },
+  { key: 'email', label: 'Email' },
+  { key: 'gender', label: 'Gender' },
+  { key: 'livingType', label: 'Living Type' },
+  { key: 'familyMembers', label: 'Family Members' },
+  { key: 'cityId', label: 'City ID' },
+  { key: 'walletBalance', label: 'Wallet Balance (₹)' },
+  { key: 'totalOrders', label: 'Total Orders' },
+  { key: 'totalSpending', label: 'Total Spending (₹)' },
+  { key: 'firstOrderDate', label: 'First Order Date' },
+  { key: 'lastOrderDate', label: 'Last Order Date' },
+  { key: 'source', label: 'Source' },
+  { key: 'deviceType', label: 'Device Type' },
+  { key: 'active', label: 'Active' },
+  { key: 'joinedDate', label: 'Joined Date' },
+];
 
 export class CustomerApiService extends BaseApiService {
   static async getCustomers(
@@ -40,11 +75,30 @@ export class CustomerApiService extends BaseApiService {
     });
   }
 
-  static async exportCustomers(): Promise<void> {
+  static async exportCustomers(
+    filters: CustomerExportFilters = {},
+    fields: string[] = []
+  ): Promise<void> {
     const token = AuthService.getToken();
     if (!token) throw new Error('No authentication token found');
 
-    const url = `${API_URL.BASE_URL}/admin/customer/export`;
+    const params = new URLSearchParams();
+    if (filters.search) params.set('search', filters.search);
+    if (filters.dateFrom) params.set('dateFrom', filters.dateFrom);
+    if (filters.dateTo) params.set('dateTo', filters.dateTo);
+    if (filters.minSpending) params.set('minSpending', filters.minSpending);
+    if (filters.maxSpending) params.set('maxSpending', filters.maxSpending);
+    if (filters.minOrders) params.set('minOrders', filters.minOrders);
+    if (filters.maxOrders) params.set('maxOrders', filters.maxOrders);
+    if (filters.gender) params.set('gender', filters.gender);
+    if (filters.livingType) params.set('livingType', filters.livingType);
+    if (filters.source) params.set('source', filters.source);
+    if (filters.isActive) params.set('isActive', filters.isActive);
+    if (filters.cityId) params.set('cityId', filters.cityId);
+    if (fields.length > 0) params.set('fields', fields.join(','));
+
+    const query = params.toString();
+    const url = `${API_URL.BASE_URL}/admin/customer/export${query ? `?${query}` : ''}`;
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -54,6 +108,12 @@ export class CustomerApiService extends BaseApiService {
     });
 
     if (!response.ok) throw new Error(`Export failed: ${response.status}`);
+
+    const contentType = response.headers.get('Content-Type') || '';
+    if (contentType.includes('application/json')) {
+      const body = await response.json();
+      throw new Error(body.msg || 'No customers found matching the selected filters');
+    }
 
     const blob = await response.blob();
     const disposition = response.headers.get('Content-Disposition') || '';
