@@ -161,6 +161,7 @@ const navigation: NavEntry[] = [
       { name: 'Payment Recovery Alerts', href: '/dashboard/settings/payment-recovery', icon: ShieldAlert },
       { name: 'WhatsApp Notifications', href: '/dashboard/settings/whatsapp-notifications', icon: MessageCircle },
       { name: 'Notification Campaigns', href: '/dashboard/notification-campaigns', icon: Send },
+      { name: 'WhatsApp Marketing', href: '/dashboard/whatsapp-marketing', icon: MessageCircle },
       { name: 'Get Export', href: '/dashboard/export', icon: FileDown },
       // Hardcoded super_admin-only on the backend (requirePermission("staff"))
       // — filterNavigation() below hides this for everyone else too, since
