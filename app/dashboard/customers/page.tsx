@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  AlertCircle, Users, Phone, User, Calendar,
+  AlertCircle, Users, Phone, User, Calendar, MapPin,
   Search, Filter, X, IndianRupee, ShoppingBag, ArrowUp, ArrowDown, ArrowUpDown,
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -135,7 +135,7 @@ export default function CustomersPage() {
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'MMMM do, yyyy');
+      return format(new Date(dateString), 'dd/MM/yyyy');
     } catch {
       return dateString;
     }
@@ -224,10 +224,47 @@ export default function CustomersPage() {
       searchable: false,
     },
     {
+      key: 'address',
+      header: 'Address',
+      render: (customer: Customer) => {
+        const addr = customer.address;
+        const line1 = [addr?.flat_no, addr?.building].filter(Boolean).join(', ');
+        const line2 = [addr?.street, addr?.city, addr?.pincode].filter(Boolean).join(', ');
+        if (!addr || (!line1 && !line2 && !addr.landmark)) {
+          return <span className="text-xs text-muted-foreground">No address</span>;
+        }
+        // Prefer exact coordinates; fall back to a text search of the address
+        const hasCoords = !!(addr.latitude && addr.longitude);
+        const mapQuery = hasCoords
+          ? `${addr.latitude},${addr.longitude}`
+          : addr.format_address || [line1, addr.landmark, line2].filter(Boolean).join(', ');
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+        return (
+          <div className="flex items-start gap-2 min-w-[200px] max-w-[320px]">
+            <a
+              href={mapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open in Google Maps"
+              className="mt-0.5 shrink-0 rounded p-0.5 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+            >
+              <MapPin className="h-4 w-4" />
+            </a>
+            <div className="flex flex-col text-sm leading-snug">
+              {line1 && <span className="font-medium">{line1}</span>}
+              {addr.landmark && <span className="text-xs text-muted-foreground">Landmark: {addr.landmark}</span>}
+              {line2 && <span className="text-xs text-muted-foreground">{line2}</span>}
+            </div>
+          </div>
+        );
+      },
+      searchable: false,
+    },
+    {
       key: 'createdAt',
       header: 'Created At',
       render: (customer: Customer) => (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 whitespace-nowrap">
           <Calendar className="h-4 w-4 text-muted-foreground" />
           <span>{formatDate(customer.createdAt)}</span>
         </div>

@@ -19,6 +19,19 @@ export interface Customer extends BaseEntity {
   lastActive: string;
   total_orders: number;
   total_spending: number;
+  address?: CustomerListAddress | null;
+}
+
+export interface CustomerListAddress {
+  flat_no?: string;
+  building?: string;
+  street?: string;
+  landmark?: string;
+  city?: string;
+  pincode?: string;
+  format_address?: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 export interface CustomerListData {
