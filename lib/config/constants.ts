@@ -42,6 +42,14 @@ export const API_URL = {
   WHATSAPP_SETTINGS: '/admin/settings/whatsapp-notifications',
   WHATSAPP_SETTINGS_TOGGLE: '/admin/settings/whatsapp-notifications/toggle',
 
+  // Slot Management (pickup/delivery slots) settings
+  SLOT_SETTINGS: '/admin/settings/slots',
+  SLOT_RULES: '/admin/settings/slots/rules',
+  SLOT_ITEM: '/admin/settings/slots/slot',
+  SLOT_OVERRIDES: '/admin/settings/slots/overrides',
+  SLOT_OVERRIDE: '/admin/settings/slots/override',
+  SLOT_PREVIEW: '/admin/settings/slots/preview',
+
   // Service management endpoints
   SERVICE_CATEGORY_LIST: '/admin/service/category',
   SERVICE_CATEGORY_BASE: '/admin/service/category',

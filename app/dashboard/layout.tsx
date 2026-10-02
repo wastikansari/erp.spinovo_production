@@ -41,6 +41,7 @@ import {
   Shield,
   FileBarChart,
   MessageCircle,
+  CalendarClock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -156,6 +157,7 @@ const navigation: NavEntry[] = [
       { name: 'Package', href: '/dashboard/package', icon: Store },
       { name: 'Services', href: '/dashboard/services', icon: Wallet },
       { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
+      { name: 'Slot Management', href: '/dashboard/settings/slot-management', icon: CalendarClock },
       { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
       { name: 'Attempt Reasons', href: '/dashboard/settings/attempt-reasons', icon: ClipboardList },
       { name: 'Payment Recovery Alerts', href: '/dashboard/settings/payment-recovery', icon: ShieldAlert },
