@@ -19,6 +19,7 @@ export interface PermissionedUser {
 // (e.g. settings/service-duration before a hypothetical bare /settings).
 const ROUTE_PAGE_MAP: [string, string][] = [
   ['/dashboard/settings/service-duration', 'settings-service-duration'],
+  ['/dashboard/settings/slot-management', 'settings-slot-management'],
   ['/dashboard/settings/attempt-reasons', 'settings-attempt-reasons'],
   ['/dashboard/settings/whatsapp-notifications', 'settings-whatsapp-notifications'],
   ['/dashboard/b2b-pricing', 'b2b-pricing'],
