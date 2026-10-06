@@ -73,6 +73,14 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
               >
                 {service.is_active ? 'Active' : 'Inactive'}
               </span>
+              {!service.show_in_old_app && (
+                <span
+                  title="Created in ERP — only customers on the latest app version see it"
+                  className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-900"
+                >
+                  New app only
+                </span>
+              )}
               {service.badge_text && (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-900">
                   {service.badge_text}
