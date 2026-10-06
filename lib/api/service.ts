@@ -108,3 +108,112 @@ export async function updateCategory(
     return { success: false, message: 'Network error' };
   }
 }
+
+// ─── Dynamic service system ────────────────────────────────────────────────
+
+export interface CreateServicePayload {
+  service: string;
+  service_duration_hours: number;
+  description?: string;
+  service_code?: string;
+  home_title?: string;
+  badge_text?: string;
+}
+
+export interface ServiceSettingsPayload {
+  service?: string;
+  description?: string;
+  service_duration_hours?: number;
+  service_code?: string;
+  home_title?: string;
+  badge_text?: string;
+  sort_order?: number;
+  is_active?: boolean;
+  show_on_home?: boolean;
+}
+
+type ServiceResult = { success: boolean; message: string; service?: FullServiceCategory };
+
+// POST /admin/service/create — new services are created inactive.
+export async function createService(payload: CreateServicePayload): Promise<ServiceResult> {
+  try {
+    const res = await fetch(`${API_URL.BASE_URL}/admin/service/create`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    return {
+      success: json.status === true,
+      message: json.data?.error || json.msg || 'Done',
+      service: json.data?.service,
+    };
+  } catch (error) {
+    console.error('createService Error:', error);
+    return { success: false, message: 'Network error' };
+  }
+}
+
+// PATCH /admin/service/:serviceId/settings — any subset of fields.
+export async function updateServiceSettings(
+  serviceId: number | string,
+  payload: ServiceSettingsPayload
+): Promise<ServiceResult> {
+  try {
+    const res = await fetch(`${API_URL.BASE_URL}/admin/service/${serviceId}/settings`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    });
+    const json = await res.json();
+    return {
+      success: json.status === true,
+      message: json.data?.error || json.msg || 'Done',
+      service: json.data?.service,
+    };
+  } catch (error) {
+    console.error('updateServiceSettings Error:', error);
+    return { success: false, message: 'Network error' };
+  }
+}
+
+// POST /admin/service/:serviceId/image (multipart, field "image")
+export async function uploadServiceImage(
+  serviceId: number | string,
+  file: File
+): Promise<{ success: boolean; message: string; image_url?: string }> {
+  try {
+    const form = new FormData();
+    form.append('image', file);
+    const res = await fetch(`${API_URL.BASE_URL}/admin/service/${serviceId}/image`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${AuthService.getToken()}` },
+      body: form,
+    });
+    const json = await res.json();
+    return {
+      success: json.status === true,
+      message: json.msg || 'Done',
+      image_url: json.data?.image_url,
+    };
+  } catch (error) {
+    console.error('uploadServiceImage Error:', error);
+    return { success: false, message: 'Network error' };
+  }
+}
+
+// PATCH /admin/service/reorder — full list of service_ids in display order.
+export async function reorderServices(order: number[]): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch(`${API_URL.BASE_URL}/admin/service/reorder`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ order }),
+    });
+    const json = await res.json();
+    return { success: json.status === true, message: json.data?.error || json.msg || 'Done' };
+  } catch (error) {
+    console.error('reorderServices Error:', error);
+    return { success: false, message: 'Network error' };
+  }
+}

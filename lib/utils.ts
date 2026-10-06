@@ -48,3 +48,12 @@ export function campaignImageUrl(image?: string | null): string | null {
   if (/^https?:\/\//i.test(image)) return image;
   return `${getUploadsHost()}${image}`;
 }
+
+// Build a full URL for a service image (Home tile / service tab). The backend
+// stores the full "/uploads/service_image/<file>" path (see
+// adminServiceController.js), so this just prefixes the host.
+export function serviceImageUrl(image?: string | null): string | null {
+  if (!image) return null;
+  if (/^https?:\/\//i.test(image)) return image;
+  return `${getUploadsHost()}${image}`;
+}

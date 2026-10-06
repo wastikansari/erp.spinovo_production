@@ -542,6 +542,14 @@ export interface FullServiceCategory {
   description: string;
   prices_by_qty: { qty: number }[];
   category_list: CategoryItem[];
+  // Dynamic service system (ERP → Services). Admin list always returns them.
+  is_active: boolean;
+  show_on_home: boolean;
+  sort_order: number;
+  image_url: string;
+  home_title: string;
+  badge_text: string;
+  service_code: string;
 }
 
 export interface ServiceCategoryListData {
