@@ -57,3 +57,11 @@ export function serviceImageUrl(image?: string | null): string | null {
   if (/^https?:\/\//i.test(image)) return image;
   return `${getUploadsHost()}${image}`;
 }
+
+// Full URL for an App Content image (Home banner / app popup). The backend
+// stores "/uploads/app_banner/<file>" or "/uploads/app_popup/<file>".
+export function appContentImageUrl(image?: string | null): string | null {
+  if (!image) return null;
+  if (/^https?:\/\//i.test(image)) return image;
+  return `${getUploadsHost()}${image}`;
+}

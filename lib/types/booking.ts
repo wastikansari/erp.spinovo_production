@@ -544,6 +544,8 @@ export interface FullServiceCategory {
   category_list: CategoryItem[];
   // Dynamic service system (ERP → Services). Admin list always returns them.
   is_active: boolean;
+  // false = only app 1.0.16+ sees it (all services created from ERP).
+  show_in_old_app: boolean;
   show_on_home: boolean;
   sort_order: number;
   image_url: string;
