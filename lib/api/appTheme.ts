@@ -68,6 +68,8 @@ export interface AppTheme {
   nav_bar_id: string | null;
   // Recolor the bottom bar with this theme's accent / lights colors.
   nav_tint: boolean;
+  // Festive Home greeting while live; template uses {name}.
+  header_greeting: { enabled: boolean; template: string };
   is_active: boolean;
   start_at: string | null;
   end_at: string | null;

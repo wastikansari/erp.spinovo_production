@@ -124,7 +124,11 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
 
   useEffect(() => {
     if (!open || !theme) return;
-    setDraft({ ...structuredClone(theme), sections: structuredClone(theme.sections ?? DEFAULT_SECTIONS) });
+    setDraft({
+      ...structuredClone(theme),
+      sections: structuredClone(theme.sections ?? DEFAULT_SECTIONS),
+      header_greeting: theme.header_greeting ?? { enabled: false, template: '' },
+    });
     setStartAt(toLocalInput(theme.start_at));
     setEndAt(toLocalInput(theme.end_at));
     setError(null);
@@ -181,6 +185,7 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
       sections: draft.sections,
       nav_bar_id: draft.nav_bar_id,
       nav_tint: draft.nav_tint,
+      header_greeting: { enabled: draft.header_greeting.enabled, template: draft.header_greeting.template.trim() },
       start_at: startAt ? new Date(startAt).toISOString() : null,
       end_at: endAt ? new Date(endAt).toISOString() : null,
       // Setting a schedule means "turn on during that window". Clearing a
@@ -395,6 +400,30 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
                     </div>
                   )}
                 </Section>
+                <Section title="Header greeting (Home top line)">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">Use a festive greeting while this theme is live</Label>
+                    <Switch
+                      checked={draft.header_greeting.enabled}
+                      onCheckedChange={(v) => patch('header_greeting', { ...draft.header_greeting, enabled: v })}
+                    />
+                  </div>
+                  {draft.header_greeting.enabled && (
+                    <>
+                      <Input
+                        value={draft.header_greeting.template}
+                        maxLength={40}
+                        placeholder="Jai Mata Di, {name} 🙏"
+                        onChange={(e) => patch('header_greeting', { ...draft.header_greeting, template: e.target.value })}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {'{name}'} = customer&apos;s name (format and “no name” text come from Settings → Home Header).
+                        Off = the normal Home Header greeting.
+                      </p>
+                    </>
+                  )}
+                </Section>
+
                 <Section title="“Our Service” section">
                   <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3 items-end">
                     <div className="space-y-1">

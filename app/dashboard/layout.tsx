@@ -45,6 +45,7 @@ import {
   GalleryHorizontal,
   Sparkles,
   PanelBottom,
+  Hand,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -162,6 +163,7 @@ const navigation: NavEntry[] = [
       { name: 'App Banners & Popup', href: '/dashboard/app-content', icon: GalleryHorizontal },
       { name: 'App Theme', href: '/dashboard/app-theme', icon: Sparkles },
       { name: 'Bottom Bar', href: '/dashboard/app-nav-bar', icon: PanelBottom },
+      { name: 'Home Header', href: '/dashboard/app-home-header', icon: Hand },
       { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
       { name: 'Slot Management', href: '/dashboard/settings/slot-management', icon: CalendarClock },
       { name: 'Offers', href: '/dashboard/offers', icon: Wallet },
