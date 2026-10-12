@@ -377,7 +377,14 @@ export default function BookingDetailsPage() {
                                     value={
                                         <span className="flex items-center gap-1.5">
                                             <Tag className="h-3.5 w-3.5 text-green-500" />
-                                            <span className="text-green-600 font-mono">{order.offer_code}</span>
+                                            <span
+                                                className={`font-mono ${order.offer_removed ? 'text-muted-foreground line-through' : 'text-green-600'}`}
+                                            >
+                                                {order.offer_code}
+                                            </span>
+                                            {order.offer_removed && (
+                                                <span className="text-xs text-amber-600">Removed at QC</span>
+                                            )}
                                         </span>
                                     }
                                 />
@@ -671,6 +678,15 @@ export default function BookingDetailsPage() {
                             )}
                             {order.spinovo_bonus_discount > 0 && (
                                 <PriceRow label="Spinovo Bonus" value={order.spinovo_bonus_discount} negative />
+                            )}
+                            {order.offer_removed && (
+                                <div className="my-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                                    <p className="font-medium">
+                                        Coupon {order.offer_removed.offer_code} (₹{order.offer_removed.offer_amount}) removed at QC
+                                    </p>
+                                    <p>{order.offer_removed.reason}</p>
+                                    <p className="text-amber-700/80">{formatDateTime(order.offer_removed.removed_at)}</p>
+                                </div>
                             )}
                             <Separator className="my-2" />
                             <PriceRow label="Total Billing" value={order.total_billing} highlight />

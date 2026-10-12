@@ -380,6 +380,7 @@ export interface Booking extends BaseEntity {
   offer_code: string;
   offer_id: string;
   offer_amount: number;
+  offer_removed?: OfferRemoval;
   order_details: any;
   no_of_garemtn_picked: number;
   no_of_garemtn_processed: number;
@@ -447,6 +448,17 @@ export interface BookingListData {
   total_pages: number;
   currentPage: number;
   bookingList: Booking[];
+}
+
+// Coupon dropped at QC completion because the final order amount fell below
+// the coupon's minimum
+export interface OfferRemoval {
+  offer_code: string;
+  offer_amount: number;
+  order_amount: number;
+  min_order_amount: number;
+  reason: string;
+  removed_at: string;
 }
 
 export interface BookingDetailsData {
