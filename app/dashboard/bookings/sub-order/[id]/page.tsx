@@ -27,11 +27,13 @@ import {
     Sparkles,
     BaggageClaim,
     Hash,
+    ListChecks,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BookingApiService, SubOrderDetailsData } from '@/lib/api';
+import { GarmentSegregationTable, getSegregatedCategories } from '@/components/bookings/garment-segregation';
 
 // ─── Service Color System ─────────────────────────────────────────────────────
 
@@ -460,6 +462,7 @@ export default function SubOrderDetailsPage() {
     const subOrder = data?.subOrder;
     const address = data?.address;
     const garment = parseGarmentDetails(subOrder?.garment_details ?? '');
+    const segregated = getSegregatedCategories(subOrder?.garment_segregated);
     const theme = SERVICE_THEMES[resolveServiceKey(subOrder?.service_name ?? '')];
 
     return (
@@ -777,6 +780,31 @@ export default function SubOrderDetailsPage() {
 
 
 
+                        </CardContent>
+                    </Card>
+
+                    {/* Garment Segregation (saved at QC) */}
+                    <Card className="rounded-2xl shadow-sm">
+                        <CardHeader className="pb-3 border-b">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <ListChecks className="h-4 w-4 text-muted-foreground" />
+                                Garment Segregation
+                                {subOrder?.quality_check && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold bg-green-100 text-green-700 border-green-200">
+                                        <CheckCircle2 className="h-3 w-3" /> QC Done
+                                    </span>
+                                )}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            {segregated.length > 0 ? (
+                                <GarmentSegregationTable categories={segregated} />
+                            ) : (
+                                <div className="text-center py-8 border rounded-xl bg-muted/10">
+                                    <ListChecks className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                                    <p className="text-sm text-muted-foreground">Garment segregation not done yet</p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 

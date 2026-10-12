@@ -349,6 +349,17 @@ export interface SubOrder extends BaseEntity {
   quality_check: boolean;
   is_suborder_cancel: number;
   cancel_charge: number;
+  // Cloth-level breakdown saved during QC (v2/update2); empty until segregated
+  garment_segregated?: SegregatedCategory[];
+}
+
+export interface SegregatedCategory {
+  category_id: number;
+  category: string;
+  category_prices: string;
+  clothes: Array<{ name: string; qty: number }>;
+  total_items: number;
+  total_amount: number;
 }
 
 export interface Booking extends BaseEntity {
