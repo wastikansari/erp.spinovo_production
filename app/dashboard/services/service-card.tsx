@@ -18,10 +18,11 @@ interface ServiceCardProps {
 export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
   const router = useRouter();
   const { toast } = useToast();
-  const [busy, setBusy] = useState<'is_active' | 'show_on_home' | null>(null);
+  type ToggleField = 'is_active' | 'show_on_home' | 'coupon_applicable';
+  const [busy, setBusy] = useState<ToggleField | null>(null);
   const imageUrl = serviceImageUrl(service.image_url);
 
-  async function toggle(field: 'is_active' | 'show_on_home', value: boolean) {
+  async function toggle(field: ToggleField, value: boolean) {
     setBusy(field);
     const result = await updateServiceSettings(service.service_id, { [field]: value });
     setBusy(null);
@@ -36,9 +37,13 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
           ? value
             ? `${service.service} is now Active — visible in the app`
             : `${service.service} is now Inactive — hidden from the app`
-          : value
-            ? 'Shown on app Home screen'
-            : 'Removed from app Home screen',
+          : field === 'coupon_applicable'
+            ? value
+              ? `Coupons now apply on ${service.service}`
+              : `Coupons no longer apply on ${service.service}`
+            : value
+              ? 'Shown on app Home screen'
+              : 'Removed from app Home screen',
     });
   }
 
@@ -119,7 +124,7 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
       </div>
 
       {/* APP VISIBILITY */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <label className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-800 p-3">
           <div>
             <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Active in app</p>
@@ -142,6 +147,19 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
             checked={service.show_on_home}
             disabled={busy !== null}
             onCheckedChange={(v) => toggle('show_on_home', v)}
+          />
+        </label>
+        <label className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 dark:border-gray-800 p-3">
+          <div>
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-100">Coupon applicable</p>
+            <p className="text-xs text-muted-foreground">
+              {service.coupon_applicable !== false ? 'Coupon codes can discount this' : 'No coupon discount'}
+            </p>
+          </div>
+          <Switch
+            checked={service.coupon_applicable !== false}
+            disabled={busy !== null}
+            onCheckedChange={(v) => toggle('coupon_applicable', v)}
           />
         </label>
       </div>

@@ -18,12 +18,24 @@ import {
     AlertCircle,
     Info,
     Settings,
+    Pencil,
+    Power,
+    AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { OfferApiService } from '@/lib/api/offer';
-import { Offer } from '@/lib/types/offer';
+import { Offer, OfferService, OfferUsageData } from '@/lib/types/offer';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
+import { OfferForm } from '@/components/forms/offer_form';
 
 export default function OfferDetailsPage() {
     const params = useParams();
@@ -33,6 +45,9 @@ export default function OfferDetailsPage() {
     const [offer, setOffer] = useState<Offer | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>('');
+    const [services, setServices] = useState<OfferService[]>([]);
+    const [usage, setUsage] = useState<OfferUsageData | null>(null);
+    const [editing, setEditing] = useState(false);
 
     const fetchOfferDetails = async () => {
         try {
@@ -48,6 +63,12 @@ export default function OfferDetailsPage() {
 
             if (response.status && response.data) {
                 setOffer(response.data.offer);
+                OfferApiService.getServices()
+                    .then((r) => r.status && r.data && setServices(r.data.services))
+                    .catch(() => undefined);
+                OfferApiService.getOfferUsage(offerId)
+                    .then((r) => r.status && r.data && setUsage(r.data))
+                    .catch(() => undefined);
             } else {
                 const errorMsg = response.msg || 'Failed to fetch offer details';
                 setError(errorMsg);
@@ -83,6 +104,29 @@ export default function OfferDetailsPage() {
         return status
             ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
             : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+    };
+
+    const toggleStatus = async () => {
+        if (!offer) return;
+        try {
+            const response = await OfferApiService.setOfferStatus(offer._id, !offer.status);
+            if (!response.status) throw new Error(response.msg || 'Failed to update status');
+            toast({ title: offer.status ? 'Offer deactivated' : 'Offer activated' });
+            fetchOfferDetails();
+        } catch (err) {
+            toast({
+                title: 'Error',
+                description: err instanceof Error ? err.message : 'Failed to update status',
+                variant: 'destructive',
+            });
+        }
+    };
+
+    const LIVE_LABEL: Record<string, string> = {
+        active: 'Active',
+        scheduled: 'Scheduled (not started)',
+        expired: 'Expired',
+        inactive: 'Inactive',
     };
 
     const getOfferTypeText = (type: number) =>
@@ -168,7 +212,22 @@ export default function OfferDetailsPage() {
                     <RefreshCw className="mr-2 h-4 w-4" />
                     Refresh
                 </Button>
+                <Button onClick={() => setEditing(true)} variant="outline" size="sm">
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                </Button>
+                <Button onClick={toggleStatus} variant="outline" size="sm">
+                    <Power className="mr-2 h-4 w-4" />
+                    {offer.status ? 'Deactivate' : 'Activate'}
+                </Button>
             </div>
+
+            <OfferForm
+                open={editing}
+                offer={offer}
+                onOpenChange={setEditing}
+                onSuccess={fetchOfferDetails}
+            />
 
             {/* Basic Info Card */}
             <Card>
@@ -226,8 +285,8 @@ export default function OfferDetailsPage() {
                             </div>
                             <div>
                                 <p className="text-sm text-muted-foreground">Status</p>
-                                <Badge className={getStatusColor(offer.status)}>
-                                    {offer.status ? 'Active' : 'Inactive'}
+                                <Badge className={getStatusColor(offer.live_state ? offer.live_state === 'active' : offer.status)}>
+                                    {LIVE_LABEL[offer.live_state || (offer.status ? 'active' : 'inactive')]}
                                 </Badge>
                             </div>
                         </div>
@@ -250,11 +309,20 @@ export default function OfferDetailsPage() {
                             <div>
                                 <p className="text-sm text-muted-foreground">Services Applicable</p>
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                    {offer.service_for_offer.map((s) => (
-                                        <Badge key={s} variant="outline">
-                                            Service {s}
-                                        </Badge>
-                                    ))}
+                                    {offer.service_for_offer.map((id) => {
+                                        const svc = services.find((x) => x.service_id === id);
+                                        const off = svc && !svc.coupon_applicable;
+                                        return (
+                                            <Badge
+                                                key={id}
+                                                variant="outline"
+                                                className={off ? 'line-through text-muted-foreground' : ''}
+                                                title={off ? 'Coupons are switched off for this service' : undefined}
+                                            >
+                                                {svc?.service || `Service ${id}`}
+                                            </Badge>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </div>
@@ -283,8 +351,8 @@ export default function OfferDetailsPage() {
                         <div className="flex items-start gap-2">
                             <Users className="h-4 w-4 text-muted-foreground mt-1" />
                             <div>
-                                <p className="text-sm text-muted-foreground">Usage Limit</p>
-                                <p className="font-medium text-lg">{offer.usage_limit} uses</p>
+                                <p className="text-sm text-muted-foreground">Uses per customer</p>
+                                <p className="font-medium text-lg">{offer.usage_limit} orders</p>
                             </div>
                         </div>
                     </div>
@@ -308,6 +376,117 @@ export default function OfferDetailsPage() {
                                 </li>
                             ))}
                         </ul>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Usage */}
+            {usage && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <Users className="h-5 w-5" />
+                            Customer usage ({usage.customers.length} customers)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {usage.customers.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">Not used yet.</p>
+                        ) : (
+                            <div className="max-h-96 overflow-y-auto">
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Customer</TableHead>
+                                            <TableHead>Mobile</TableHead>
+                                            <TableHead>Used</TableHead>
+                                            <TableHead>Remaining</TableHead>
+                                            <TableHead>Total discount</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {usage.customers.map((c) => (
+                                            <TableRow key={c.customer_id}>
+                                                <TableCell>{c.customer_name || '—'}</TableCell>
+                                                <TableCell>{c.customer_mobile || '—'}</TableCell>
+                                                <TableCell>
+                                                    {c.uses} / {usage.usage_limit}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {c.remaining === 0 ? (
+                                                        <Badge variant="outline">Limit reached</Badge>
+                                                    ) : (
+                                                        c.remaining
+                                                    )}
+                                                </TableCell>
+                                                <TableCell>₹{c.total_discount}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </div>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-3">
+                            Cancelled orders don&apos;t count towards the limit.
+                        </p>
+                    </CardContent>
+                </Card>
+            )}
+
+            {usage && usage.orders.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <ShoppingCart className="h-5 w-5" />
+                            Orders with this coupon ({usage.orders.length})
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="max-h-96 overflow-y-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Order</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead>Customer</TableHead>
+                                        <TableHead>Discount</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead>Check</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {usage.orders.map((o) => (
+                                        <TableRow key={o._id}>
+                                            <TableCell className="font-mono text-xs">{o.order_display_no}</TableCell>
+                                            <TableCell>{new Date(o.createdAt).toLocaleDateString('en-IN')}</TableCell>
+                                            <TableCell>{o.customer_name || o.customer_mobile || '—'}</TableCell>
+                                            <TableCell>₹{o.offer_amount}</TableCell>
+                                            <TableCell>{o.ord_status}</TableCell>
+                                            <TableCell>
+                                                {o.offer_check === 'mismatch' ? (
+                                                    <span
+                                                        className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400"
+                                                        title={o.offer_check_note}
+                                                    >
+                                                        <AlertTriangle className="h-3.5 w-3.5" />
+                                                        {o.offer_check_note || 'Mismatch'}
+                                                    </span>
+                                                ) : o.offer_check === 'ok' ? (
+                                                    <span className="text-xs text-green-700 dark:text-green-400">OK</span>
+                                                ) : (
+                                                    <span className="text-xs text-muted-foreground">—</span>
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-3">
+                            &quot;Check&quot; is the server&apos;s re-check when the order was saved. A warning means the
+                            app gave a discount the coupon rules don&apos;t allow (e.g. an old app version applying
+                            it on a quick service). Orders before this update show —.
+                        </p>
                     </CardContent>
                 </Card>
             )}

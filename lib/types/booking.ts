@@ -547,6 +547,8 @@ export interface FullServiceCategory {
   // false = only app 1.0.16+ sees it (all services created from ERP).
   show_in_old_app: boolean;
   show_on_home: boolean;
+  // Whether coupon codes can discount this service (off for quick services).
+  coupon_applicable: boolean;
   sort_order: number;
   image_url: string;
   home_title: string;
