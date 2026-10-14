@@ -42,6 +42,7 @@ const ROUTE_PAGE_MAP: [string, string][] = [
   ['/dashboard/offers', 'offers'],
   ['/dashboard/notification-campaigns', 'notification-campaigns'],
   ['/dashboard/whatsapp-marketing', 'whatsapp-marketing'],
+  ['/dashboard/sales-call', 'sales-call'],
   ['/dashboard/app-content', 'app-content'],
   ['/dashboard/app-theme', 'app-theme'],
   ['/dashboard/app-nav-bar', 'app-nav-bar'],
