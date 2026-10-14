@@ -359,26 +359,25 @@ export default function SalesCallPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Mobile</TableHead>
+                    <TableHead><SortableHeader field="createdAt" label="Joined" /></TableHead>
                     <TableHead><SortableHeader field="total_orders" label="Orders" /></TableHead>
-                    {/* Spending / last order / address are repeated in the side panel,
-                        so they're dropped while it's open to keep Last Call readable. */}
-                    {!selected && <TableHead><SortableHeader field="total_spending" label="Spending" /></TableHead>}
+                    {/* Last order / address are repeated in the side panel, so
+                        they're dropped while it's open to keep Last Call readable. */}
                     {!selected && <TableHead><SortableHeader field="last_order_date" label="Last Order" /></TableHead>}
                     {!selected && <TableHead>Address</TableHead>}
                     <TableHead><SortableHeader field="last_call_at" label="Last Call" /></TableHead>
-                    {!selected && <TableHead><SortableHeader field="createdAt" label="Joined" /></TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="py-10 text-center">
+                      <TableCell colSpan={7} className="py-10 text-center">
                         <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
                       </TableCell>
                     </TableRow>
                   ) : customers.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                      <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
                         {error ? 'Failed to load customers.' : 'No customers found matching your filters.'}
                       </TableCell>
                     </TableRow>
@@ -413,8 +412,10 @@ export default function SalesCallPage() {
                               {c.mobile}
                             </a>
                           </TableCell>
+                          <TableCell className="whitespace-nowrap text-sm">
+                            {format(new Date(c.createdAt), 'dd/MM/yyyy')}
+                          </TableCell>
                           <TableCell className="font-medium">{c.total_orders}</TableCell>
-                          {!selected && <TableCell className="font-medium text-green-600">₹{c.total_spending}</TableCell>}
                           {!selected && (
                             <TableCell className="whitespace-nowrap text-sm">
                               {c.last_order_date ? format(new Date(c.last_order_date), 'dd/MM/yyyy') : <span className="text-muted-foreground">—</span>}
@@ -454,11 +455,6 @@ export default function SalesCallPage() {
                               <span className="text-xs text-muted-foreground">Not called yet</span>
                             )}
                           </TableCell>
-                          {!selected && (
-                            <TableCell className="whitespace-nowrap text-sm">
-                              {format(new Date(c.createdAt), 'dd/MM/yyyy')}
-                            </TableCell>
-                          )}
                         </TableRow>
                       );
                     })

@@ -90,7 +90,6 @@ function isNavGroup(item: NavEntry): item is NavGroup {
 const navigation: NavEntry[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
-  { name: 'Sales Call', href: '/dashboard/sales-call', icon: PhoneCall },
   { name: 'Orders', href: '/dashboard/orders', icon: Package },
 
   {
@@ -182,6 +181,8 @@ const navigation: NavEntry[] = [
       { name: 'Staff', href: '/dashboard/staff', icon: Shield },
     ],
   },
+
+  { name: 'Sales Call', href: '/dashboard/sales-call', icon: PhoneCall },
 ];
 
 // Hides nav items the logged-in user has no view access to. A group
