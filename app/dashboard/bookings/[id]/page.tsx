@@ -839,28 +839,68 @@ export default function BookingDetailsPage() {
                     </Card> */}
 
                     {/* Assignments summary */}
-                    {((bookingData as any).pickupAssignments?.length > 0 ||
-                        (bookingData as any).processAssignments?.length > 0 ||
-                        (bookingData as any).deliveryAssignments?.length > 0) && (
+                    {(bookingData.pickupAssignment ||
+                        bookingData.processAssignments?.length > 0 ||
+                        bookingData.deliveryAssignments?.length > 0) && (
                             <Card className="rounded-2xl shadow-sm">
                                 <CardHeader className="pb-3 border-b">
                                     <CardTitle className="text-base">Assignments</CardTitle>
                                 </CardHeader>
-                                <CardContent className="pt-4 space-y-3">
+                                <CardContent className="pt-4 space-y-4 text-sm">
+                                    {/* Pickup — one per order */}
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pickup</p>
+                                        {bookingData.pickupAssignment ? (
+                                            <>
+                                                <button
+                                                    onClick={() => router.push(`/dashboard/copilots/${bookingData.pickupAssignment?.copilot_id}`)}
+                                                    className="font-medium text-primary underline underline-offset-2 hover:text-primary/70"
+                                                >
+                                                    {bookingData.pickupAssignment.copilot_name || 'View copilot'} ↗
+                                                </button>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Assigned {formatDateTime(bookingData.pickupAssignment.assigned_at ?? bookingData.pickupAssignment.createdAt)}
+                                                </p>
+                                                {bookingData.pickupAssignment.completed_at && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Picked up {formatDateTime(bookingData.pickupAssignment.completed_at)}
+                                                        {bookingData.pickupAssignment.estimated_fields?.includes('completed_at') && ' (approx)'}
+                                                    </p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Not assigned</p>
+                                        )}
+                                    </div>
+
+                                    {/* Processing and delivery — one per sub-order; open a sub-order for full times */}
                                     {[
-                                        { label: 'Pickup', data: (bookingData as any).pickupAssignments },
-                                        { label: 'Processing', data: (bookingData as any).processAssignments },
-                                        { label: 'Delivery', data: (bookingData as any).deliveryAssignments },
-                                    ].map(({ label, data }) => (
-                                        <div key={label} className="flex items-center justify-between text-sm">
-                                            <span className="text-muted-foreground">{label}</span>
-                                            {data?.length > 0 ? (
-                                                <div className="flex items-center gap-1 text-green-600 font-medium">
-                                                    <CheckCircle2 className="h-3.5 w-3.5" />
-                                                    {data.length} assigned
-                                                </div>
+                                        {
+                                            label: 'Processing',
+                                            rows: (bookingData.processAssignments ?? [])
+                                                .filter((p) => p.status !== 0)
+                                                .map((p) => ({ id: p._id, subOrderId: p.sub_order_id, name: p.vendor_name })),
+                                        },
+                                        {
+                                            label: 'Delivery',
+                                            rows: (bookingData.deliveryAssignments ?? []).map((d) => ({
+                                                id: d._id, subOrderId: d.sub_order_id, name: d.copilot_name,
+                                            })),
+                                        },
+                                    ].map(({ label, rows }) => (
+                                        <div key={label} className="space-y-1">
+                                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+                                            {rows.length > 0 ? (
+                                                rows.map((r) => (
+                                                    <div key={r.id} className="flex items-center justify-between gap-2">
+                                                        <span className="font-medium">{r.name || '—'}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {subOrders?.find((s) => s._id === r.subOrderId)?.sub_order_no ?? ''}
+                                                        </span>
+                                                    </div>
+                                                ))
                                             ) : (
-                                                <span className="text-muted-foreground text-xs">Not assigned</span>
+                                                <p className="text-xs text-muted-foreground">Not assigned</p>
                                             )}
                                         </div>
                                     ))}
