@@ -46,6 +46,7 @@ import {
   Sparkles,
   PanelBottom,
   Hand,
+  PhoneCall,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -89,6 +90,7 @@ function isNavGroup(item: NavEntry): item is NavGroup {
 const navigation: NavEntry[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
+  { name: 'Sales Call', href: '/dashboard/sales-call', icon: PhoneCall },
   { name: 'Orders', href: '/dashboard/orders', icon: Package },
 
   {

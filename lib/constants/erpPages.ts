@@ -50,6 +50,7 @@ export const ERP_PAGES: ErpPage[] = [
   { key: 'notifications', label: 'Notifications', group: 'Comms' },
   { key: 'notification-campaigns', label: 'Notification Campaigns', group: 'Comms' },
   { key: 'whatsapp-marketing', label: 'WhatsApp Marketing', group: 'Comms' },
+  { key: 'sales-call', label: 'Sales Call (customer calls & notes)', group: 'Comms' },
   { key: 'app-content', label: 'App Content (Home banners & popup)', group: 'Comms' },
   { key: 'app-theme', label: 'App Theme (festive Splash & Home)', group: 'Comms' },
   { key: 'app-nav-bar', label: 'App Bottom Bar (design & icons)', group: 'Comms' },
