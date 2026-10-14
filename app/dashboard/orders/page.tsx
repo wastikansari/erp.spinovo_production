@@ -9,6 +9,7 @@ import {
     ChevronDown,
     ChevronRight,
     Eye,
+    UserPlus,
     MoreHorizontal,
     Package,
     RefreshCw,
@@ -31,7 +32,8 @@ import {
     Filter,   // ← NEW
 } from 'lucide-react';
 
-import { BookingApiService, Booking, SubOrder } from '@/lib/api';
+import { BookingApiService, Booking, SubOrder, CustomerType } from '@/lib/api';
+import { CustomerTag, CUSTOMER_TYPE_OPTIONS, CUSTOMER_TYPE_STYLES } from '@/components/bookings/customer-tag';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -484,6 +486,9 @@ export default function BookingsPage() {
     const [expandedRows, setExpandedRows] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState('');                                      // ← NEW
     const [selectedService, setSelectedService] = useState<ServiceColorKey | 'all'>('all'); // ← NEW
+    // Customer tag filter runs on the server so it searches all orders, not just this page
+    const [customerType, setCustomerType] = useState<CustomerType | 'all'>('all');
+    const [newCustomersToday, setNewCustomersToday] = useState(0);
     // const [showAssignForm, setShowAssignForm] = useState(false);
     // const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
@@ -493,15 +498,20 @@ export default function BookingsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         fetchBookings(currentPage, pageSize);
-    }, [currentPage, pageSize]);
+    }, [currentPage, pageSize, customerType]);
 
     const fetchBookings = async (page: number, limit: number) => {
         try {
             setLoading(true);
             setError('');
-            const response = await BookingApiService.getBookings(page, limit);
+            const response = await BookingApiService.getBookings(
+                page,
+                limit,
+                customerType === 'all' ? undefined : customerType,
+            );
             if (response.status && response.data) {
                 setBookings(response.data.bookingList || []);
+                setNewCustomersToday(response.data.newCustomersToday ?? 0);
                 setTotalPages(response.data.total_pages || 1);
                 setCurrentPage(response.data.currentPage || 1);
                 setTotalOrders(response.data.totalOrders || 0);
@@ -566,11 +576,20 @@ export default function BookingsPage() {
     });
 
     const activeFilterCount =
-        (searchQuery.trim() ? 1 : 0) + (selectedService !== 'all' ? 1 : 0);
+        (searchQuery.trim() ? 1 : 0) +
+        (selectedService !== 'all' ? 1 : 0) +
+        (customerType !== 'all' ? 1 : 0);
+
+    const handleCustomerTypeChange = (type: CustomerType | 'all') => {
+        setExpandedRows([]);
+        setCurrentPage(1);
+        setCustomerType(type);
+    };
 
     const clearAllFilters = () => {
         setSearchQuery('');
         setSelectedService('all');
+        handleCustomerTypeChange('all');
     };
 
     return (
@@ -595,7 +614,7 @@ export default function BookingsPage() {
             </div>
 
             {/* STATS */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <Card className="rounded-2xl border shadow-sm">
                     <CardContent className="p-4 flex items-center gap-4">
                         <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -637,6 +656,21 @@ export default function BookingsPage() {
                         <div>
                             <p className="text-xs text-muted-foreground">Delivery Assigned</p>
                             <p className="text-2xl font-bold mt-0.5">{deliveryAssignedOrders}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card
+                    className="rounded-2xl border shadow-sm cursor-pointer hover:border-green-300 transition-colors"
+                    onClick={() => handleCustomerTypeChange('new')}
+                    title="Show orders from new customers"
+                >
+                    <CardContent className="p-4 flex items-center gap-4">
+                        <div className="h-11 w-11 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+                            <UserPlus className="h-5 w-5 text-green-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-muted-foreground">New Customers Today</p>
+                            <p className="text-2xl font-bold mt-0.5">{newCustomersToday}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -759,6 +793,34 @@ export default function BookingsPage() {
                             })}
                         </div>
 
+                        {/* Row 4: customer tag filter (server-side, all orders) */}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mr-1">
+                                Customer
+                            </span>
+                            {[{ value: 'all' as const, label: 'All Customers' }, ...CUSTOMER_TYPE_OPTIONS].map((opt) => {
+                                const isActive = customerType === opt.value;
+                                const style = opt.value !== 'all' ? CUSTOMER_TYPE_STYLES[opt.value] : null;
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        onClick={() => handleCustomerTypeChange(opt.value)}
+                                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-medium transition-all
+                                            ${isActive
+                                                ? style
+                                                    ? `${style} ring-2 ring-offset-1 ring-current`
+                                                    : 'bg-primary text-primary-foreground border-primary ring-2 ring-offset-1 ring-primary'
+                                                : style
+                                                    ? `${style} opacity-60 hover:opacity-100`
+                                                    : 'bg-muted text-muted-foreground border-border hover:bg-muted/80'
+                                            }`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
                     </div>
                 </CardHeader>
 
@@ -844,6 +906,9 @@ export default function BookingsPage() {
                                                         <Phone className="h-3 w-3" />
                                                         {booking.customer_details.mobile || '—'}
                                                     </p>
+                                                    <div className="mt-1">
+                                                        <CustomerTag orderNo={booking.customer_order_no} total={booking.customer_total_orders} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -944,6 +1009,11 @@ export default function BookingsPage() {
                                                 </button>
                                             ) : (
                                                 <span className="text-xs text-muted-foreground">—</span>
+                                            )}
+                                            {booking.customer_details && (
+                                                <div className="mt-1">
+                                                    <CustomerTag orderNo={booking.customer_order_no} total={booking.customer_total_orders} />
+                                                </div>
                                             )}
                                         </div>
 

@@ -4,6 +4,7 @@ import {
   BookingListData,
   BookingDetailsData,
   SubOrderDetailsData,
+  CustomerType,
   ServiceCategoryData,
   ServiceCategoryListData,
   MainOrderDetailsData,
@@ -21,10 +22,12 @@ export class BookingApiService extends BaseApiService {
   // ORDER LIST V2
   static async getBookings(
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    customerType?: CustomerType
   ): Promise<ApiResponse<BookingListData>> {
+    const typeParam = customerType ? `&customer_type=${customerType}` : '';
     return this.makeRequest<BookingListData>(
-      `/admin/order/list/v2?page=${page}&limit=${limit}`,
+      `/admin/order/list/v2?page=${page}&limit=${limit}${typeParam}`,
       {
         method: 'GET',
       }

@@ -39,6 +39,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { BookingApiService, BookingDetailsData } from '@/lib/api';
+import { CustomerTag } from '@/components/bookings/customer-tag';
 import {
     GarmentSegregationTable,
     getSegregatedCategories,
@@ -275,6 +276,10 @@ export default function BookingDetailsPage() {
                         <span className={`px-3 py-1 rounded-full border text-xs font-semibold ${getPaymentStatusClass(order.payment_status)}`}>
                             {order.payment_status}
                         </span>
+                        <CustomerTag
+                            orderNo={bookingData.customerRank?.customer_order_no}
+                            total={bookingData.customerRank?.customer_total_orders}
+                        />
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                         {order.service_name} &nbsp;·&nbsp; {formatDate(order.booking_date)}, {order.booking_time}

@@ -34,6 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BookingApiService, SubOrderDetailsData } from '@/lib/api';
 import { GarmentSegregationTable, getSegregatedCategories } from '@/components/bookings/garment-segregation';
+import { CustomerTag } from '@/components/bookings/customer-tag';
 
 // ─── Service Color System ─────────────────────────────────────────────────────
 
@@ -537,6 +538,10 @@ export default function SubOrderDetailsPage() {
                         >
                             {subOrder?.ord_status}
                         </span>
+                        <CustomerTag
+                            orderNo={data?.customerRank?.customer_order_no}
+                            total={data?.customerRank?.customer_total_orders}
+                        />
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                         Sub-order details, garment breakdown and assignments

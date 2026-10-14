@@ -413,6 +413,18 @@ export interface Booking extends BaseEntity {
   sub_orders?: SubOrder[];
   customer_details?: BookingCustomerDetails;
   address_details?: BookingAddressDetails;
+  // Which order this is for the customer (null when cancelled) — list API only
+  customer_order_no?: number | null;
+  customer_total_orders?: number;
+  customer_type?: CustomerType | null;
+}
+
+export type CustomerType = 'new' | 'second' | 'repeat' | 'loyal';
+
+export interface CustomerRank {
+  customer_order_no: number | null;
+  customer_total_orders: number;
+  customer_type: CustomerType | null;
 }
 
 export interface PendingQCOrder {
@@ -467,6 +479,7 @@ export interface BookingListData {
   totalOrders: number;
   total_pages: number;
   currentPage: number;
+  newCustomersToday?: number;
   bookingList: Booking[];
 }
 
@@ -486,6 +499,7 @@ export interface BookingDetailsData {
   customer: Customer;
   address: Address;
   subOrders: SubOrder[];
+  customerRank?: CustomerRank | null;
   pickupAssignment: PickupAssignment | null;
   processAssignments: ProcessAssignment[];
   deliveryAssignments: DeliveryAssignment[];
@@ -576,6 +590,7 @@ export interface DeliveryAssignment {
 export interface SubOrderDetailsData {
   subOrder: SubOrder;
   address: Address;
+  customerRank?: CustomerRank | null;
   pickupAssignment: PickupAssignment | null;
   processAssignment: ProcessAssignment | null;
   processHistory?: ProcessAssignment[];
