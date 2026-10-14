@@ -1,4 +1,5 @@
 import { PERMISSION_LEVEL_RANK, type PermissionLevel } from './constants/erpPages';
+import type { StaffRole } from './constants/staffRoles';
 
 export interface PermissionEntry {
   key: string;
@@ -6,7 +7,7 @@ export interface PermissionEntry {
 }
 
 export interface PermissionedUser {
-  role?: 'super_admin' | 'admin' | 'supervisor' | string;
+  role?: StaffRole | string;
   status?: 'active' | 'inactive' | string;
   permissions?: PermissionEntry[];
 }

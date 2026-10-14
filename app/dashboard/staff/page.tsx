@@ -11,12 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { StaffApiService } from '@/lib/api';
 import type { StaffMember } from '@/lib/types/staff';
 import { format } from 'date-fns';
+import { staffRoleLabel } from '@/lib/constants/staffRoles';
 
-const ROLE_LABEL: Record<string, string> = {
-  super_admin: 'Super Admin',
-  admin: 'Admin',
-  supervisor: 'Supervisor',
-};
 
 export default function StaffPage() {
   const { toast } = useToast();
@@ -53,7 +49,7 @@ export default function StaffPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Staff</h1>
           <p className="text-sm text-muted-foreground">
-            Admin &amp; supervisor accounts and their per-page ERP permissions.
+            Staff accounts, their roles and per-page ERP permissions.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -86,7 +82,7 @@ export default function StaffPage() {
                 render: (s) => (
                   <div className="flex items-center gap-1">
                     {s.role === 'super_admin' && <ShieldAlert className="h-3.5 w-3.5 text-primary" />}
-                    <span>{ROLE_LABEL[s.role] ?? s.role}</span>
+                    <span>{staffRoleLabel(s.role)}</span>
                   </div>
                 ),
               },
