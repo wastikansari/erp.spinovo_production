@@ -27,11 +27,14 @@ import {
     Sparkles,
     BaggageClaim,
     Hash,
+    ListChecks,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { BookingApiService, SubOrderDetailsData } from '@/lib/api';
+import { GarmentSegregationTable, getSegregatedCategories } from '@/components/bookings/garment-segregation';
+import { CustomerTag } from '@/components/bookings/customer-tag';
 
 // ─── Service Color System ─────────────────────────────────────────────────────
 
@@ -185,14 +188,6 @@ function parseGarmentDetails(raw: string) {
         return null;
     }
 }
-function formatStatus(status: any) {
-    switch (Number(status)) {
-        case 1: return 'Assigned';
-        case 2: return 'Started';
-        case 3: return 'Done';
-        default: return status ?? '—';
-    }
-}
 
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -257,21 +252,67 @@ function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
 //         </Card>
 //     );
 // }
-function AssignmentCard({
-    title, icon, iconBg, iconColor, assignment, emptyLabel, fields,
+// Date + time in IST, e.g. "14 Oct 2026, 05:12 pm"
+function formatToIST(value?: string | null) {
+    if (!value) return '—';
+    try {
+        return new Date(value).toLocaleString('en-IN', {
+            timeZone: 'Asia/Kolkata',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+        });
+    } catch {
+        return value;
+    }
+}
+
+const COPILOT_STATUS: Record<number, string> = {
+    0: 'Cancelled', 1: 'Assigned', 2: 'Started', 3: 'Completed', 4: 'Attempted',
+};
+const VENDOR_STATUS: Record<number, string> = {
+    0: 'Rejected', 1: 'Assigned', 2: 'Accepted', 3: 'Picked up', 4: 'Processing',
+    5: 'Completed (inward pending)', 6: 'Inward done',
+};
+
+type TimeRow = {
+    label: string;
+    value?: string | null;     // ISO date — shown as IST date + time
+    text?: React.ReactNode;    // plain value instead of a date
+    estimated?: boolean;       // filled from old data, not recorded live
+};
+
+function TimeRows({ rows }: { rows: TimeRow[] }) {
+    return (
+        <div className="space-y-2">
+            {rows.map((r) => (
+                <div key={r.label} className="flex justify-between gap-3 text-sm">
+                    <span className="text-muted-foreground shrink-0">{r.label}</span>
+                    <span className="font-medium text-right">
+                        {r.text ?? formatToIST(r.value)}
+                        {r.estimated && r.value && (
+                            <span className="ml-1 text-xs font-normal text-amber-600" title="Estimated from old records">(approx)</span>
+                        )}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+function StageCard({
+    title, icon, iconBg, iconColor, empty, emptyLabel, children,
 }: {
     title: string;
     icon: React.ReactNode;
     iconBg: string;
     iconColor: string;
-    assignment: any;
+    empty: boolean;
     emptyLabel: string;
-    fields?: {
-        label: string;
-        key: string;
-        format?: (value: any) => string;
-        onClick?: (assignment: any) => void; // 👈
-    }[];
+    children?: React.ReactNode;
 }) {
     return (
         <Card className="rounded-2xl shadow-sm">
@@ -284,53 +325,74 @@ function AssignmentCard({
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                {assignment ? (
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            <span className="text-sm font-medium text-green-700">Assigned</span>
-                        </div>
-                        {fields?.map((f) => (
-                            <div key={f.key} className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">{f.label}</span>
-                                {f.onClick ? (
-                                    <button
-                                        onClick={() => f.onClick!(assignment)}
-                                        className="font-medium text-primary underline underline-offset-2 hover:text-primary/70 transition-colors cursor-pointer flex items-center gap-1"
-                                    >
-                                        {f.format ? f.format(assignment[f.key]) : (assignment[f.key] ?? '—')}
-                                        <span className="text-xs">↗</span>
-                                    </button>
-                                ) : (
-                                    <span className="font-medium">
-                                        {f.format ? f.format(assignment[f.key]) : (assignment[f.key] ?? '—')}
-                                    </span>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
+                {empty ? (
                     <div className="flex items-center gap-2 py-1">
                         <Circle className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm text-muted-foreground">{emptyLabel}</span>
                     </div>
+                ) : (
+                    <div className="space-y-4">{children}</div>
                 )}
             </CardContent>
         </Card>
     );
 }
 
+function PersonLink({ name, mobile, onClick }: { name?: string; mobile?: string; onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className="font-medium text-primary underline underline-offset-2 hover:text-primary/70 transition-colors cursor-pointer text-right"
+        >
+            {name || 'View'}{mobile ? ` · ${mobile}` : ''} <span className="text-xs">↗</span>
+        </button>
+    );
+}
+
+function SubList({ title, items }: { title: string; items: React.ReactNode[] }) {
+    if (!items.length) return null;
+    return (
+        <div className="border-t pt-3 space-y-1.5">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{title}</p>
+            {items.map((item, i) => (
+                <div key={i} className="text-xs text-muted-foreground">{item}</div>
+            ))}
+        </div>
+    );
+}
+
+function attemptItems(assignment: any) {
+    return (assignment?.order_attempt ?? []).map((a: any) => (
+        <span key={a._id ?? a.attempt_no}>
+            <span className="font-medium text-foreground">#{a.attempt_no} {a.reason_text}</span>
+            {a.message ? ` — ${a.message}` : ''} · {formatToIST(a.createdAt)}
+        </span>
+    ));
+}
+
+function previousCopilotItems(assignment: any) {
+    return (assignment?.previous_copilots ?? []).map((p: any, i: number) => (
+        <span key={i}>
+            <span className="font-medium text-foreground">{p.copilot_name || p.copilot_id}</span>
+            {' '}· {formatToIST(p.assigned_at)} → removed {formatToIST(p.removed_at)}
+            {p.removed_by ? ` by ${p.removed_by}` : ''}
+        </span>
+    ));
+}
+
+const isEstimated = (doc: any, field: string) => (doc?.estimated_fields ?? []).includes(field);
+
 // ─── Order Stage Timeline ─────────────────────────────────────────────────────
 
-const STAGES = [
-    { id: 1, label: 'Order Placed', icon: <Package className="h-4 w-4" /> },
-    { id: 2, label: 'Pickup Assigned', icon: <Truck className="h-4 w-4" /> },
-    { id: 3, label: 'Processing', icon: <Settings className="h-4 w-4" /> },
-    { id: 4, label: 'Delivery Assigned', icon: <UserCheck className="h-4 w-4" /> },
-    { id: 5, label: 'Completed', icon: <CheckCircle2 className="h-4 w-4" /> },
-];
+type TimelineStep = {
+    label: string;
+    icon: React.ReactNode;
+    at?: string | null;   // real time of the step, when recorded
+    reached: boolean;     // step happened (even if old data has no time)
+};
 
-function OrderTimeline({ stageId }: { stageId: number }) {
+function OrderTimeline({ steps }: { steps: TimelineStep[] }) {
+    const currentIndex = steps.findIndex((s) => !s.reached);
     return (
         <Card className="rounded-2xl shadow-sm">
             <CardHeader className="pb-3">
@@ -338,37 +400,42 @@ function OrderTimeline({ stageId }: { stageId: number }) {
             </CardHeader>
             <CardContent>
                 <div className="relative">
-                    {STAGES.map((stage, i) => {
-                        const done = stageId > stage.id;
-                        const active = stageId === stage.id;
+                    {steps.map((step, i) => {
+                        const done = step.reached;
+                        const active = i === currentIndex;
                         return (
-                            <div key={stage.id} className="flex items-start gap-3 relative">
+                            <div key={step.label} className="flex items-start gap-3 relative">
                                 {/* Connector line */}
-                                {i < STAGES.length - 1 && (
+                                {i < steps.length - 1 && (
                                     <div
-                                        className={`absolute left-[13px] top-7 w-0.5 h-8 ${done ? 'bg-primary' : 'bg-border'}`}
+                                        className={`absolute left-[13px] top-7 w-0.5 h-full ${done ? 'bg-primary' : 'bg-border'}`}
                                     />
                                 )}
                                 {/* Dot */}
                                 <div
-                                    className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 border-2 transition-colors ${done
+                                    className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 border-2 transition-colors relative ${done
                                         ? 'bg-primary border-primary text-primary-foreground'
                                         : active
                                             ? 'bg-primary/10 border-primary text-primary'
                                             : 'bg-muted border-border text-muted-foreground'
                                         }`}
                                 >
-                                    {stage.icon}
+                                    {step.icon}
                                 </div>
-                                <div className="pb-8">
+                                <div className="pb-5">
                                     <p
                                         className={`text-sm font-medium leading-tight ${active ? 'text-primary' : done ? 'text-foreground' : 'text-muted-foreground'
                                             }`}
                                     >
-                                        {stage.label}
+                                        {step.label}
                                     </p>
+                                    {done && (
+                                        <p className="text-xs text-muted-foreground mt-0.5">
+                                            {step.at ? formatToIST(step.at) : 'Time not recorded'}
+                                        </p>
+                                    )}
                                     {active && (
-                                        <p className="text-xs text-primary mt-0.5">Current stage</p>
+                                        <p className="text-xs text-primary mt-0.5">Next stage</p>
                                     )}
                                 </div>
                             </div>
@@ -440,27 +507,15 @@ export default function SubOrderDetailsPage() {
         );
     }
 
-    function formatToIST(isoString: string) {
-        if (!isoString) return '—';
-        try {
-            return new Date(isoString).toLocaleString('en-IN', {
-                timeZone: 'Asia/Kolkata',
-                day: '2-digit',
-                month: 'short',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true,
-            });
-        } catch {
-            return isoString;
-        }
-    }
-
     const subOrder = data?.subOrder;
     const address = data?.address;
     const garment = parseGarmentDetails(subOrder?.garment_details ?? '');
+    const segregated = getSegregatedCategories(subOrder?.garment_segregated);
     const theme = SERVICE_THEMES[resolveServiceKey(subOrder?.service_name ?? '')];
+    const pickup: any = data?.pickupAssignment;
+    const process: any = data?.processAssignment;
+    const delivery: any = data?.deliveryAssignment;
+    const stageId = subOrder?.order_stage_id ?? 1;
 
     return (
         <div className="space-y-5 p-4 md:p-6">
@@ -483,6 +538,10 @@ export default function SubOrderDetailsPage() {
                         >
                             {subOrder?.ord_status}
                         </span>
+                        <CustomerTag
+                            orderNo={data?.customerRank?.customer_order_no}
+                            total={data?.customerRank?.customer_total_orders}
+                        />
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                         Sub-order details, garment breakdown and assignments
@@ -780,6 +839,31 @@ export default function SubOrderDetailsPage() {
                         </CardContent>
                     </Card>
 
+                    {/* Garment Segregation (saved at QC) */}
+                    <Card className="rounded-2xl shadow-sm">
+                        <CardHeader className="pb-3 border-b">
+                            <CardTitle className="flex items-center gap-2 text-base">
+                                <ListChecks className="h-4 w-4 text-muted-foreground" />
+                                Garment Segregation
+                                {subOrder?.quality_check && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold bg-green-100 text-green-700 border-green-200">
+                                        <CheckCircle2 className="h-3 w-3" /> QC Done
+                                    </span>
+                                )}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-4">
+                            {segregated.length > 0 ? (
+                                <GarmentSegregationTable categories={segregated} />
+                            ) : (
+                                <div className="text-center py-8 border rounded-xl bg-muted/10">
+                                    <ListChecks className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                                    <p className="text-sm text-muted-foreground">Garment segregation not done yet</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+
                     {/* Address */}
                     <Card className="rounded-2xl shadow-sm">
                         <CardHeader className="pb-3 border-b">
@@ -820,67 +904,141 @@ export default function SubOrderDetailsPage() {
                 <div className="space-y-5">
 
                     {/* Order Progress */}
-                    <OrderTimeline stageId={subOrder?.order_stage_id ?? 1} />
+                    <OrderTimeline
+                        steps={[
+                            { label: 'Order Placed', icon: <Package className="h-4 w-4" />, at: subOrder?.createdAt, reached: true },
+                            { label: 'Pickup Assigned', icon: <Truck className="h-4 w-4" />, at: pickup?.assigned_at ?? pickup?.createdAt, reached: !!pickup || stageId >= 2 },
+                            { label: 'Picked Up', icon: <BaggageClaim className="h-4 w-4" />, at: subOrder?.picked_up_at ?? pickup?.completed_at, reached: stageId >= 4 },
+                            { label: 'Quality Check', icon: <ListChecks className="h-4 w-4" />, at: subOrder?.qc_completed_at, reached: !!subOrder?.quality_check },
+                            { label: 'Processing Assigned', icon: <Settings className="h-4 w-4" />, at: process?.createdAt, reached: !!process || stageId >= 5 },
+                            { label: 'Processing Completed', icon: <Sparkles className="h-4 w-4" />, at: process?.processing_completed_at, reached: !!process?.processing_completed_at || stageId >= 7 },
+                            { label: 'Delivery Assigned', icon: <UserCheck className="h-4 w-4" />, at: delivery?.assigned_at ?? delivery?.createdAt, reached: !!delivery || stageId >= 8 },
+                            { label: 'Out for Delivery', icon: <Truck className="h-4 w-4" />, at: delivery?.started_at, reached: stageId >= 9 },
+                            { label: 'Delivered', icon: <Home className="h-4 w-4" />, at: delivery?.completed_at, reached: stageId >= 10 },
+                        ]}
+                    />
 
-                    {/* Pickup Assignment */}
-                    <AssignmentCard
-                        title="Pickup Assignee"
+                    {/* Pickup */}
+                    <StageCard
+                        title="Pickup"
                         icon={<Truck className="h-4 w-4" />}
                         iconBg="bg-blue-100"
                         iconColor="text-blue-600"
-                        assignment={data?.pickupAssignment}
+                        empty={!pickup}
                         emptyLabel="Not yet assigned"
-                        fields={[
-                            {
-                                label: 'Pickup Assignee',
-                                key: 'status',
-                                onClick: (assignment) => router.push(`/dashboard/copilots/${assignment?.copilot_id}`), // 👈
-                            },
-                            { label: 'Status', key: 'status', format: formatStatus },
-                            { label: 'Assigned At', key: 'createdAt', format: formatToIST }, // 👈
-                            { label: 'Picked Up At', key: 'updatedAt', format: formatToIST }, // 👈
-                        ]}
-                    />
+                    >
+                        <TimeRows
+                            rows={[
+                                {
+                                    label: 'Copilot',
+                                    text: <PersonLink name={pickup?.copilot_name} mobile={pickup?.copilot_mobile} onClick={() => router.push(`/dashboard/copilots/${pickup?.copilot_id}`)} />,
+                                },
+                                { label: 'Status', text: COPILOT_STATUS[pickup?.status] ?? '—' },
+                                { label: 'Assigned At', value: pickup?.assigned_at ?? pickup?.createdAt },
+                                ...(pickup?.assigned_by ? [{ label: 'Assigned By', text: pickup.assigned_by }] : []),
+                                { label: 'Started At', value: pickup?.started_at },
+                                {
+                                    label: 'Picked Up At',
+                                    value: subOrder?.picked_up_at ?? pickup?.completed_at,
+                                    estimated: subOrder?.picked_up_at ? isEstimated(subOrder, 'picked_up_at') : isEstimated(pickup, 'completed_at'),
+                                },
+                            ]}
+                        />
+                        <SubList title="Attempts" items={attemptItems(pickup)} />
+                        <SubList title="Earlier copilots" items={previousCopilotItems(pickup)} />
+                    </StageCard>
 
-                    {/* Process Assignment */}
-                    <AssignmentCard
-                        title="Processing Assignee"
+                    {/* Quality Check */}
+                    <StageCard
+                        title="Quality Check"
+                        icon={<ListChecks className="h-4 w-4" />}
+                        iconBg="bg-amber-100"
+                        iconColor="text-amber-600"
+                        empty={!subOrder?.quality_check && !subOrder?.cancelled_at}
+                        emptyLabel="Not yet checked"
+                    >
+                        <TimeRows
+                            rows={[
+                                { label: 'QC Done At', value: subOrder?.qc_completed_at },
+                                ...(subOrder?.qc_completed_by ? [{ label: 'QC By', text: subOrder.qc_completed_by }] : []),
+                                ...(subOrder?.ord_status === 'Cancelled'
+                                    ? [
+                                        { label: 'Cancelled At', value: subOrder?.cancelled_at, estimated: isEstimated(subOrder, 'cancelled_at') },
+                                        ...(subOrder?.cancelled_by ? [{ label: 'Cancelled By', text: subOrder.cancelled_by }] : []),
+                                    ]
+                                    : []),
+                            ]}
+                        />
+                    </StageCard>
+
+                    {/* Processing */}
+                    <StageCard
+                        title="Processing"
                         icon={<Settings className="h-4 w-4" />}
                         iconBg="bg-purple-100"
                         iconColor="text-purple-600"
-                        assignment={data?.processAssignment}
+                        empty={!process}
                         emptyLabel="Not yet assigned"
-                        fields={[
-                            {
-                                label: 'Processing Assignee',
-                                key: 'status',
-                                onClick: (assignment) => router.push(`/dashboard/vendor/${assignment?.vendor_id}`), // 👈
-                            },
-                            { label: 'Status', key: 'status', format: formatStatus },
-                            { label: 'Assigned At', key: 'createdAt', format: formatToIST }, // 👈
-                            { label: 'Processed At', key: 'updatedAt', format: formatToIST }, // 👈
-                        ]}
-                    />
+                    >
+                        <TimeRows
+                            rows={[
+                                {
+                                    label: 'Vendor',
+                                    text: <PersonLink name={process?.vendor_name} mobile={process?.vendor_mobile} onClick={() => router.push(`/dashboard/vendor/${process?.vendor_id}`)} />,
+                                },
+                                { label: 'Status', text: VENDOR_STATUS[process?.status] ?? '—' },
+                                { label: 'Assigned At', value: process?.createdAt },
+                                ...(process?.assigned_by ? [{ label: 'Assigned By', text: process.assigned_by }] : []),
+                                { label: 'Accepted At', value: process?.accepted_at },
+                                { label: 'Picked from Warehouse', value: process?.picked_up_at },
+                                { label: 'Processing Started', value: process?.processing_started_at },
+                                { label: 'Processing Completed', value: process?.processing_completed_at },
+                                { label: 'Inward Verified', value: process?.inward_verified_at },
+                                ...(process?.service_deadline ? [{ label: 'Deadline', value: process.service_deadline }] : []),
+                                ...(subOrder?.ironing_started_at ? [{ label: 'Ironing Started', value: subOrder.ironing_started_at }] : []),
+                                ...(subOrder?.ironing_completed_at ? [{ label: 'Ironing Completed', value: subOrder.ironing_completed_at }] : []),
+                            ]}
+                        />
+                        <SubList
+                            title="Rejected vendors"
+                            items={(data?.processHistory ?? [])
+                                .filter((p: any) => p._id !== process?._id && p.status === 0)
+                                .map((p: any) => (
+                                    <span key={p._id}>
+                                        <span className="font-medium text-foreground">{p.vendor_name || p.vendor_id}</span>
+                                        {' '}· assigned {formatToIST(p.createdAt)}
+                                        {p.rejected_at ? ` → rejected ${formatToIST(p.rejected_at)}` : ''}
+                                        {p.reject_reason ? ` (${p.reject_reason === 'auto_expired' ? 'not accepted in time' : p.reject_reason})` : ''}
+                                    </span>
+                                ))}
+                        />
+                    </StageCard>
 
-                    {/* Delivery Assignment */}
-                    <AssignmentCard
-                        title="Delivery Assignee"
+                    {/* Delivery */}
+                    <StageCard
+                        title="Delivery"
                         icon={<UserCheck className="h-4 w-4" />}
                         iconBg="bg-green-100"
                         iconColor="text-green-600"
-                        assignment={data?.deliveryAssignment}
+                        empty={!delivery}
                         emptyLabel="Not yet assigned"
-                        fields={[
-                            {
-                                label: 'Pickup Assignee',
-                                key: 'status',
-                                onClick: (assignment) => router.push(`/dashboard/copilots/${assignment?.copilot_id}`), // 👈
-                            },
-                            { label: 'Status', key: 'status', format: formatStatus },
-                            { label: 'Assigned At', key: 'createdAt', format: formatToIST }, // 👈
-                            { label: 'Delivered At', key: 'updatedAt', format: formatToIST }, // 👈
-                        ]}
-                    />
+                    >
+                        <TimeRows
+                            rows={[
+                                {
+                                    label: 'Copilot',
+                                    text: <PersonLink name={delivery?.copilot_name} mobile={delivery?.copilot_mobile} onClick={() => router.push(`/dashboard/copilots/${delivery?.copilot_id}`)} />,
+                                },
+                                { label: 'Status', text: COPILOT_STATUS[delivery?.status] ?? '—' },
+                                { label: 'Assigned At', value: delivery?.assigned_at ?? delivery?.createdAt },
+                                ...(delivery?.assigned_by ? [{ label: 'Assigned By', text: delivery.assigned_by }] : []),
+                                { label: 'Out for Delivery At', value: delivery?.started_at },
+                                { label: 'Delivered At', value: delivery?.completed_at, estimated: isEstimated(delivery, 'completed_at') },
+                            ]}
+                        />
+                        <SubList title="Attempts" items={attemptItems(delivery)} />
+                        <SubList title="Earlier copilots" items={previousCopilotItems(delivery)} />
+                    </StageCard>
 
                     {/* Pickup Assignment */}
                     {/* <AssignmentCard

@@ -349,6 +349,26 @@ export interface SubOrder extends BaseEntity {
   quality_check: boolean;
   is_suborder_cancel: number;
   cancel_charge: number;
+  // Cloth-level breakdown saved during QC (v2/update2); empty until segregated
+  garment_segregated?: SegregatedCategory[];
+  // Real stage times (null on old orders where they weren't recorded)
+  picked_up_at?: string | null;
+  qc_completed_at?: string | null;
+  qc_completed_by?: string;
+  cancelled_at?: string | null;
+  cancelled_by?: string;
+  ironing_started_at?: string | null;
+  ironing_completed_at?: string | null;
+  estimated_fields?: string[];
+}
+
+export interface SegregatedCategory {
+  category_id: number;
+  category: string;
+  category_prices: string;
+  clothes: Array<{ name: string; qty: number }>;
+  total_items: number;
+  total_amount: number;
 }
 
 export interface Booking extends BaseEntity {
@@ -380,6 +400,7 @@ export interface Booking extends BaseEntity {
   offer_code: string;
   offer_id: string;
   offer_amount: number;
+  offer_removed?: OfferRemoval;
   order_details: any;
   no_of_garemtn_picked: number;
   no_of_garemtn_processed: number;
@@ -392,6 +413,18 @@ export interface Booking extends BaseEntity {
   sub_orders?: SubOrder[];
   customer_details?: BookingCustomerDetails;
   address_details?: BookingAddressDetails;
+  // Which order this is for the customer (null when cancelled) — list API only
+  customer_order_no?: number | null;
+  customer_total_orders?: number;
+  customer_type?: CustomerType | null;
+}
+
+export type CustomerType = 'new' | 'second' | 'repeat' | 'loyal';
+
+export interface CustomerRank {
+  customer_order_no: number | null;
+  customer_total_orders: number;
+  customer_type: CustomerType | null;
 }
 
 export interface PendingQCOrder {
@@ -446,7 +479,19 @@ export interface BookingListData {
   totalOrders: number;
   total_pages: number;
   currentPage: number;
+  newCustomersToday?: number;
   bookingList: Booking[];
+}
+
+// Coupon dropped at QC completion because the final order amount fell below
+// the coupon's minimum
+export interface OfferRemoval {
+  offer_code: string;
+  offer_amount: number;
+  order_amount: number;
+  min_order_amount: number;
+  reason: string;
+  removed_at: string;
 }
 
 export interface BookingDetailsData {
@@ -454,19 +499,47 @@ export interface BookingDetailsData {
   customer: Customer;
   address: Address;
   subOrders: SubOrder[];
-  pickupAssignments: any[];
-  processAssignments: any[];
-  deliveryAssignments: any[];
+  customerRank?: CustomerRank | null;
+  pickupAssignment: PickupAssignment | null;
+  processAssignments: ProcessAssignment[];
+  deliveryAssignments: DeliveryAssignment[];
 }
 
 // ─── Assignment Interfaces ────────────────────────────────────────────────────
+
+export interface OrderAttempt {
+  _id: string;
+  attempt_no: number;
+  reason_text: string;
+  message: string;
+  photo_url: string;
+  createdAt: string;
+}
+
+export interface PreviousCopilot {
+  copilot_id: string;
+  copilot_name?: string;
+  assigned_at: string | null;
+  removed_at: string | null;
+  status_at_removal: number | null;
+  removed_by: string;
+}
 
 export interface PickupAssignment {
   _id: string;
   order_id: string;
   copilot_id: string;
+  copilot_name?: string;
+  copilot_mobile?: string;
   status: number;
   isStarted: number;
+  order_attempt?: OrderAttempt[];
+  assigned_at?: string | null;
+  assigned_by?: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  previous_copilots?: PreviousCopilot[];
+  estimated_fields?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -476,9 +549,18 @@ export interface ProcessAssignment {
   order_id: string;
   sub_order_id: string;
   vendor_id: string;
+  vendor_name?: string;
+  vendor_mobile?: string;
   status: number;
-  isStarted: number;
   reject_reason: string;
+  assigned_by?: string;
+  rejected_at?: string | null;
+  accepted_at?: string | null;
+  picked_up_at?: string | null;
+  processing_started_at?: string | null;
+  processing_completed_at?: string | null;
+  service_deadline?: string | null;
+  inward_verified_at?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -488,8 +570,17 @@ export interface DeliveryAssignment {
   order_id: string;
   sub_order_id: string;
   copilot_id: string;
+  copilot_name?: string;
+  copilot_mobile?: string;
   status: number;
   isStarted: number;
+  order_attempt?: OrderAttempt[];
+  assigned_at?: string | null;
+  assigned_by?: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  previous_copilots?: PreviousCopilot[];
+  estimated_fields?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -499,9 +590,11 @@ export interface DeliveryAssignment {
 export interface SubOrderDetailsData {
   subOrder: SubOrder;
   address: Address;
-  pickupAssignment: PickupAssignment;
-  processAssignment: ProcessAssignment;
-  deliveryAssignment: DeliveryAssignment;
+  customerRank?: CustomerRank | null;
+  pickupAssignment: PickupAssignment | null;
+  processAssignment: ProcessAssignment | null;
+  processHistory?: ProcessAssignment[];
+  deliveryAssignment: DeliveryAssignment | null;
 }
 
 export interface UpdateGarmentRequest {

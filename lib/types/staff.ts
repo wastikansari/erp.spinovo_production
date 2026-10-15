@@ -1,6 +1,8 @@
 import { PermissionLevel } from '../constants/erpPages';
 
-export type StaffRole = 'super_admin' | 'admin' | 'supervisor';
+import type { StaffRole } from '../constants/staffRoles';
+
+export type { StaffRole };
 export type StaffStatus = 'active' | 'inactive';
 
 export interface StaffPermission {

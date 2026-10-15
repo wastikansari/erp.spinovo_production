@@ -9,12 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, Mail, Phone, Shield, ShieldAlert, ShieldCheck } from 'lucide-react';
 import { AuthService } from '@/lib/auth';
+import { staffRoleLabel } from '@/lib/constants/staffRoles';
 
-const ROLE_LABEL: Record<string, string> = {
-  super_admin: 'Super Admin',
-  admin: 'Admin',
-  supervisor: 'Supervisor',
-};
 
 const ROLE_ICON: Record<string, typeof Shield> = {
   super_admin: ShieldAlert,
@@ -125,7 +121,7 @@ export default function ProfilePage() {
               <div className="mt-1 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                 <Badge variant={user.role === 'super_admin' ? 'default' : 'secondary'} className="gap-1">
                   <RoleIcon className="h-3.5 w-3.5" />
-                  {ROLE_LABEL[user.role] ?? user.role}
+                  {staffRoleLabel(user.role)}
                 </Badge>
                 <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>
                   {user.status === 'active' ? 'Active' : 'Inactive'}

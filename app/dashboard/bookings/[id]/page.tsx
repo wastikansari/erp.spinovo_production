@@ -32,12 +32,19 @@ import {
     Layers,
     ChevronRight,
     UserCircle,
+    ListChecks,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { BookingApiService, BookingDetailsData } from '@/lib/api';
+import { CustomerTag } from '@/components/bookings/customer-tag';
+import {
+    GarmentSegregationTable,
+    getSegregatedCategories,
+    getSegregationTotals,
+} from '@/components/bookings/garment-segregation';
 
 // ─── Service Color System ─────────────────────────────────────────────────────
 
@@ -237,6 +244,21 @@ export default function BookingDetailsPage() {
     const orderDetails = parseOrderDetails(order.order_details);
     const serviceNames = order.service_name?.split(',').map((s) => s.trim()) ?? [];
 
+    // Section shows once any sub-order is segregated; the others show "not done yet"
+    const subOrderSegregations = (subOrders ?? []).map((sub) => ({
+        sub,
+        categories: getSegregatedCategories(sub.garment_segregated),
+    }));
+    const segregatedSubOrders = subOrderSegregations.some((s) => s.categories.length > 0)
+        ? subOrderSegregations
+        : [];
+    // Grand total excludes cancelled sub-orders
+    const segregationGrandTotal = getSegregationTotals(
+        segregatedSubOrders
+            .filter(({ sub }) => sub.is_suborder_cancel !== 0)
+            .flatMap(({ categories }) => categories)
+    );
+
     return (
         <div className="space-y-5 p-4 md:p-6">
 
@@ -254,6 +276,10 @@ export default function BookingDetailsPage() {
                         <span className={`px-3 py-1 rounded-full border text-xs font-semibold ${getPaymentStatusClass(order.payment_status)}`}>
                             {order.payment_status}
                         </span>
+                        <CustomerTag
+                            orderNo={bookingData.customerRank?.customer_order_no}
+                            total={bookingData.customerRank?.customer_total_orders}
+                        />
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                         {order.service_name} &nbsp;·&nbsp; {formatDate(order.booking_date)}, {order.booking_time}
@@ -377,7 +403,14 @@ export default function BookingDetailsPage() {
                                     value={
                                         <span className="flex items-center gap-1.5">
                                             <Tag className="h-3.5 w-3.5 text-green-500" />
-                                            <span className="text-green-600 font-mono">{order.offer_code}</span>
+                                            <span
+                                                className={`font-mono ${order.offer_removed ? 'text-muted-foreground line-through' : 'text-green-600'}`}
+                                            >
+                                                {order.offer_code}
+                                            </span>
+                                            {order.offer_removed && (
+                                                <span className="text-xs text-amber-600">Removed at QC</span>
+                                            )}
                                         </span>
                                     }
                                 />
@@ -478,6 +511,65 @@ export default function BookingDetailsPage() {
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Garment Segregation (saved at QC), per sub-order */}
+                    {segregatedSubOrders.length > 0 && (
+                        <Card className="rounded-2xl shadow-sm">
+                            <CardHeader className="pb-3 border-b">
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <ListChecks className="h-4 w-4 text-muted-foreground" />
+                                    Garment Segregation
+                                    <span className="text-sm font-normal text-muted-foreground">(after QC)</span>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="pt-4 space-y-4">
+                                {segregatedSubOrders.map(({ sub, categories }) => {
+                                    const t = SERVICE_THEMES[resolveServiceKey(sub.service_name)];
+                                    const isCancelled = sub.is_suborder_cancel === 0;
+                                    return (
+                                        <div key={sub._id} className="space-y-2">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ${t.badge}`}>
+                                                    {t.icon}{sub.service_name}
+                                                </span>
+                                                <span className="text-xs text-muted-foreground font-mono">{sub.sub_order_no}</span>
+                                                {sub.quality_check && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold bg-green-100 text-green-700 border-green-200">
+                                                        <CheckCircle2 className="h-3 w-3" /> QC Done
+                                                    </span>
+                                                )}
+                                                {isCancelled && (
+                                                    <span className="px-2 py-0.5 rounded-full border text-xs font-semibold bg-red-100 text-red-700 border-red-200">
+                                                        Cancelled
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {categories.length > 0 ? (
+                                                <div className={isCancelled ? 'opacity-60' : ''}>
+                                                    <GarmentSegregationTable categories={categories} />
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground border rounded-xl bg-muted/10 px-4 py-3">
+                                                    Garment segregation not done yet
+                                                </p>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+
+                                <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-primary/5 border border-primary/20">
+                                    <div className="flex items-center gap-2 text-sm font-medium">
+                                        <Shirt className="h-4 w-4 text-primary" />
+                                        Grand Total — {segregationGrandTotal.qty} garments
+                                    </div>
+                                    <div className="font-bold flex items-center gap-0.5">
+                                        <IndianRupee className="h-4 w-4" />
+                                        {segregationGrandTotal.amount.toLocaleString('en-IN')}
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
 
                     {/* Service Breakdown from order_details */}
                     {orderDetails.length > 0 && (
@@ -672,6 +764,15 @@ export default function BookingDetailsPage() {
                             {order.spinovo_bonus_discount > 0 && (
                                 <PriceRow label="Spinovo Bonus" value={order.spinovo_bonus_discount} negative />
                             )}
+                            {order.offer_removed && (
+                                <div className="my-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                                    <p className="font-medium">
+                                        Coupon {order.offer_removed.offer_code} (₹{order.offer_removed.offer_amount}) removed at QC
+                                    </p>
+                                    <p>{order.offer_removed.reason}</p>
+                                    <p className="text-amber-700/80">{formatDateTime(order.offer_removed.removed_at)}</p>
+                                </div>
+                            )}
                             <Separator className="my-2" />
                             <PriceRow label="Total Billing" value={order.total_billing} highlight />
                         </CardContent>
@@ -743,28 +844,68 @@ export default function BookingDetailsPage() {
                     </Card> */}
 
                     {/* Assignments summary */}
-                    {((bookingData as any).pickupAssignments?.length > 0 ||
-                        (bookingData as any).processAssignments?.length > 0 ||
-                        (bookingData as any).deliveryAssignments?.length > 0) && (
+                    {(bookingData.pickupAssignment ||
+                        bookingData.processAssignments?.length > 0 ||
+                        bookingData.deliveryAssignments?.length > 0) && (
                             <Card className="rounded-2xl shadow-sm">
                                 <CardHeader className="pb-3 border-b">
                                     <CardTitle className="text-base">Assignments</CardTitle>
                                 </CardHeader>
-                                <CardContent className="pt-4 space-y-3">
+                                <CardContent className="pt-4 space-y-4 text-sm">
+                                    {/* Pickup — one per order */}
+                                    <div className="space-y-1">
+                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Pickup</p>
+                                        {bookingData.pickupAssignment ? (
+                                            <>
+                                                <button
+                                                    onClick={() => router.push(`/dashboard/copilots/${bookingData.pickupAssignment?.copilot_id}`)}
+                                                    className="font-medium text-primary underline underline-offset-2 hover:text-primary/70"
+                                                >
+                                                    {bookingData.pickupAssignment.copilot_name || 'View copilot'} ↗
+                                                </button>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Assigned {formatDateTime(bookingData.pickupAssignment.assigned_at ?? bookingData.pickupAssignment.createdAt)}
+                                                </p>
+                                                {bookingData.pickupAssignment.completed_at && (
+                                                    <p className="text-xs text-muted-foreground">
+                                                        Picked up {formatDateTime(bookingData.pickupAssignment.completed_at)}
+                                                        {bookingData.pickupAssignment.estimated_fields?.includes('completed_at') && ' (approx)'}
+                                                    </p>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Not assigned</p>
+                                        )}
+                                    </div>
+
+                                    {/* Processing and delivery — one per sub-order; open a sub-order for full times */}
                                     {[
-                                        { label: 'Pickup', data: (bookingData as any).pickupAssignments },
-                                        { label: 'Processing', data: (bookingData as any).processAssignments },
-                                        { label: 'Delivery', data: (bookingData as any).deliveryAssignments },
-                                    ].map(({ label, data }) => (
-                                        <div key={label} className="flex items-center justify-between text-sm">
-                                            <span className="text-muted-foreground">{label}</span>
-                                            {data?.length > 0 ? (
-                                                <div className="flex items-center gap-1 text-green-600 font-medium">
-                                                    <CheckCircle2 className="h-3.5 w-3.5" />
-                                                    {data.length} assigned
-                                                </div>
+                                        {
+                                            label: 'Processing',
+                                            rows: (bookingData.processAssignments ?? [])
+                                                .filter((p) => p.status !== 0)
+                                                .map((p) => ({ id: p._id, subOrderId: p.sub_order_id, name: p.vendor_name })),
+                                        },
+                                        {
+                                            label: 'Delivery',
+                                            rows: (bookingData.deliveryAssignments ?? []).map((d) => ({
+                                                id: d._id, subOrderId: d.sub_order_id, name: d.copilot_name,
+                                            })),
+                                        },
+                                    ].map(({ label, rows }) => (
+                                        <div key={label} className="space-y-1">
+                                            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+                                            {rows.length > 0 ? (
+                                                rows.map((r) => (
+                                                    <div key={r.id} className="flex items-center justify-between gap-2">
+                                                        <span className="font-medium">{r.name || '—'}</span>
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {subOrders?.find((s) => s._id === r.subOrderId)?.sub_order_no ?? ''}
+                                                        </span>
+                                                    </div>
+                                                ))
                                             ) : (
-                                                <span className="text-muted-foreground text-xs">Not assigned</span>
+                                                <p className="text-xs text-muted-foreground">Not assigned</p>
                                             )}
                                         </div>
                                     ))}

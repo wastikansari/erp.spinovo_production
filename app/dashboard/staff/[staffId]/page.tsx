@@ -31,6 +31,8 @@ import { useToast } from '@/hooks/use-toast';
 import { StaffApiService } from '@/lib/api';
 import type { StaffMember, StaffPermission, StaffRole, StaffStatus } from '@/lib/types/staff';
 import { PermissionGrid } from '@/components/forms/permission-grid';
+import { StaffRoleSelect } from '@/components/forms/staff-role-select';
+import { getStaffRole } from '@/lib/constants/staffRoles';
 import { AuthService } from '@/lib/auth';
 
 export default function EditStaffPage() {
@@ -78,6 +80,20 @@ export default function EditStaffPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Switching role replaces the grid with the new role's defaults (nothing
+  // is saved until "Save Changes"), so the account never keeps pages its
+  // new role shouldn't have by accident.
+  const changeRole = (next: StaffRole) => {
+    setRole(next);
+    setPermissions(getStaffRole(next)?.defaultPermissions() ?? []);
+    if (next !== 'super_admin') {
+      toast({
+        title: `Permissions reset to ${getStaffRole(next)?.label ?? next} defaults`,
+        description: 'Adjust any page below, then Save Changes.',
+      });
+    }
+  };
 
   const save = async () => {
     setSaving(true);
@@ -196,16 +212,7 @@ export default function EditStaffPage() {
           </div>
           <div className="space-y-2">
             <Label>Role</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as StaffRole)} disabled={isSelf}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="supervisor">Supervisor</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="super_admin">Super Admin (full access)</SelectItem>
-              </SelectContent>
-            </Select>
+            <StaffRoleSelect value={role} onChange={changeRole} disabled={isSelf} />
             {isSelf && (
               <p className="text-xs text-muted-foreground">You can&apos;t change your own role.</p>
             )}
@@ -245,6 +252,9 @@ export default function EditStaffPage() {
         <Card>
           <CardHeader>
             <CardTitle>Page permissions</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Changing the role fills this in with that role&apos;s defaults. Pages on &quot;No Access&quot; are hidden.
+            </p>
           </CardHeader>
           <CardContent>
             <PermissionGrid value={permissions} onChange={setPermissions} />

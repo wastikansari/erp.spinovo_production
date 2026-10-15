@@ -1,4 +1,5 @@
 import { PERMISSION_LEVEL_RANK, type PermissionLevel } from './constants/erpPages';
+import type { StaffRole } from './constants/staffRoles';
 
 export interface PermissionEntry {
   key: string;
@@ -6,7 +7,7 @@ export interface PermissionEntry {
 }
 
 export interface PermissionedUser {
-  role?: 'super_admin' | 'admin' | 'supervisor' | string;
+  role?: StaffRole | string;
   status?: 'active' | 'inactive' | string;
   permissions?: PermissionEntry[];
 }
@@ -42,6 +43,7 @@ const ROUTE_PAGE_MAP: [string, string][] = [
   ['/dashboard/offers', 'offers'],
   ['/dashboard/notification-campaigns', 'notification-campaigns'],
   ['/dashboard/whatsapp-marketing', 'whatsapp-marketing'],
+  ['/dashboard/sales-call', 'sales-call'],
   ['/dashboard/app-content', 'app-content'],
   ['/dashboard/app-theme', 'app-theme'],
   ['/dashboard/app-nav-bar', 'app-nav-bar'],

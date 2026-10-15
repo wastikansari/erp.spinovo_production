@@ -46,6 +46,7 @@ import {
   Sparkles,
   PanelBottom,
   Hand,
+  PhoneCall,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -180,6 +181,8 @@ const navigation: NavEntry[] = [
       { name: 'Staff', href: '/dashboard/staff', icon: Shield },
     ],
   },
+
+  { name: 'Sales Call', href: '/dashboard/sales-call', icon: PhoneCall },
 ];
 
 // Hides nav items the logged-in user has no view access to. A group

@@ -4,6 +4,7 @@ import { errorHandler, AuthenticationError, ApiError } from './utils/error-handl
 import { validators, sanitizers } from './utils/validation';
 import { register, onRegistered } from 'firebase/messaging';
 import { getMessaging } from './firebase';
+import type { StaffRole } from './constants/staffRoles';
 
 const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
   || 'BHktXl20xhuxVNNL5eI0RwrjSQSTcIVLWY3q65VyivZRHdEuvwUCaiuvpciI3-2TXuosNN1pI6xl_nHu4OJ-jto';
@@ -23,7 +24,7 @@ interface AdminUser {
   profile_pic: string;
   access_token: string;
   city_id: number;
-  role: 'super_admin' | 'admin' | 'supervisor';
+  role: StaffRole;
   status: 'active' | 'inactive';
   permissions: { key: string; level: 'view' | 'edit' | 'all' }[];
   createdAt: string;

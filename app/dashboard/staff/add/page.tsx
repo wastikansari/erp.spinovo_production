@@ -11,39 +11,33 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { StaffApiService } from '@/lib/api';
 import type { StaffPermission, StaffRole } from '@/lib/types/staff';
 import { PermissionGrid } from '@/components/forms/permission-grid';
-import { ERP_PAGES } from '@/lib/constants/erpPages';
+import { StaffRoleSelect } from '@/components/forms/staff-role-select';
+import { STAFF_ROLE_VALUES, getStaffRole } from '@/lib/constants/staffRoles';
 
 const staffSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   mobile: z.string().min(10, 'Mobile number must be at least 10 digits').max(15, 'Mobile number is too long'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.enum(['super_admin', 'admin', 'supervisor']),
+  role: z.enum(STAFF_ROLE_VALUES),
 });
 
 type StaffFormData = z.infer<typeof staffSchema>;
 
-// Default for a new supervisor/admin — everything except Inventory,
-// Services, and Package (per business rule), all at "all" (full access).
-const DEFAULT_PERMISSIONS: StaffPermission[] = ERP_PAGES.filter(
-  (p) => !['staff', 'inventory', 'services', 'package'].includes(p.key),
-).map((p) => ({ key: p.key, level: 'all' as const }));
+// A new account starts as a Supervisor with no pages — picking a role
+// pre-fills the grid with that role's defaults (lib/constants/staffRoles.ts).
+const INITIAL_ROLE: StaffRole = 'supervisor';
 
 export default function AddStaffPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [permissions, setPermissions] = useState<StaffPermission[]>(DEFAULT_PERMISSIONS);
+  const [permissions, setPermissions] = useState<StaffPermission[]>(
+    () => getStaffRole(INITIAL_ROLE)?.defaultPermissions() ?? [],
+  );
 
   const {
     register,
@@ -53,7 +47,7 @@ export default function AddStaffPage() {
     formState: { errors },
   } = useForm<StaffFormData>({
     resolver: zodResolver(staffSchema),
-    defaultValues: { role: 'supervisor' },
+    defaultValues: { role: INITIAL_ROLE },
   });
 
   const role = watch('role');
@@ -122,16 +116,13 @@ export default function AddStaffPage() {
                 control={control}
                 name="role"
                 render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="supervisor">Supervisor</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="super_admin">Super Admin (full access)</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <StaffRoleSelect
+                    value={field.value}
+                    onChange={(next) => {
+                      field.onChange(next);
+                      setPermissions(getStaffRole(next)?.defaultPermissions() ?? []);
+                    }}
+                  />
                 )}
               />
             </div>
@@ -148,6 +139,9 @@ export default function AddStaffPage() {
           <Card>
             <CardHeader>
               <CardTitle>Page permissions</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Filled in from the role — change any page before saving. Pages left on &quot;No Access&quot; are hidden.
+              </p>
             </CardHeader>
             <CardContent>
               <PermissionGrid value={permissions} onChange={setPermissions} />
