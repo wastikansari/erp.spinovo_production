@@ -427,7 +427,7 @@ export default function OfferDetailsPage() {
                             </div>
                         )}
                         <p className="text-xs text-muted-foreground mt-3">
-                            Cancelled orders don&apos;t count towards the limit.
+                            Cancelled orders and coupons removed at QC don&apos;t count towards the limit.
                         </p>
                     </CardContent>
                 </Card>
@@ -460,7 +460,19 @@ export default function OfferDetailsPage() {
                                             <TableCell className="font-mono text-xs">{o.order_display_no}</TableCell>
                                             <TableCell>{new Date(o.createdAt).toLocaleDateString('en-IN')}</TableCell>
                                             <TableCell>{o.customer_name || o.customer_mobile || '—'}</TableCell>
-                                            <TableCell>₹{o.offer_amount}</TableCell>
+                                            <TableCell>
+                                                {o.offer_removed || o.offer_qc_check?.action === 'removed' ? (
+                                                    <span className="text-red-600" title={o.offer_qc_check?.reason || o.offer_removed?.reason}>
+                                                        Removed at QC
+                                                    </span>
+                                                ) : o.offer_qc_check && o.offer_qc_check.action !== 'kept' ? (
+                                                    <span title={o.offer_qc_check.reason}>
+                                                        ₹{o.offer_qc_check.before_amount} → ₹{o.offer_amount}
+                                                    </span>
+                                                ) : (
+                                                    <>₹{o.offer_amount}</>
+                                                )}
+                                            </TableCell>
                                             <TableCell>{o.ord_status}</TableCell>
                                             <TableCell>
                                                 {o.offer_check === 'mismatch' ? (

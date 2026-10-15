@@ -1,5 +1,6 @@
 'use client';
 
+import { OrderCouponQcRecord } from '@/components/coupons/qc-coupon-notice';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -411,6 +412,13 @@ export default function BookingDetailsPage() {
                                             {order.offer_removed && (
                                                 <span className="text-xs text-amber-600">Removed at QC</span>
                                             )}
+                                            {!order.offer_removed &&
+                                                order.offer_qc_check &&
+                                                order.offer_qc_check.action !== 'kept' && (
+                                                    <span className="text-xs text-amber-600">
+                                                        {order.offer_qc_check.action === 'increased' ? 'Increased' : 'Reduced'} at QC
+                                                    </span>
+                                                )}
                                         </span>
                                     }
                                 />
@@ -764,7 +772,9 @@ export default function BookingDetailsPage() {
                             {order.spinovo_bonus_discount > 0 && (
                                 <PriceRow label="Spinovo Bonus" value={order.spinovo_bonus_discount} negative />
                             )}
-                            {order.offer_removed && (
+                            {order.offer_qc_check ? (
+                                <OrderCouponQcRecord check={order.offer_qc_check} />
+                            ) : order.offer_removed && (
                                 <div className="my-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
                                     <p className="font-medium">
                                         Coupon {order.offer_removed.offer_code} (₹{order.offer_removed.offer_amount}) removed at QC

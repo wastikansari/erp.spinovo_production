@@ -1,5 +1,6 @@
 'use client';
 
+import { QcCouponNotice } from '@/components/coupons/qc-coupon-notice';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -1037,6 +1038,7 @@ function QCV3Content() {
                                     <div className="flex justify-between text-xs border-t pt-2"><span>Garment Amount</span><span className="font-bold text-foreground">₹{order?.order_amount?.toLocaleString('en-IN')}</span></div>
                                     <div className="flex justify-between text-xs border-t pt-2"><span>Total Paid</span><span className="font-bold text-foreground">₹{order?.paid_amount?.toLocaleString('en-IN')}</span></div>
                                 </div>
+                                <QcCouponNotice orderId={orderId} open={showMainQcConfirm} />
                                 <p className="font-medium text-foreground border-t pt-3">This completes settlement for the order. Cannot be undone.</p>
                             </div>
                         </AlertDialogDescription>

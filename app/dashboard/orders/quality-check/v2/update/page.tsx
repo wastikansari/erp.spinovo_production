@@ -1,5 +1,6 @@
 'use client';
 
+import { QcCouponNotice } from '@/components/coupons/qc-coupon-notice';
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -1493,6 +1494,7 @@ function QCUpdateContent() {
                                     </div> */}
 
                                 </div>
+                                <QcCouponNotice orderId={orderId} open={showMainQcConfirm} />
                                 <p className="font-medium text-foreground border-t pt-3">
                                     This completes settlement for the order. Cannot be undone.
                                 </p>

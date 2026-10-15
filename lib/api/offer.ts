@@ -8,6 +8,7 @@ import {
     OfferServiceListData,
     OfferUsageData,
 } from '../types/offer';
+import { OfferQcCheck } from '../types/booking';
 
 export class OfferApiService extends BaseApiService {
     static async getOffers(): Promise<ApiResponse<OfferListData>> {
@@ -28,6 +29,15 @@ export class OfferApiService extends BaseApiService {
 
     static async getOfferUsage(offerId: string): Promise<ApiResponse<OfferUsageData>> {
         return this.makeRequest<OfferUsageData>(`/admin/offer/${offerId}/usage`, {
+            method: 'GET',
+        });
+    }
+
+    // What QC completion would do to the order's coupon (nothing is saved).
+    static async getQcCouponPreview(
+        orderId: string
+    ): Promise<ApiResponse<{ check: OfferQcCheck | null }>> {
+        return this.makeRequest<{ check: OfferQcCheck | null }>(`/admin/order/qc/coupon-preview/${orderId}`, {
             method: 'GET',
         });
     }

@@ -89,6 +89,8 @@ export interface OfferUsageOrder {
     order_amount: number;
     total_billing: number;
     ord_status: string;
+    offer_removed?: { offer_code: string; reason: string };
+    offer_qc_check?: { action: string; before_amount: number; after_amount: number; reason: string };
     createdAt: string;
 }
 
