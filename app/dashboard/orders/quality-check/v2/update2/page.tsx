@@ -19,6 +19,7 @@ import {
 import {
     BookingApiService, AssignApiService, FullServiceCategory,
     MainOrderDetailsData, SubOrder, CategoryItem, AddServiceRequest,
+    SubOrderCancelType, SubOrderCancelOption,
 } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -102,7 +103,9 @@ function QCV3Content() {
 
     const [cancellingSubOrder, setCancellingSubOrder] = useState<SubOrder | null>(null);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-    const [serviceCorrection, setServiceCorrection] = useState(false);
+    const [cancelType, setCancelType] = useState<SubOrderCancelType | null>(null);
+    const [cancelOptions, setCancelOptions] = useState<SubOrderCancelOption[]>([]);
+    const [cancelOptionsLoading, setCancelOptionsLoading] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
 
     const [addSaving, setAddSaving] = useState(false);
@@ -181,6 +184,8 @@ function QCV3Content() {
     const pickedLimit = activeSubOrder?.no_of_garments_picked ?? 0;
     const isFull = totalActiveQty === pickedLimit;
     const totalSubOrderCancelCharges = orderData?.subOrders.reduce((sum, s) => sum + (s.cancel_charge ?? 0), 0) ?? 0;
+    const serviceChangeCharges = orderData?.subOrders.reduce((sum, s) => sum + (s.cancel_type === 'service_change' ? s.cancel_charge ?? 0 : 0), 0) ?? 0;
+    const cancellationCharges = totalSubOrderCancelCharges - serviceChangeCharges;
 
     const availableServices = serviceList.filter(
         (svc) => !orderData?.subOrders.some((sub) => parseInt(sub.service_id) === svc.service_id)
@@ -349,15 +354,33 @@ function QCV3Content() {
         }
     };
 
+    // Reasons + amounts come from Settings → Charges; staff must pick one
+    const openCancelDialog = async (sub: SubOrder) => {
+        setCancellingSubOrder(sub);
+        setCancelType(null);
+        setShowCancelConfirm(true);
+        try {
+            setCancelOptionsLoading(true);
+            const res = await BookingApiService.getSubOrderCancelOptions();
+            if (res.status && res.data) setCancelOptions(res.data.options);
+            else toast({ variant: 'destructive', title: 'Error', description: res.msg || 'Failed to load cancel options' });
+        } catch (err: any) {
+            toast({ variant: 'destructive', title: 'Error', description: err.message });
+        } finally {
+            setCancelOptionsLoading(false);
+        }
+    };
+
     const handleCancelSubOrder = async () => {
         if (!cancellingSubOrder) return;
         try {
             setCancelLoading(true);
-            const res = await BookingApiService.cancelSubOrder(cancellingSubOrder._id, serviceCorrection);
+            if (!cancelType) return;
+            const res = await BookingApiService.cancelSubOrder(cancellingSubOrder._id, cancelType);
             if (res.status) {
                 setShowCancelConfirm(false);
                 setCancellingSubOrder(null);
-                setServiceCorrection(false);
+                setCancelType(null);
                 toast({ title: 'Sub-order Cancelled', description: `${cancellingSubOrder.service_name} has been cancelled.` });
                 await fetchData();
             } else {
@@ -519,7 +542,8 @@ function QCV3Content() {
                             { label: 'Slot Charges', icon: <Clock className="h-3.5 w-3.5" />, value: order?.slot_charges ?? 0 },
                             { label: 'Tip', icon: <Wallet className="h-3.5 w-3.5" />, value: order?.tip_amount ?? 0 },
                             { label: 'Spinovo Bonus Discount', icon: <Wallet className="h-3.5 w-3.5" />, value: order?.spinovo_bonus_discount ?? 0 },
-                            { label: 'Suborder Cancel Charges', icon: <Wallet className="h-3.5 w-3.5" />, value: totalSubOrderCancelCharges },
+                            { label: 'Cancellation Charges', icon: <Wallet className="h-3.5 w-3.5" />, value: cancellationCharges },
+                            { label: 'Service Change Charges', icon: <Wallet className="h-3.5 w-3.5" />, value: serviceChangeCharges },
                         ].map((row, i) => (
                             <div key={row.label} className={`px-5 py-2.5 flex items-center justify-between ${i % 2 !== 0 ? 'bg-muted/20' : ''}`}>
                                 <span className="text-xs text-muted-foreground flex items-center gap-2">{row.icon} {row.label}</span>
@@ -894,7 +918,7 @@ function QCV3Content() {
                                         variant="outline"
                                         className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                         disabled={cancelLoading}
-                                        onClick={() => { setCancellingSubOrder(activeSubOrder); setServiceCorrection(false); setShowCancelConfirm(true); }}
+                                        onClick={() => openCancelDialog(activeSubOrder)}
                                     >
                                         {cancelLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <X className="h-4 w-4 mr-2" />}
                                         Cancel Sub-order
@@ -1011,27 +1035,39 @@ function QCV3Content() {
                         <AlertDialogDescription asChild>
                             <div className="space-y-2 text-sm text-muted-foreground">
                                 <p>Are you sure you want to cancel <span className="font-semibold text-foreground">{cancellingSubOrder?.service_name}</span> (<span className="font-mono">{cancellingSubOrder?.sub_order_no}</span>)?</p>
-                                <label className="flex items-start gap-2 rounded-md border p-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        className="mt-0.5 h-4 w-4 accent-primary"
-                                        checked={serviceCorrection}
-                                        disabled={cancelLoading}
-                                        onChange={(e) => setServiceCorrection(e.target.checked)}
-                                    />
-                                    <span>
-                                        <span className="font-medium text-foreground">Wrong service — correction</span>
-                                        <span className="block text-xs">Customer picked the wrong service and the correct one is added to this order. No cancel charge is applied.</span>
-                                    </span>
-                                </label>
-                                <p>{serviceCorrection ? 'No cancel charge will be added.' : 'A cancel charge will be added to the bill.'}</p>
+                                <div className="space-y-2">
+                                    <p className="font-medium text-foreground">Why is it being cancelled?</p>
+                                    {cancelOptionsLoading ? (
+                                        <div className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Loading…</div>
+                                    ) : cancelOptions.map((opt) => (
+                                        <label
+                                            key={opt.type}
+                                            className={`flex items-center justify-between gap-3 rounded-md border p-3 cursor-pointer ${cancelType === opt.type ? 'border-primary bg-primary/5' : ''}`}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <input
+                                                    type="radio"
+                                                    name="cancel-type"
+                                                    className="h-4 w-4 accent-primary"
+                                                    checked={cancelType === opt.type}
+                                                    disabled={cancelLoading}
+                                                    onChange={() => setCancelType(opt.type)}
+                                                />
+                                                <span className="text-foreground">{opt.label}</span>
+                                            </span>
+                                            <span className={`font-semibold ${opt.charge > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                                {opt.charge > 0 ? `+₹${opt.charge}` : 'No charge'}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
                                 <p className="font-medium text-destructive">This action cannot be undone.</p>
                             </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={cancelLoading} onClick={() => setCancellingSubOrder(null)}>No, Keep it</AlertDialogCancel>
-                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-white" disabled={cancelLoading} onClick={handleCancelSubOrder}>
+                        <AlertDialogAction className="bg-destructive hover:bg-destructive/90 text-white" disabled={cancelLoading || !cancelType} onClick={(e) => { e.preventDefault(); handleCancelSubOrder(); }}>
                             {cancelLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />} Yes, Cancel
                         </AlertDialogAction>
                     </AlertDialogFooter>

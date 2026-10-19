@@ -12,6 +12,8 @@ import {
   AddServiceRequest,
   PendingQCListData,
   PendingQCOrder,
+  SubOrderCancelType,
+  SubOrderCancelOption,
 } from '../types/booking';
 import { API_URL } from '../config/constants';
 import { AuthService } from '../auth';
@@ -211,15 +213,24 @@ const response = await fetch(
   // CANCEL SUB-ORDER
   static async cancelSubOrder(
     subOrderId: string,
-    serviceCorrection: boolean = false
+    cancelType: SubOrderCancelType = 'customer_cancel'
   ): Promise<ApiResponse<unknown>> {
     if (!subOrderId) throw new Error('Invalid sub-order id');
     return this.makeRequest(
       `/admin/order/quality-check/suborder/cancel/${subOrderId}`,
       {
         method: 'PATCH',
-        body: JSON.stringify({ service_correction: serviceCorrection }),
-      }
+        body: JSON.stringify({ cancel_type: cancelType }),
+      },
+      true
+    );
+  }
+
+  // Cancel reasons + today's amounts (Settings → Charges) for the QC dialog
+  static async getSubOrderCancelOptions(): Promise<ApiResponse<{ options: SubOrderCancelOption[] }>> {
+    return this.makeRequest<{ options: SubOrderCancelOption[] }>(
+      '/admin/order/quality-check/suborder/cancel-options',
+      { method: 'GET' }
     );
   }
 

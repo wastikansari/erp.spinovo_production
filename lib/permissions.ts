@@ -19,6 +19,7 @@ export interface PermissionedUser {
 // Order matters — more specific prefixes must come before their parents
 // (e.g. settings/service-duration before a hypothetical bare /settings).
 const ROUTE_PAGE_MAP: [string, string][] = [
+  ['/dashboard/settings/charges', 'settings-charges'],
   ['/dashboard/settings/service-duration', 'settings-service-duration'],
   ['/dashboard/settings/slot-management', 'settings-slot-management'],
   ['/dashboard/settings/attempt-reasons', 'settings-attempt-reasons'],
@@ -74,6 +75,9 @@ export function getLevel(
   if (!user) return null;
   if (user.role === 'super_admin') return 'all';
   if (pageKey === 'staff') return null; // hardcoded super_admin-only, see backend
+  // Role-only like staff, but admins too (backend ROLE_ONLY_PAGES) — never
+  // assignable from the permission grid
+  if (pageKey === 'settings-charges') return user.role === 'admin' ? 'all' : null;
   const entry = user.permissions?.find((p) => p.key === pageKey);
   return entry?.level ?? null;
 }

@@ -326,7 +326,7 @@ function QCUpdateContent() {
         if (!removingSubOrder) return;
         setRemoveLoading(true);
         try {
-            const res = await BookingApiService.cancelSubOrder(removingSubOrder._id, true);
+            const res = await BookingApiService.cancelSubOrder(removingSubOrder._id, 'service_change');
             if (res.status) {
                 setShowRemoveConfirm(false);
                 setRemovingSubOrder(null);
@@ -892,7 +892,7 @@ function QCUpdateContent() {
                                             <X className="h-3.5 w-3.5" />
                                         </Button>
                                     )} */}
-                                    {/* Remove service button — used to correct a wrong service (no cancel charge) */}
+                                    {/* Remove service button — used to correct a wrong service (service change charge) */}
                                     {!order?.quality_check && sub.is_suborder_cancel !== 0 && activeSubOrderCount > 1 && (
                                         <Button
                                             variant="ghost"
@@ -1398,7 +1398,8 @@ function QCUpdateContent() {
                                 </p>
                                 <p>
                                     Use this when the customer picked the wrong service. Add the correct
-                                    service first, then remove this one — no cancel charge is applied.
+                                    service first, then remove this one — the service change charge from
+                                    Settings → Charges is added.
                                 </p>
                                 <p className="font-medium text-destructive">
                                     This action cannot be undone.

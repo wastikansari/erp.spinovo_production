@@ -349,6 +349,8 @@ export interface SubOrder extends BaseEntity {
   quality_check: boolean;
   is_suborder_cancel: number;
   cancel_charge: number;
+  // Why it was cancelled at QC ("" on sub-orders cancelled before this existed)
+  cancel_type?: SubOrderCancelType | '';
   // Cloth-level breakdown saved during QC (v2/update2); empty until segregated
   garment_segregated?: SegregatedCategory[];
   // Real stage times (null on old orders where they weren't recorded)
@@ -662,4 +664,12 @@ export interface AddServiceRequest {
   garment_details: string;
   garment_qty: number;
   garment_amount: number;
+}
+// QC sub-order cancel reasons — amounts come from Settings → Charges
+export type SubOrderCancelType = 'customer_cancel' | 'service_change' | 'waived';
+
+export interface SubOrderCancelOption {
+  type: SubOrderCancelType;
+  label: string;
+  charge: number;
 }

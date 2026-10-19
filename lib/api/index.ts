@@ -21,6 +21,7 @@ export { WhatsappSettingsApiService } from './whatsappNotifications';
 export { WhatsappMarketingApiService } from './whatsappMarketing';
 export { PaymentAlertApiService } from './paymentAlert';
 export type { PaymentAlertFilters } from './paymentAlert';
+export { ChargeSettingsApiService } from './chargeSettings';
 
 
 // Export types
@@ -42,4 +43,5 @@ export * from '../types/feedback';
 export * from '../types/attempt';
 export * from '../types/staff';
 export * from '../types/paymentAlert';
+export * from '../types/chargeSettings';
 export * from '../types/whatsappNotifications';
