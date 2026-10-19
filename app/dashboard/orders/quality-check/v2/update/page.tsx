@@ -249,6 +249,7 @@ function QCUpdateContent() {
     const pickedLimit = activeSubOrder?.no_of_garments_picked ?? 0;
     const isFull = totalActiveQty === pickedLimit; // display-only, does not gate saves
     const totalSubOrderCancelCharges = orderData?.subOrders.reduce((sum, s) => sum + (s.cancel_charge ?? 0), 0) ?? 0;
+    const activeSubOrderCount = orderData?.subOrders.filter((s) => s.is_suborder_cancel !== 0).length ?? 0;
 
     // Services from the catalogue not yet added to this order
     const availableServices = serviceList.filter(
@@ -325,7 +326,7 @@ function QCUpdateContent() {
         if (!removingSubOrder) return;
         setRemoveLoading(true);
         try {
-            const res = await BookingApiService.cancelSubOrder(removingSubOrder._id);
+            const res = await BookingApiService.cancelSubOrder(removingSubOrder._id, true);
             if (res.status) {
                 setShowRemoveConfirm(false);
                 setRemovingSubOrder(null);
@@ -891,12 +892,13 @@ function QCUpdateContent() {
                                             <X className="h-3.5 w-3.5" />
                                         </Button>
                                     )} */}
-                                    {/* Remove service button */}
-                                    {/* {!sub.quality_check && sub.is_suborder_cancel !== 0 && (
+                                    {/* Remove service button — used to correct a wrong service (no cancel charge) */}
+                                    {!order?.quality_check && sub.is_suborder_cancel !== 0 && activeSubOrderCount > 1 && (
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            className="h-7 w-7 ml-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                            title="Remove service"
+                                            className="h-7 w-7 ml-1 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 setRemovingSubOrder(sub);
@@ -905,7 +907,7 @@ function QCUpdateContent() {
                                         >
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
-                                    )} */}
+                                    )}
                                 </div>
                             );
                         })}
@@ -1393,6 +1395,10 @@ function QCUpdateContent() {
                                         {removingSubOrder?.service_name}
                                     </span>{' '}
                                     ({removingSubOrder?.sub_order_no}) from this order?
+                                </p>
+                                <p>
+                                    Use this when the customer picked the wrong service. Add the correct
+                                    service first, then remove this one — no cancel charge is applied.
                                 </p>
                                 <p className="font-medium text-destructive">
                                     This action cannot be undone.

@@ -102,6 +102,7 @@ function QCV3Content() {
 
     const [cancellingSubOrder, setCancellingSubOrder] = useState<SubOrder | null>(null);
     const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+    const [serviceCorrection, setServiceCorrection] = useState(false);
     const [cancelLoading, setCancelLoading] = useState(false);
 
     const [addSaving, setAddSaving] = useState(false);
@@ -352,10 +353,11 @@ function QCV3Content() {
         if (!cancellingSubOrder) return;
         try {
             setCancelLoading(true);
-            const res = await BookingApiService.cancelSubOrder(cancellingSubOrder._id);
+            const res = await BookingApiService.cancelSubOrder(cancellingSubOrder._id, serviceCorrection);
             if (res.status) {
                 setShowCancelConfirm(false);
                 setCancellingSubOrder(null);
+                setServiceCorrection(false);
                 toast({ title: 'Sub-order Cancelled', description: `${cancellingSubOrder.service_name} has been cancelled.` });
                 await fetchData();
             } else {
@@ -892,7 +894,7 @@ function QCV3Content() {
                                         variant="outline"
                                         className="w-full border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
                                         disabled={cancelLoading}
-                                        onClick={() => { setCancellingSubOrder(activeSubOrder); setShowCancelConfirm(true); }}
+                                        onClick={() => { setCancellingSubOrder(activeSubOrder); setServiceCorrection(false); setShowCancelConfirm(true); }}
                                     >
                                         {cancelLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <X className="h-4 w-4 mr-2" />}
                                         Cancel Sub-order
@@ -1009,6 +1011,20 @@ function QCV3Content() {
                         <AlertDialogDescription asChild>
                             <div className="space-y-2 text-sm text-muted-foreground">
                                 <p>Are you sure you want to cancel <span className="font-semibold text-foreground">{cancellingSubOrder?.service_name}</span> (<span className="font-mono">{cancellingSubOrder?.sub_order_no}</span>)?</p>
+                                <label className="flex items-start gap-2 rounded-md border p-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        className="mt-0.5 h-4 w-4 accent-primary"
+                                        checked={serviceCorrection}
+                                        disabled={cancelLoading}
+                                        onChange={(e) => setServiceCorrection(e.target.checked)}
+                                    />
+                                    <span>
+                                        <span className="font-medium text-foreground">Wrong service — correction</span>
+                                        <span className="block text-xs">Customer picked the wrong service and the correct one is added to this order. No cancel charge is applied.</span>
+                                    </span>
+                                </label>
+                                <p>{serviceCorrection ? 'No cancel charge will be added.' : 'A cancel charge will be added to the bill.'}</p>
                                 <p className="font-medium text-destructive">This action cannot be undone.</p>
                             </div>
                         </AlertDialogDescription>

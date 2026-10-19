@@ -209,11 +209,17 @@ const response = await fetch(
   }
 
   // CANCEL SUB-ORDER
-  static async cancelSubOrder(subOrderId: string): Promise<ApiResponse<unknown>> {
+  static async cancelSubOrder(
+    subOrderId: string,
+    serviceCorrection: boolean = false
+  ): Promise<ApiResponse<unknown>> {
     if (!subOrderId) throw new Error('Invalid sub-order id');
     return this.makeRequest(
       `/admin/order/quality-check/suborder/cancel/${subOrderId}`,
-      { method: 'PATCH' }
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ service_correction: serviceCorrection }),
+      }
     );
   }
 
