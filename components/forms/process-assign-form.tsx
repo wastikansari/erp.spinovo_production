@@ -16,7 +16,7 @@ import { AssignApiService, VendorApiService, Vendor } from '@/lib/api';
 
 // ── Vendor capability matcher ──────────────────────────────────────────────────
 
-function vendorMatchesService(vendor: Vendor, serviceName: string): boolean {
+export function vendorMatchesService(vendor: Vendor, serviceName: string): boolean {
     const n = serviceName.toLowerCase();
     if (vendor.selectedServices && vendor.selectedServices.length > 0) {
         return vendor.selectedServices.some((s) => {

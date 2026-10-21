@@ -155,6 +155,14 @@ export class AssignApiService extends BaseApiService {
     });
   }
 
+  // Move an assigned (not yet picked up) process to another vendor
+  static async processChangeVendor(processId: string, vendor_id: string): Promise<ApiResponse<{ new_process_id: string; vendor_name: string }>> {
+    return this.makeRequest<{ new_process_id: string; vendor_name: string }>(`${API_URL.PROCESS_CHANGE_VENDOR}/${processId}/change-vendor`, {
+      method: 'POST',
+      body: JSON.stringify({ vendor_id }),
+    });
+  }
+
   static async qualityCheckCompleted(subOrderId: string): Promise<ApiResponse<unknown>> {
     return this.makeRequest<unknown>(`${API_URL.QUALITY_CHECK_COMPLETED}/${subOrderId}`, {
       method: 'GET',

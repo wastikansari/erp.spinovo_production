@@ -22,8 +22,19 @@ import {
   Store,
   CheckCircle2,
   Hash,
+  ArrowLeftRight,
+  ChevronDown,
 } from 'lucide-react';
-import { AssignApiService } from '@/lib/api';
+import { AssignApiService, VendorApiService, Vendor } from '@/lib/api';
+import { vendorMatchesService } from '@/components/forms/process-assign-form';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -157,6 +168,127 @@ function PaginationBar({ currentPage, totalPages, totalCount, loading, onPageCha
   );
 }
 
+// ─── Change Vendor Dialog ─────────────────────────────────────────────────────
+
+// Vendor can be changed only before pickup: 1 = assigned, 2 = accepted
+const canChangeVendor = (item: ProcessAssignBooking) => item.status === 1 || item.status === 2;
+
+function ChangeVendorDialog({ item, onClose, onSuccess }: {
+  item: ProcessAssignBooking | null; onClose: () => void; onSuccess: () => void;
+}) {
+  const [vendors, setVendors]       = useState<Vendor[]>([]);
+  const [loadingVendors, setLoadingVendors] = useState(false);
+  const [selectedId, setSelectedId] = useState('');
+  const [saving, setSaving]         = useState(false);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!item) return;
+    setSelectedId('');
+    (async () => {
+      setLoadingVendors(true);
+      try {
+        const res = await VendorApiService.getVendors(1, 200);
+        if (res.status && res.data) {
+          const serviceName = item.sub_order_details?.service_name ?? '';
+          let list = res.data.vendorList.filter((v) => v.accountIsActive === true && v._id !== item.vendor_id);
+          if (serviceName) list = list.filter((v) => vendorMatchesService(v, serviceName));
+          setVendors(list);
+        } else {
+          toast({ title: 'Could not load vendors', description: res.msg, variant: 'destructive' });
+        }
+      } catch {
+        toast({ title: 'Network error', description: 'Failed to load vendor list.', variant: 'destructive' });
+      } finally {
+        setLoadingVendors(false);
+      }
+    })();
+  }, [item, toast]);
+
+  const handleSave = async () => {
+    if (!item || !selectedId) return;
+    try {
+      setSaving(true);
+      const res = await AssignApiService.processChangeVendor(item._id, selectedId);
+      if (res.status) {
+        toast({ title: 'Vendor Changed', description: res.msg || `Order moved to ${res.data?.vendor_name ?? 'new vendor'}` });
+        onSuccess();
+        onClose();
+      } else {
+        toast({ title: 'Error', description: res.msg || 'Failed to change vendor.', variant: 'destructive' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.message || 'Network error. Please try again.', variant: 'destructive' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog open={!!item} onOpenChange={(open) => { if (!open && !saving) onClose(); }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ArrowLeftRight className="h-5 w-5 text-indigo-600" />
+            Change Vendor
+          </DialogTitle>
+          <DialogDescription>
+            Order will be moved to the new vendor and removed from the current vendor&apos;s app.
+          </DialogDescription>
+        </DialogHeader>
+
+        {item && (
+          <div className="rounded-lg border bg-muted/40 p-3 space-y-1.5 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Sub Order</span>
+              <span className="font-semibold">{item.sub_order_details?.sub_order_no ?? '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Service</span>
+              <span className="font-semibold">{item.sub_order_details?.service_name ?? '—'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Current Vendor</span>
+              <span className="font-semibold">{item.vendor_details?.name ?? '—'}</span>
+            </div>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Select new vendor</label>
+          <div className="relative">
+            <select
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+              disabled={loadingVendors || saving}
+              className="w-full appearance-none rounded-md border bg-background px-3 py-2 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">{loadingVendors ? 'Loading vendors…' : '— Choose a vendor —'}</option>
+              {vendors.map((v) => (
+                <option key={v._id} value={v._id}>
+                  {v.name}{v.cityName ? ` · ${v.cityName}` : ''}{v.mobile ? ` · ${v.mobile}` : ''}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          </div>
+          {!loadingVendors && vendors.length === 0 && (
+            <p className="text-xs text-amber-600">No other active vendor available for this service.</p>
+          )}
+        </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} disabled={!selectedId || saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+            {saving ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <ArrowLeftRight className="mr-2 h-4 w-4" />}
+            Change Vendor
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 const COL_STYLE = 'grid gap-x-3 px-5 items-center' as const;
@@ -171,6 +303,7 @@ export default function ProcessListPage() {
   const [error, setError]                       = useState('');
   const [confirmItem, setConfirmItem]           = useState<ProcessAssignBooking | null>(null);
   const [completing, setCompleting]             = useState(false);
+  const [changeVendorItem, setChangeVendorItem] = useState<ProcessAssignBooking | null>(null);
 
   const router = useRouter();
   const { toast } = useToast();
@@ -431,6 +564,15 @@ export default function ProcessListPage() {
                             Sub Order Details
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
+                          {canChangeVendor(item) && (
+                            <DropdownMenuItem
+                              onClick={() => setChangeVendorItem(item)}
+                              className="text-indigo-600 focus:text-indigo-700 focus:bg-indigo-50"
+                            >
+                              <ArrowLeftRight className="mr-2 h-4 w-4" />
+                              Change Vendor
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuItem
                             onClick={() => setConfirmItem(item)}
                             className="text-green-600 focus:text-green-700 focus:bg-green-50"
@@ -477,6 +619,11 @@ export default function ProcessListPage() {
                       <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg" onClick={() => router.push(`/dashboard/bookings/sub-order/${item.sub_order_id}`)}>
                         <Eye className="mr-1 h-3 w-3" /> Sub-Order
                       </Button>
+                      {canChangeVendor(item) && (
+                        <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg text-indigo-600 border-indigo-300 hover:bg-indigo-50" onClick={() => setChangeVendorItem(item)}>
+                          <ArrowLeftRight className="mr-1 h-3 w-3" /> Change Vendor
+                        </Button>
+                      )}
                       <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg text-green-600 border-green-300 hover:bg-green-50" onClick={() => setConfirmItem(item)}>
                         <CheckCircle2 className="mr-1 h-3 w-3" /> Mark Completed
                       </Button>
@@ -496,6 +643,13 @@ export default function ProcessListPage() {
           />
         </CardContent>
       </Card>
+
+      {/* CHANGE VENDOR DIALOG */}
+      <ChangeVendorDialog
+        item={changeVendorItem}
+        onClose={() => setChangeVendorItem(null)}
+        onSuccess={() => fetchList(currentPage)}
+      />
 
       {/* CONFIRM MARK COMPLETED DIALOG */}
       <AlertDialog open={!!confirmItem} onOpenChange={(open) => { if (!open) setConfirmItem(null); }}>
