@@ -12,6 +12,43 @@ export type TileCorner = 'none' | 'flower' | 'diya' | 'star' | 'snowflake';
 export type FooterOrnament = 'none' | 'diyas' | 'marigolds' | 'snowflakes' | 'stars' | 'confetti';
 export type TileStyle = 'classic' | 'card_arrow';
 
+// Fine-tuning of the card_arrow service box (app ≥ 1.0.17).
+export interface ServiceCardStyle {
+  radius: number;
+  border_width: number;
+  bg_color: string | null; // null = tile tint
+  shadow: boolean;
+  height: 'short' | 'normal' | 'tall';
+  image_size: number;
+  name_size: number;
+  name_weight: 'bold' | 'normal';
+  name_align: 'left' | 'center';
+  arrow_show: boolean;
+  arrow_shape: 'circle' | 'rounded';
+  arrow_size: number;
+  arrow_icon_size: number;
+  badge_bg: string | null; // null = accent
+  badge_text: string;
+}
+
+export const DEFAULT_CARD_STYLE: ServiceCardStyle = {
+  radius: 16,
+  border_width: 1,
+  bg_color: null,
+  shadow: true,
+  height: 'normal',
+  image_size: 58,
+  name_size: 13.5,
+  name_weight: 'bold',
+  name_align: 'left',
+  arrow_show: true,
+  arrow_shape: 'circle',
+  arrow_size: 28,
+  arrow_icon_size: 16,
+  badge_bg: null,
+  badge_text: '#FFFFFF',
+};
+
 export interface ThemeSections {
   service: {
     title: string;
@@ -25,6 +62,7 @@ export interface ThemeSections {
     name_color: string;
     arrow_bg: string | null; // null = light accent
     arrow_color: string | null; // null = accent
+    card: ServiceCardStyle;
   };
   bookings: { title_color: string; link_color: string; card_tint: string | null; border_color: string | null };
   footer: {
@@ -49,6 +87,7 @@ export const DEFAULT_SECTIONS: ThemeSections = {
     name_color: '#1A1A1A',
     arrow_bg: null,
     arrow_color: null,
+    card: DEFAULT_CARD_STYLE,
   },
   bookings: { title_color: '#10183F', link_color: '#33C362', card_tint: null, border_color: null },
   footer: {
@@ -153,7 +192,14 @@ export function withThemeDefaults<T extends Pick<AppTheme, 'header'> & { section
       wallet: { ...DEFAULT_HEADER_EXTRAS.wallet, ...h.wallet },
       hanging: { ...DEFAULT_HEADER_EXTRAS.hanging, ...h.hanging },
     },
-    sections: { ...sections, service: { ...DEFAULT_SECTIONS.service, ...sections.service } },
+    sections: {
+      ...sections,
+      service: {
+        ...DEFAULT_SECTIONS.service,
+        ...sections.service,
+        card: { ...DEFAULT_CARD_STYLE, ...sections.service?.card },
+      },
+    },
   };
 }
 

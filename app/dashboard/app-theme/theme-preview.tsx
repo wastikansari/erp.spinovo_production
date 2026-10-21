@@ -321,47 +321,87 @@ export function HomePreview({ theme: raw }: { theme: PreviewTheme }) {
             </p>
           )}
           <div className="mt-2 grid grid-cols-3 gap-1.5">
-            {(cards ? ['Quick Dry Cleaning', 'Quick Ironing', 'Ironing'] : ['Quick Dry', 'Ironing', 'Wash']).map((label, i) => (
-              <div
-                key={label}
-                className={`relative rounded-lg border ${cards ? 'flex flex-col px-1.5 pb-1 pt-2' : 'py-3 text-center'} text-[8px] font-semibold text-gray-700`}
-                style={{
-                  background: isDefault ? '#fff' : theme.tile_tint || '#fff',
-                  borderColor: (!isDefault && sec.service.tile_border_color) || '#E5E7EB',
-                }}
-              >
-                {!isDefault && sec.service.tile_corner !== 'none' && (
-                  <span className="absolute left-0.5 top-0 text-[7px]">{ORNAMENT_EMOJI[sec.service.tile_corner]}</span>
-                )}
-                {i === 0 && (
-                  <span
-                    className="absolute -right-1 -top-1.5 rounded-full px-1 text-[7px] text-white"
-                    style={{ background: isDefault ? '#F59E0B' : theme.accent_color }}
-                  >
-                    8 Hrs
-                  </span>
-                )}
-                {cards ? (
-                  <>
-                    <span className="mx-auto mb-1 block h-[22px] w-[26px] rounded bg-gray-200" />
-                    <span className="text-[8px] font-bold leading-tight" style={{ color: sec.service.name_color }}>
-                      {label}
-                    </span>
+            {(cards ? ['Quick Dry Cleaning', 'Quick Ironing', 'Ironing'] : ['Quick Dry', 'Ironing', 'Wash']).map((label, i) => {
+              const c = sec.service.card;
+              // Preview tiles are ~0.45 of the phone's.
+              const k = 0.45;
+              const cardStyle: CSSProperties = cards
+                ? {
+                    background: c.bg_color || theme.tile_tint || '#fff',
+                    borderColor: sec.service.tile_border_color || '#EFE7E2',
+                    borderWidth: c.border_width === 0 ? 0 : Math.max(0.5, c.border_width * 0.7),
+                    borderRadius: c.radius * 0.5,
+                    boxShadow: c.shadow ? `0 1px 4px ${theme.accent_color}1A` : undefined,
+                    aspectRatio: { short: 0.84, normal: 0.74, tall: 0.66 }[c.height],
+                    alignItems: c.name_align === 'center' ? 'center' : 'stretch',
+                  }
+                : {
+                    background: isDefault ? '#fff' : theme.tile_tint || '#fff',
+                    borderColor: (!isDefault && sec.service.tile_border_color) || '#E5E7EB',
+                  };
+              return (
+                <div
+                  key={label}
+                  className={`relative border ${cards ? 'flex flex-col px-1.5 pb-1 pt-2' : 'rounded-lg py-3 text-center'} text-[8px] font-semibold text-gray-700`}
+                  style={cardStyle}
+                >
+                  {!isDefault && sec.service.tile_corner !== 'none' && (
+                    <span className="absolute left-0.5 top-0 text-[7px]">{ORNAMENT_EMOJI[sec.service.tile_corner]}</span>
+                  )}
+                  {i === 0 && (
                     <span
-                      className="mt-0.5 flex h-[13px] w-[13px] items-center justify-center self-end rounded-full text-[8px] leading-none"
+                      className="absolute -right-1 -top-1.5 rounded-full px-1 text-[7px]"
                       style={{
-                        background: sec.service.arrow_bg || `${theme.accent_color}1F`,
-                        color: sec.service.arrow_color || theme.accent_color,
+                        background: isDefault ? '#F59E0B' : (cards && c.badge_bg) || theme.accent_color,
+                        color: cards ? c.badge_text : '#fff',
                       }}
                     >
-                      →
+                      8 Hrs
                     </span>
-                  </>
-                ) : (
-                  label
-                )}
-              </div>
-            ))}
+                  )}
+                  {cards ? (
+                    <>
+                      <span className="flex flex-1 items-center justify-center">
+                        <span
+                          className="block rounded bg-gray-200"
+                          style={{ width: c.image_size * k, height: c.image_size * k * 0.85 }}
+                        />
+                      </span>
+                      <span
+                        className="mt-0.5 leading-tight"
+                        style={{
+                          color: sec.service.name_color,
+                          fontSize: c.name_size * 0.6,
+                          fontWeight: c.name_weight === 'bold' ? 700 : 500,
+                          textAlign: c.name_align,
+                        }}
+                      >
+                        {label}
+                      </span>
+                      {c.arrow_show ? (
+                        <span
+                          className="mt-0.5 flex items-center justify-center self-end leading-none"
+                          style={{
+                            width: c.arrow_size * k,
+                            height: c.arrow_size * k,
+                            borderRadius: c.arrow_shape === 'circle' ? '50%' : c.arrow_size * k * 0.3,
+                            background: sec.service.arrow_bg || `${theme.accent_color}1F`,
+                            color: sec.service.arrow_color || theme.accent_color,
+                            fontSize: c.arrow_icon_size * 0.5,
+                          }}
+                        >
+                          →
+                        </span>
+                      ) : (
+                        <span className="h-[3px]" />
+                      )}
+                    </>
+                  ) : (
+                    label
+                  )}
+                </div>
+              );
+            })}
           </div>
           {/* Bookings card */}
           <div

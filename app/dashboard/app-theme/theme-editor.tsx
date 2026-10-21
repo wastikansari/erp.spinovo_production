@@ -13,6 +13,7 @@ import {
   AppTheme,
   AppThemeEditable,
   HeaderExtras,
+  ServiceCardStyle,
   ThemeSections,
   withThemeDefaults,
   readabilityWarnings,
@@ -109,6 +110,39 @@ function AutoColor({
   );
 }
 
+function Range({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label className="text-xs">
+        {label} — {value}
+      </Label>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="w-full accent-indigo-600"
+      />
+    </div>
+  );
+}
+
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex items-center justify-between">
@@ -144,6 +178,71 @@ function Choice<T extends string>({
           ))}
         </SelectContent>
       </Select>
+    </div>
+  );
+}
+
+// Every size / shape / color of the card + arrow service box.
+function ServiceBoxDesign({ card, patch }: { card: ServiceCardStyle; patch: (v: Partial<ServiceCardStyle>) => void }) {
+  return (
+    <div className="space-y-3 border-t pt-3">
+      <p className="text-xs font-semibold">Service box design</p>
+      <div className="grid grid-cols-2 gap-3">
+        <Range label="Corner radius" value={card.radius} min={0} max={28} onChange={(v) => patch({ radius: v })} />
+        <Range label="Border thickness" value={card.border_width} min={0} max={3} step={0.5} onChange={(v) => patch({ border_width: v })} />
+        <Range label="Image size" value={card.image_size} min={40} max={80} onChange={(v) => patch({ image_size: v })} />
+        <Range label="Name text size" value={card.name_size} min={11} max={18} step={0.5} onChange={(v) => patch({ name_size: v })} />
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        <Choice
+          label="Box height"
+          value={card.height}
+          options={[
+            ['short', 'Short'],
+            ['normal', 'Normal'],
+            ['tall', 'Tall'],
+          ]}
+          onChange={(v) => patch({ height: v })}
+        />
+        <Choice
+          label="Name style"
+          value={card.name_weight}
+          options={[
+            ['bold', 'Bold'],
+            ['normal', 'Normal'],
+          ]}
+          onChange={(v) => patch({ name_weight: v })}
+        />
+        <Choice
+          label="Name position"
+          value={card.name_align}
+          options={[
+            ['left', 'Left'],
+            ['center', 'Center'],
+          ]}
+          onChange={(v) => patch({ name_align: v })}
+        />
+      </div>
+      <AutoColor label="Box background (auto = tile tint)" value={card.bg_color} fallback="#FFFFFF" onChange={(v) => patch({ bg_color: v })} />
+      <Toggle label="Soft shadow" checked={card.shadow} onChange={(v) => patch({ shadow: v })} />
+      <Toggle label="Show arrow button" checked={card.arrow_show} onChange={(v) => patch({ arrow_show: v })} />
+      {card.arrow_show && (
+        <div className="grid grid-cols-3 gap-3">
+          <Choice
+            label="Arrow button shape"
+            value={card.arrow_shape}
+            options={[
+              ['circle', '● Circle'],
+              ['rounded', '▢ Rounded square'],
+            ]}
+            onChange={(v) => patch({ arrow_shape: v })}
+          />
+          <Range label="Button size" value={card.arrow_size} min={20} max={40} onChange={(v) => patch({ arrow_size: v })} />
+          <Range label="Arrow icon size" value={card.arrow_icon_size} min={12} max={24} onChange={(v) => patch({ arrow_icon_size: v })} />
+        </div>
+      )}
+      <AutoColor label="Badge background (“New 8 Hrs”)" value={card.badge_bg} fallback="#D32F2F" onChange={(v) => patch({ badge_bg: v })} />
+      <ColorInput label="Badge text" value={card.badge_text} onChange={(v) => patch({ badge_text: v })} />
     </div>
   );
 }
@@ -216,6 +315,20 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
   }
   function patchHanging(value: Partial<HeaderExtras['hanging']>) {
     setDraft((d) => (d ? { ...d, header: { ...d.header, hanging: { ...d.header.hanging, ...value } } } : d));
+  }
+
+  function patchCard(value: Partial<ServiceCardStyle>) {
+    setDraft((d) =>
+      d
+        ? {
+            ...d,
+            sections: {
+              ...d.sections,
+              service: { ...d.sections.service, card: { ...d.sections.service.card, ...value } },
+            },
+          }
+        : d
+    );
   }
 
   function patchSection<S extends keyof ThemeSections>(section: S, value: Partial<ThemeSections[S]>) {
@@ -738,8 +851,9 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
                           onChange={(v) => patchSection('service', { arrow_color: v })}
                         />
                         <p className="text-xs text-muted-foreground">
-                          Auto = light accent circle with an accent arrow. Card background = “Tint behind service tiles”.
+                          Auto = light accent circle with an accent arrow.
                         </p>
+                        <ServiceBoxDesign card={sec.service.card} patch={patchCard} />
                       </>
                     )}
                   </div>
