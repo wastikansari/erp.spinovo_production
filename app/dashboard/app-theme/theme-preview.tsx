@@ -1,7 +1,7 @@
 'use client';
 
 import { CSSProperties, useMemo } from 'react';
-import { AppTheme, DEFAULT_SECTIONS } from '@/lib/api/appTheme';
+import { AppTheme, DEFAULT_SECTIONS, withThemeDefaults } from '@/lib/api/appTheme';
 import { appContentImageUrl } from '@/lib/utils';
 
 // A close-enough phone mock of the app's themed Splash and Home screens, so
@@ -29,6 +29,7 @@ const ORNAMENT_EMOJI: Record<string, string> = {
 const KEYFRAMES = `
 @keyframes ap-fall { from { transform: translateY(-20px) rotate(0deg); } to { transform: translateY(260px) rotate(300deg); } }
 @keyframes ap-twinkle { 0%,100% { opacity: .35 } 50% { opacity: 1 } }
+@keyframes ap-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
 `;
 
 function gradientCss(colors: string[], dir = '135deg') {
@@ -128,40 +129,158 @@ function Toran({ flowers, leaf }: { flowers: string[]; leaf: string }) {
   );
 }
 
-export function HomePreview({ theme }: { theme: PreviewTheme }) {
+const GRADIENT_DIR: Record<string, string> = { diagonal: '135deg', horizontal: '90deg', vertical: '180deg' };
+
+function Marigold({ color, size = 7 }: { color: string; size?: number }) {
+  return (
+    <span
+      className="block rounded-full"
+      style={{ width: size, height: size, background: `radial-gradient(circle, #8D4A00 0 22%, ${color} 35%)` }}
+    />
+  );
+}
+
+// CSS look-alike of the app's hanging marigold strings + diyas.
+function HangingDiyas({ hanging }: { hanging: AppTheme['header']['hanging'] }) {
+  const flowers = hanging.flower_colors.length ? hanging.flower_colors : ['#FFB300'];
+  const full = { short: 40, medium: 58, long: 82 }[hanging.length];
+  const stagger = [1, 0.72, 0.88, 0.62, 0.8];
+  const sides = hanging.side === 'both' ? ['left', 'right'] : [hanging.side];
+  return (
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-10">
+      {hanging.top_garland && (
+        <div className="absolute inset-x-0 top-0 flex">
+          {Array.from({ length: 3 }, (_, s) => (
+            <div key={s} className="relative h-[14px] flex-1">
+              {Array.from({ length: 9 }, (_, j) => {
+                const u = j / 8;
+                return (
+                  <span key={j} className="absolute" style={{ left: `${u * 100}%`, top: 4 * 9 * u * (1 - u), marginLeft: -3 }}>
+                    <Marigold color={flowers[(s + j) % flowers.length]} size={6} />
+                  </span>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+      {sides.flatMap((side) =>
+        Array.from({ length: hanging.count }, (_, i) => {
+          const len = full * stagger[i % stagger.length];
+          return (
+            <div
+              key={`${side}-${i}`}
+              className="absolute top-0 flex flex-col items-center"
+              style={{
+                [side]: 6 + i * 11,
+                transformOrigin: 'top center',
+                animation: hanging.animate ? `ap-sway ${3 + (i % 3) * 0.4}s ease-in-out ${-i}s infinite alternate` : undefined,
+              }}
+            >
+              <div className="flex flex-col items-center" style={{ height: len, overflow: 'hidden' }}>
+                {Array.from({ length: Math.floor(len / 6) }, (_, k) => (
+                  <Marigold key={k} color={flowers[(k + i) % flowers.length]} size={6} />
+                ))}
+              </div>
+              {/* diya */}
+              <span
+                className="block h-[6px] w-[3px] rounded-t-full"
+                style={{
+                  background: hanging.flame_color,
+                  boxShadow: `0 0 6px 2px ${hanging.flame_color}99`,
+                  animation: hanging.animate ? 'ap-twinkle 0.9s ease-in-out infinite' : undefined,
+                }}
+              />
+              <span className="block h-[5px] w-[12px] rounded-b-full" style={{ background: hanging.diya_color }} />
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+function WalletPill({ theme, isDefault }: { theme: PreviewTheme; isDefault: boolean }) {
+  const w = theme.header.wallet;
+  const custom = !isDefault && (w.style === 'solid' || w.style === 'outline');
+  const style: CSSProperties = isDefault
+    ? { background: '#33C362', color: '#fff' }
+    : w.style === 'solid'
+      ? { background: w.bg_color, color: w.text_color }
+      : w.style === 'outline'
+        ? { background: `${w.border_color}14`, border: `1px solid ${w.border_color}`, color: w.text_color }
+        : { background: 'rgba(255,255,255,.2)', border: '1px solid rgba(255,255,255,.55)', color: '#fff' };
+  return (
+    <span className={`shrink-0 rounded-md px-2 text-[10px] font-semibold ${custom ? 'py-1' : 'py-0.5'}`} style={style}>
+      👛 ₹53{!isDefault && w.show_arrow && ' ›'}
+    </span>
+  );
+}
+
+export function HomePreview({ theme: raw }: { theme: PreviewTheme }) {
+  const theme = withThemeDefaults(raw);
   const isDefault = theme.preset_key === 'default';
   const sec = theme.sections ?? DEFAULT_SECTIONS;
-  const headerImage = appContentImageUrl(theme.header.image_url);
-  const bottomColor = theme.header.gradient[theme.header.gradient.length - 1] || '#071F0F';
+  const h = theme.header;
+  const headerImage = appContentImageUrl(h.image_url);
+  const bottomColor = h.gradient[h.gradient.length - 1] || '#071F0F';
+  const fg = h.text_color;
+  const greetingColor = (!isDefault && h.greeting_color) || fg;
+  const addressColor = (!isDefault && h.address_color) || `${fg}BB`;
+  const pinColor = (!isDefault && h.icon_color) || fg;
+  const stacked = !isDefault && h.layout === 'stacked';
+  const cards = !isDefault && sec.service.tile_style === 'card_arrow';
+  // The preview phone is ~2/3 of a real one.
+  const scale = 0.66;
+  const greetingPx = (isDefault ? 20 : h.greeting_size) * scale;
+  const subtitle = isDefault ? DEFAULT_SECTIONS.service.subtitle : sec.service.subtitle;
+  const radius = (isDefault ? 25 : h.sheet_radius) * 0.72;
   return (
     <div className="relative w-[260px] overflow-hidden rounded-[28px] border-[6px] border-gray-900 bg-white shadow-xl">
       <style>{KEYFRAMES}</style>
+      {!isDefault && h.hanging.enabled && <HangingDiyas hanging={h.hanging} />}
       {/* HEADER */}
       <div
-        className="relative px-3 pb-2 pt-4"
+        className="relative px-3 pb-2 pt-6"
         style={{
           background: headerImage
             ? `linear-gradient(rgba(0,0,0,.3), rgba(0,0,0,.3)), url(${headerImage}) center/cover`
-            : gradientCss(theme.header.gradient),
-          color: theme.header.text_color,
+            : gradientCss(h.gradient, isDefault ? '135deg' : GRADIENT_DIR[h.gradient_direction]),
+          color: fg,
         }}
       >
-        <div className="flex items-center justify-between">
+        {stacked ? (
           <div>
-            <p className="text-[15px] font-bold leading-tight">📍 Home</p>
-            <p className="text-[9px] opacity-75">401, Vadiwadi, Vadodara…</p>
+            <p className="font-semibold leading-tight" style={{ color: greetingColor, fontSize: greetingPx * 0.72 }}>
+              Good Evening,
+            </p>
+            <p className="font-extrabold leading-tight" style={{ color: greetingColor, fontSize: greetingPx }}>
+              Nipul 👋
+            </p>
+            <div className="mt-1.5 flex items-center gap-1.5">
+              <span style={{ color: pinColor }} className="text-[11px]">●</span>
+              <p className="flex-1 text-[8px] leading-tight" style={{ color: addressColor }}>
+                Home: BB13, Twpovan Society, Opp Yash complex… ⌄
+              </p>
+              <WalletPill theme={theme} isDefault={isDefault} />
+            </div>
           </div>
-          <span
-            className="rounded-md px-2 py-0.5 text-[10px] font-semibold"
-            style={
-              isDefault
-                ? { background: '#33C362', color: '#fff' }
-                : { background: 'rgba(255,255,255,.2)', border: '1px solid rgba(255,255,255,.55)', color: '#fff' }
-            }
-          >
-            ₹53
-          </span>
-        </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5">
+              <span style={{ color: pinColor }} className="text-[12px]">●</span>
+              <div>
+                <p className="font-bold leading-tight" style={{ color: greetingColor, fontSize: Math.max(12, greetingPx) }}>
+                  Home
+                </p>
+                <p className="text-[9px]" style={{ color: addressColor }}>
+                  401, Vadiwadi, Vadodara…
+                </p>
+              </div>
+            </div>
+            <WalletPill theme={theme} isDefault={isDefault} />
+          </div>
+        )}
         {theme.lights.enabled && !isDefault && (
           <div className="mt-2">
             <Lights colors={theme.lights.colors} />
@@ -171,7 +290,7 @@ export function HomePreview({ theme }: { theme: PreviewTheme }) {
 
       {/* SHEET */}
       <div style={{ background: bottomColor }}>
-        <div className="rounded-t-[18px] bg-white px-3 pb-3">
+        <div className="bg-white px-3 pb-3" style={{ borderTopLeftRadius: radius, borderTopRightRadius: radius }}>
           {theme.toran.enabled && !isDefault ? (
             <Toran flowers={theme.toran.flower_colors} leaf={theme.toran.leaf_color} />
           ) : (
@@ -188,19 +307,24 @@ export function HomePreview({ theme }: { theme: PreviewTheme }) {
           <p className="mt-3 text-[12px] font-bold" style={{ color: isDefault ? '#10183F' : sec.service.title_color }}>
             {isDefault ? 'Our Service' : sec.service.title}
           </p>
-          <p className="text-[7px] text-gray-400">{isDefault ? DEFAULT_SECTIONS.service.subtitle : sec.service.subtitle}</p>
+          {subtitle && <p className="text-[7px] text-gray-400">{subtitle}</p>}
           {isDefault || sec.service.ornament === 'line' ? (
             <div className="mt-1 h-[2px] w-6 rounded" style={{ background: theme.accent_color }} />
+          ) : sec.service.ornament === 'line_dot' ? (
+            <div className="mt-1 flex items-center gap-[3px]">
+              <span className="block h-[2px] w-4 rounded" style={{ background: theme.accent_color }} />
+              <span className="block h-[4px] w-[4px] rounded-full" style={{ background: theme.accent_color }} />
+            </div>
           ) : (
             <p className="mt-0.5 text-[8px] leading-none" style={{ color: theme.accent_color }}>
               ── {ORNAMENT_EMOJI[sec.service.ornament]} ──
             </p>
           )}
           <div className="mt-2 grid grid-cols-3 gap-1.5">
-            {['Quick Dry', 'Ironing', 'Wash'].map((label, i) => (
+            {(cards ? ['Quick Dry Cleaning', 'Quick Ironing', 'Ironing'] : ['Quick Dry', 'Ironing', 'Wash']).map((label, i) => (
               <div
                 key={label}
-                className="relative rounded-lg border py-3 text-center text-[8px] font-semibold text-gray-700"
+                className={`relative rounded-lg border ${cards ? 'flex flex-col px-1.5 pb-1 pt-2' : 'py-3 text-center'} text-[8px] font-semibold text-gray-700`}
                 style={{
                   background: isDefault ? '#fff' : theme.tile_tint || '#fff',
                   borderColor: (!isDefault && sec.service.tile_border_color) || '#E5E7EB',
@@ -217,7 +341,25 @@ export function HomePreview({ theme }: { theme: PreviewTheme }) {
                     8 Hrs
                   </span>
                 )}
-                {label}
+                {cards ? (
+                  <>
+                    <span className="mx-auto mb-1 block h-[22px] w-[26px] rounded bg-gray-200" />
+                    <span className="text-[8px] font-bold leading-tight" style={{ color: sec.service.name_color }}>
+                      {label}
+                    </span>
+                    <span
+                      className="mt-0.5 flex h-[13px] w-[13px] items-center justify-center self-end rounded-full text-[8px] leading-none"
+                      style={{
+                        background: sec.service.arrow_bg || `${theme.accent_color}1F`,
+                        color: sec.service.arrow_color || theme.accent_color,
+                      }}
+                    >
+                      →
+                    </span>
+                  </>
+                ) : (
+                  label
+                )}
               </div>
             ))}
           </div>

@@ -12,8 +12,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   AppTheme,
   AppThemeEditable,
-  DEFAULT_SECTIONS,
+  HeaderExtras,
   ThemeSections,
+  withThemeDefaults,
   readabilityWarnings,
   updateTheme,
   uploadThemeHeaderImage,
@@ -83,6 +84,70 @@ export function ColorList({
   );
 }
 
+// A color that can follow the theme ("Auto") or be set by hand.
+function AutoColor({
+  label,
+  value,
+  fallback,
+  onChange,
+}: {
+  label: string;
+  value: string | null;
+  fallback: string;
+  onChange: (v: string | null) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <Label className="text-xs">
+        {label} {value === null && <span className="text-muted-foreground">(auto)</span>}
+      </Label>
+      <div className="flex items-center gap-3">
+        {value !== null && <ColorInput value={value} onChange={onChange} />}
+        <Switch checked={value !== null} onCheckedChange={(on) => onChange(on ? fallback : null)} />
+      </div>
+    </div>
+  );
+}
+
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex items-center justify-between">
+      <Label className="text-xs">{label}</Label>
+      <Switch checked={checked} onCheckedChange={onChange} />
+    </div>
+  );
+}
+
+function Choice<T extends string>({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: T;
+  options: [T, string][];
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="space-y-1">
+      <Label className="text-xs">{label}</Label>
+      <Select value={value} onValueChange={(v) => onChange(v as T)}>
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map(([v, text]) => (
+            <SelectItem key={v} value={v}>
+              {text}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 export function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-3 rounded-lg border p-4">
@@ -125,8 +190,7 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
   useEffect(() => {
     if (!open || !theme) return;
     setDraft({
-      ...structuredClone(theme),
-      sections: structuredClone(theme.sections ?? DEFAULT_SECTIONS),
+      ...withThemeDefaults(structuredClone(theme)),
       header_greeting: theme.header_greeting ?? { enabled: false, template: '' },
     });
     setStartAt(toLocalInput(theme.start_at));
@@ -145,6 +209,13 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
     value: Partial<AppTheme[K]>
   ) {
     setDraft((d) => (d ? { ...d, [key]: { ...d[key], ...value } } : d));
+  }
+
+  function patchWallet(value: Partial<HeaderExtras['wallet']>) {
+    setDraft((d) => (d ? { ...d, header: { ...d.header, wallet: { ...d.header.wallet, ...value } } } : d));
+  }
+  function patchHanging(value: Partial<HeaderExtras['hanging']>) {
+    setDraft((d) => (d ? { ...d, header: { ...d.header, hanging: { ...d.header.hanging, ...value } } } : d));
   }
 
   function patchSection<S extends keyof ThemeSections>(section: S, value: Partial<ThemeSections[S]>) {
@@ -175,7 +246,19 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
     const body: Partial<AppThemeEditable> = {
       name: draft.name.trim(),
       splash: draft.splash,
-      header: { gradient: draft.header.gradient, text_color: draft.header.text_color },
+      header: {
+        gradient: draft.header.gradient,
+        text_color: draft.header.text_color,
+        gradient_direction: draft.header.gradient_direction,
+        layout: draft.header.layout,
+        greeting_size: draft.header.greeting_size,
+        greeting_color: draft.header.greeting_color,
+        address_color: draft.header.address_color,
+        icon_color: draft.header.icon_color,
+        sheet_radius: draft.header.sheet_radius,
+        wallet: draft.header.wallet,
+        hanging: draft.header.hanging,
+      },
       accent_color: draft.accent_color,
       greeting: draft.greeting,
       effect: draft.effect,
@@ -305,6 +388,102 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
                   <p className="text-xs text-muted-foreground">Wide image, about 1440×600. Saved right away.</p>
                 </div>
               )}
+              {!isDefault && (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Choice
+                      label="Color direction"
+                      value={draft.header.gradient_direction}
+                      options={[
+                        ['diagonal', '↘ Diagonal'],
+                        ['horizontal', '→ Left to right'],
+                        ['vertical', '↓ Top to bottom'],
+                      ]}
+                      onChange={(v) => patchIn('header', { gradient_direction: v })}
+                    />
+                    <Choice
+                      label="Layout"
+                      value={draft.header.layout}
+                      options={[
+                        ['classic', 'Classic (one row)'],
+                        ['stacked', 'Big greeting + address below'],
+                      ]}
+                      onChange={(v) => patchIn('header', { layout: v })}
+                    />
+                  </div>
+                  {draft.header.layout === 'stacked' && (
+                    <p className="text-xs text-muted-foreground">
+                      “Good Evening, Nipul 👋” shows as two lines (split at the comma). Needs the greeting on in
+                      Settings → Home Header; otherwise the classic row is used.
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Greeting size — {draft.header.greeting_size}</Label>
+                      <input
+                        type="range"
+                        min={16}
+                        max={34}
+                        value={draft.header.greeting_size}
+                        onChange={(e) => patchIn('header', { greeting_size: Number(e.target.value) })}
+                        className="w-full accent-indigo-600"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">White sheet corner — {draft.header.sheet_radius}</Label>
+                      <input
+                        type="range"
+                        min={0}
+                        max={40}
+                        value={draft.header.sheet_radius}
+                        onChange={(e) => patchIn('header', { sheet_radius: Number(e.target.value) })}
+                        className="w-full accent-indigo-600"
+                      />
+                    </div>
+                  </div>
+                  <AutoColor
+                    label="Greeting color"
+                    value={draft.header.greeting_color}
+                    fallback={draft.header.text_color}
+                    onChange={(v) => patchIn('header', { greeting_color: v })}
+                  />
+                  <AutoColor
+                    label="Address color"
+                    value={draft.header.address_color}
+                    fallback={draft.header.text_color}
+                    onChange={(v) => patchIn('header', { address_color: v })}
+                  />
+                  <AutoColor
+                    label="Location pin color"
+                    value={draft.header.icon_color}
+                    fallback={draft.header.text_color}
+                    onChange={(v) => patchIn('header', { icon_color: v })}
+                  />
+                  <div className="space-y-3 rounded-md border border-dashed p-3">
+                    <Choice
+                      label="Wallet pill"
+                      value={draft.header.wallet.style}
+                      options={[
+                        ['auto', 'Frosted white (standard)'],
+                        ['solid', 'Solid color'],
+                        ['outline', 'Outline'],
+                      ]}
+                      onChange={(v) => patchWallet({ style: v })}
+                    />
+                    {(draft.header.wallet.style === 'solid' || draft.header.wallet.style === 'outline') && (
+                      <div className="flex flex-wrap gap-4">
+                        {draft.header.wallet.style === 'solid' ? (
+                          <ColorInput label="Fill" value={draft.header.wallet.bg_color} onChange={(v) => patchWallet({ bg_color: v })} />
+                        ) : (
+                          <ColorInput label="Border" value={draft.header.wallet.border_color} onChange={(v) => patchWallet({ border_color: v })} />
+                        )}
+                        <ColorInput label="Text & icon" value={draft.header.wallet.text_color} onChange={(v) => patchWallet({ text_color: v })} />
+                      </div>
+                    )}
+                    <Toggle label="Show › arrow after the amount" checked={draft.header.wallet.show_arrow} onChange={(v) => patchWallet({ show_arrow: v })} />
+                  </div>
+                </>
+              )}
             </Section>
 
             {!isDefault && (
@@ -400,6 +579,61 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
                     </div>
                   )}
                 </Section>
+                <Section title="Hanging diyas (top of the screen)">
+                  <Toggle label="Show hanging marigold strings with diyas" checked={draft.header.hanging.enabled} onChange={(v) => patchHanging({ enabled: v })} />
+                  {draft.header.hanging.enabled && (
+                    <>
+                      <div className="grid grid-cols-3 gap-3">
+                        <Choice
+                          label="Side"
+                          value={draft.header.hanging.side}
+                          options={[
+                            ['right', 'Right'],
+                            ['left', 'Left'],
+                            ['both', 'Both sides'],
+                          ]}
+                          onChange={(v) => patchHanging({ side: v })}
+                        />
+                        <Choice
+                          label="Strings per side"
+                          value={String(draft.header.hanging.count) as '1' | '2' | '3' | '4' | '5'}
+                          options={[
+                            ['1', '1'],
+                            ['2', '2'],
+                            ['3', '3'],
+                            ['4', '4'],
+                            ['5', '5'],
+                          ]}
+                          onChange={(v) => patchHanging({ count: Number(v) })}
+                        />
+                        <Choice
+                          label="Length"
+                          value={draft.header.hanging.length}
+                          options={[
+                            ['short', 'Short'],
+                            ['medium', 'Medium'],
+                            ['long', 'Long'],
+                          ]}
+                          onChange={(v) => patchHanging({ length: v })}
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Flowers</Label>
+                        <ColorList colors={draft.header.hanging.flower_colors} onChange={(c) => patchHanging({ flower_colors: c })} max={4} />
+                      </div>
+                      <div className="flex flex-wrap gap-4">
+                        <ColorInput label="Diya" value={draft.header.hanging.diya_color} onChange={(v) => patchHanging({ diya_color: v })} />
+                        <ColorInput label="Flame" value={draft.header.hanging.flame_color} onChange={(v) => patchHanging({ flame_color: v })} />
+                      </div>
+                      <Toggle label="Garland along the top edge" checked={draft.header.hanging.top_garland} onChange={(v) => patchHanging({ top_garland: v })} />
+                      <Toggle label="Gentle sway + flickering flame" checked={draft.header.hanging.animate} onChange={(v) => patchHanging({ animate: v })} />
+                      <p className="text-xs text-muted-foreground">
+                        Long strings on the right can cover the wallet pill in the Classic layout — check the preview.
+                      </p>
+                    </>
+                  )}
+                </Section>
+
                 <Section title="Header greeting (Home top line)">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs">Use a festive greeting while this theme is live</Label>
@@ -433,7 +667,7 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
                     <ColorInput value={sec.service.title_color} onChange={(v) => patchSection('service', { title_color: v })} />
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-xs">Subtitle</Label>
+                    <Label className="text-xs">Subtitle (empty = hidden)</Label>
                     <Input value={sec.service.subtitle} maxLength={60} onChange={(e) => patchSection('service', { subtitle: e.target.value })} />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -445,6 +679,7 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="line">Plain line</SelectItem>
+                          <SelectItem value="line_dot">━ • Line + dot</SelectItem>
                           <SelectItem value="diamond">─◆─ Diamond</SelectItem>
                           <SelectItem value="flower">─🌼─ Marigold</SelectItem>
                           <SelectItem value="diya">─🪔─ Diya</SelectItem>
@@ -480,6 +715,33 @@ export function ThemeEditor({ theme, open, onOpenChange, onSaved }: ThemeEditorP
                         onCheckedChange={(on) => patchSection('service', { tile_border_color: on ? '#FFCC80' : null })}
                       />
                     </div>
+                  </div>
+                  <div className="space-y-3 rounded-md border border-dashed p-3">
+                    <Toggle
+                      label="Card + arrow tiles (big image, bold name, round → button)"
+                      checked={sec.service.tile_style === 'card_arrow'}
+                      onChange={(on) => patchSection('service', { tile_style: on ? 'card_arrow' : 'classic' })}
+                    />
+                    {sec.service.tile_style === 'card_arrow' && (
+                      <>
+                        <ColorInput label="Service name" value={sec.service.name_color} onChange={(v) => patchSection('service', { name_color: v })} />
+                        <AutoColor
+                          label="Arrow circle"
+                          value={sec.service.arrow_bg}
+                          fallback="#FDE4DC"
+                          onChange={(v) => patchSection('service', { arrow_bg: v })}
+                        />
+                        <AutoColor
+                          label="Arrow"
+                          value={sec.service.arrow_color}
+                          fallback={draft.accent_color}
+                          onChange={(v) => patchSection('service', { arrow_color: v })}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Auto = light accent circle with an accent arrow. Card background = “Tint behind service tiles”.
+                        </p>
+                      </>
+                    )}
                   </div>
                 </Section>
 
