@@ -48,6 +48,7 @@ import {
   Hand,
   PhoneCall,
   IndianRupee,
+  Smartphone,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -81,11 +82,18 @@ import NotificationPermissionPrompt from '@/components/NotificationPermissionPro
 import { pageKeyForPath, hasAccess, canAccessPath, type PermissionedUser } from '@/lib/permissions';
 
 type NavLeaf = { name: string; href: string; icon: typeof LayoutDashboard };
-type NavGroup = { name: string; icon: typeof LayoutDashboard; children: NavLeaf[] };
+// Groups can nest one level deeper (e.g. Settings → Mobile Theme).
+type NavGroup = { name: string; icon: typeof LayoutDashboard; children: NavEntry[] };
 type NavEntry = NavLeaf | NavGroup;
 
 function isNavGroup(item: NavEntry): item is NavGroup {
   return 'children' in item;
+}
+
+function containsPath(item: NavEntry, pathname: string): boolean {
+  return isNavGroup(item)
+    ? item.children.some((child) => containsPath(child, pathname))
+    : item.href === pathname;
 }
 
 const navigation: NavEntry[] = [
@@ -162,10 +170,16 @@ const navigation: NavEntry[] = [
       { name: 'Locations', href: '/dashboard/locations', icon: MapPin },
       { name: 'Package', href: '/dashboard/package', icon: Store },
       { name: 'Services', href: '/dashboard/services', icon: Wallet },
-      { name: 'App Banners & Popup', href: '/dashboard/app-content', icon: GalleryHorizontal },
-      { name: 'App Theme', href: '/dashboard/app-theme', icon: Sparkles },
-      { name: 'Bottom Bar', href: '/dashboard/app-nav-bar', icon: PanelBottom },
-      { name: 'Home Header', href: '/dashboard/app-home-header', icon: Hand },
+      {
+        name: 'Mobile Theme',
+        icon: Smartphone,
+        children: [
+          { name: 'App Banners & Popup', href: '/dashboard/app-content', icon: GalleryHorizontal },
+          { name: 'App Theme', href: '/dashboard/app-theme', icon: Sparkles },
+          { name: 'Bottom Bar', href: '/dashboard/app-nav-bar', icon: PanelBottom },
+          { name: 'Home Header', href: '/dashboard/app-home-header', icon: Hand },
+        ],
+      },
       { name: 'Service SLA', href: '/dashboard/settings/service-duration', icon: Timer },
       { name: 'Slot Management', href: '/dashboard/settings/slot-management', icon: CalendarClock },
       // Admin / super_admin only — see getLevel() in lib/permissions.ts
@@ -193,10 +207,7 @@ const navigation: NavEntry[] = [
 function filterNavigation(nav: NavEntry[], user: PermissionedUser | null): NavEntry[] {
   return nav.reduce<NavEntry[]>((acc, item) => {
     if (isNavGroup(item)) {
-      const children = item.children.filter((child) => {
-        const key = pageKeyForPath(child.href);
-        return !key || hasAccess(user, key);
-      });
+      const children = filterNavigation(item.children, user);
       if (children.length > 0) acc.push({ ...item, children });
     } else {
       const key = pageKeyForPath(item.href);
@@ -209,7 +220,8 @@ function filterNavigation(nav: NavEntry[], user: PermissionedUser | null): NavEn
 function firstAccessibleHref(nav: NavEntry[]): string | null {
   for (const item of nav) {
     if (isNavGroup(item)) {
-      if (item.children[0]) return item.children[0].href;
+      const href = firstAccessibleHref(item.children);
+      if (href) return href;
     } else {
       return item.href;
     }
@@ -219,13 +231,18 @@ function firstAccessibleHref(nav: NavEntry[]): string | null {
 
 function SidebarNavList({ items, onNavigate }: { items: NavEntry[]; onNavigate?: () => void }) {
   const pathname = usePathname();
+  // Open every group (at any depth) that contains the current page.
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
-    items.forEach((item) => {
-      if (isNavGroup(item) && item.children.some((child) => child.href === pathname)) {
-        initial[item.name] = true;
-      }
-    });
+    const walk = (entries: NavEntry[]) => {
+      entries.forEach((item) => {
+        if (isNavGroup(item) && containsPath(item, pathname)) {
+          initial[item.name] = true;
+          walk(item.children);
+        }
+      });
+    };
+    walk(items);
     return initial;
   });
 
@@ -233,79 +250,62 @@ function SidebarNavList({ items, onNavigate }: { items: NavEntry[]; onNavigate?:
     setOpenGroups((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
-  return (
-    <>
-      {items.map((item) => {
-        if (isNavGroup(item)) {
-          const isOpen = !!openGroups[item.name];
-          const isChildActive = item.children.some((child) => child.href === pathname);
-          return (
-            <div key={item.name}>
-              <button
-                type="button"
-                onClick={() => toggleGroup(item.name)}
-                className={`group flex w-full items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${isChildActive ? 'text-primary' : 'text-muted-foreground hover:bg-muted'
-                  }`}
-              >
-                <span className="flex items-center">
-                  <item.icon className="mr-3 h-5 w-5" />
-                  {item.name}
-                </span>
-                {isOpen ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </button>
-              {isOpen && (
-                <div className="ml-4 space-y-1 border-l pl-2">
-                  {item.children.map((child) => (
-                    <Link
-                      key={child.name}
-                      href={child.href}
-                      onClick={onNavigate}
-                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === child.href
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted'
-                        }`}
-                    >
-                      <child.icon
-                        className={`mr-3 h-4 w-4 ${pathname === child.href
-                          ? 'text-primary-foreground'
-                          : 'text-muted-foreground'
-                          }`}
-                      />
-                      {child.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        }
+  // depth 0 = top level (h-5 icons), deeper = inside a group (h-4 icons).
+  const renderEntry = (item: NavEntry, depth: number): React.ReactNode => {
+    const iconSize = depth === 0 ? 'h-5 w-5' : 'h-4 w-4';
 
-        return (
-          <Link
-            key={item.name}
-            href={item.href}
-            onClick={onNavigate}
-            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === item.href
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-muted'
+    if (isNavGroup(item)) {
+      const isOpen = !!openGroups[item.name];
+      const isChildActive = containsPath(item, pathname);
+      return (
+        <div key={item.name}>
+          <button
+            type="button"
+            onClick={() => toggleGroup(item.name)}
+            className={`group flex w-full items-center justify-between px-2 py-2 text-sm font-medium rounded-md ${isChildActive ? 'text-primary' : 'text-muted-foreground hover:bg-muted'
               }`}
           >
-            <item.icon
-              className={`mr-3 h-5 w-5 ${pathname === item.href
-                ? 'text-primary-foreground'
-                : 'text-muted-foreground'
-                }`}
-            />
-            {item.name}
-          </Link>
-        );
-      })}
-    </>
-  );
+            <span className="flex items-center">
+              <item.icon className={`mr-3 ${iconSize}`} />
+              {item.name}
+            </span>
+            {isOpen ? (
+              <ChevronDown className="h-4 w-4" />
+            ) : (
+              <ChevronRight className="h-4 w-4" />
+            )}
+          </button>
+          {isOpen && (
+            <div className="ml-4 space-y-1 border-l pl-2">
+              {item.children.map((child) => renderEntry(child, depth + 1))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <Link
+        key={item.name}
+        href={item.href}
+        onClick={onNavigate}
+        className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md ${pathname === item.href
+          ? 'bg-primary text-primary-foreground'
+          : 'text-muted-foreground hover:bg-muted'
+          }`}
+      >
+        <item.icon
+          className={`mr-3 ${iconSize} ${pathname === item.href
+            ? 'text-primary-foreground'
+            : 'text-muted-foreground'
+            }`}
+        />
+        {item.name}
+      </Link>
+    );
+  };
+
+  return <>{items.map((item) => renderEntry(item, 0))}</>;
 }
 
 export default function DashboardLayout({
