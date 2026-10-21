@@ -170,8 +170,9 @@ function PaginationBar({ currentPage, totalPages, totalCount, loading, onPageCha
 
 // ─── Change Vendor Dialog ─────────────────────────────────────────────────────
 
-// Vendor can be changed only before pickup: 1 = assigned, 2 = accepted
-const canChangeVendor = (item: ProcessAssignBooking) => item.status === 1 || item.status === 2;
+// Vendor can be changed only before pickup: 0 = rejected/expired, 1 = assigned, 2 = accepted
+const canChangeVendor = (item: ProcessAssignBooking) => item.status === 0 || item.status === 1 || item.status === 2;
+const changeVendorLabel = (item: ProcessAssignBooking) => (item.status === 0 ? 'Reassign Vendor' : 'Change Vendor');
 
 function ChangeVendorDialog({ item, onClose, onSuccess }: {
   item: ProcessAssignBooking | null; onClose: () => void; onSuccess: () => void;
@@ -191,7 +192,8 @@ function ChangeVendorDialog({ item, onClose, onSuccess }: {
         const res = await VendorApiService.getVendors(1, 200);
         if (res.status && res.data) {
           const serviceName = item.sub_order_details?.service_name ?? '';
-          let list = res.data.vendorList.filter((v) => v.accountIsActive === true && v._id !== item.vendor_id);
+          // A rejected order may go back to the same vendor; otherwise hide the current one
+          let list = res.data.vendorList.filter((v) => v.accountIsActive === true && (item.status === 0 || v._id !== item.vendor_id));
           if (serviceName) list = list.filter((v) => vendorMatchesService(v, serviceName));
           setVendors(list);
         } else {
@@ -230,7 +232,7 @@ function ChangeVendorDialog({ item, onClose, onSuccess }: {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ArrowLeftRight className="h-5 w-5 text-indigo-600" />
-            Change Vendor
+            {item ? changeVendorLabel(item) : 'Change Vendor'}
           </DialogTitle>
           <DialogDescription>
             Order will be moved to the new vendor and removed from the current vendor&apos;s app.
@@ -281,7 +283,7 @@ function ChangeVendorDialog({ item, onClose, onSuccess }: {
           <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
           <Button onClick={handleSave} disabled={!selectedId || saving} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             {saving ? <RefreshCw className="mr-2 h-4 w-4 animate-spin" /> : <ArrowLeftRight className="mr-2 h-4 w-4" />}
-            Change Vendor
+            {item ? changeVendorLabel(item) : 'Change Vendor'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -570,7 +572,7 @@ export default function ProcessListPage() {
                               className="text-indigo-600 focus:text-indigo-700 focus:bg-indigo-50"
                             >
                               <ArrowLeftRight className="mr-2 h-4 w-4" />
-                              Change Vendor
+                              {changeVendorLabel(item)}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem
@@ -621,7 +623,7 @@ export default function ProcessListPage() {
                       </Button>
                       {canChangeVendor(item) && (
                         <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg text-indigo-600 border-indigo-300 hover:bg-indigo-50" onClick={() => setChangeVendorItem(item)}>
-                          <ArrowLeftRight className="mr-1 h-3 w-3" /> Change Vendor
+                          <ArrowLeftRight className="mr-1 h-3 w-3" /> {changeVendorLabel(item)}
                         </Button>
                       )}
                       <Button size="sm" variant="outline" className="h-7 text-xs rounded-lg text-green-600 border-green-300 hover:bg-green-50" onClick={() => setConfirmItem(item)}>
