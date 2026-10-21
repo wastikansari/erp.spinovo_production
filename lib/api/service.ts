@@ -109,6 +109,27 @@ export async function updateCategory(
   }
 }
 
+// DELETE — super_admin only (enforced on the backend too).
+export async function deleteCategory(
+  serviceId: string,
+  categoryId: number
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const res = await fetch(
+      `${API_URL.BASE_URL}${API_URL.SERVICE_CATEGORY_BASE}/${serviceId}/category/${categoryId}`,
+      {
+        method: 'DELETE',
+        headers: authHeaders(),
+      }
+    );
+    const json = await res.json();
+    return { success: json.status === true, message: json.msg || json.message || 'Done' };
+  } catch (error) {
+    console.error('deleteCategory Error:', error);
+    return { success: false, message: 'Network error' };
+  }
+}
+
 // ─── Dynamic service system ────────────────────────────────────────────────
 
 export interface CreateServicePayload {

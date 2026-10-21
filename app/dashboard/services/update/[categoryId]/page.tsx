@@ -4,15 +4,20 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft, Plus, X, Loader2, CheckCircle,
-  AlertCircle, Pencil, Tag, IndianRupee, Shirt,
+  AlertCircle, Pencil, Tag, IndianRupee, Shirt, Trash2,
 } from 'lucide-react';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { getServiceCategories, updateCategory } from '@/lib/api/service';
+import { getServiceCategories, updateCategory, deleteCategory } from '@/lib/api/service';
+import { AuthService } from '@/lib/auth';
 
 // ── Loading skeleton ──────────────────────────────────────────────────────────
 function Skeleton({ className = '' }: { className?: string }) {
@@ -68,6 +73,13 @@ export default function UpdateCategoryPage() {
   const [notFound, setNotFound] = useState(false);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [showDelete, setShowDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  // Deleting a category is super_admin only — enforced on the backend too.
+  const [user] = useState(() => AuthService.getUser());
+  const canDelete = user?.role === 'super_admin';
+  const busy = saving || deleting;
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -144,6 +156,21 @@ export default function UpdateCategoryPage() {
       setTimeout(() => router.push('/dashboard/services'), 1500);
     } else {
       setAlert({ type: 'error', message: result.message || 'Update failed. Please try again.' });
+    }
+  }
+
+  // ── Delete ────────────────────────────────────────────────────────────────
+  async function handleDelete() {
+    setDeleting(true);
+    setAlert(null);
+    const result = await deleteCategory(serviceId, categoryId);
+    setDeleting(false);
+    setShowDelete(false);
+    if (result.success) {
+      setAlert({ type: 'success', message: 'Category deleted successfully!' });
+      setTimeout(() => router.push('/dashboard/services'), 1500);
+    } else {
+      setAlert({ type: 'error', message: result.message || 'Delete failed. Please try again.' });
     }
   }
 
@@ -356,14 +383,14 @@ export default function UpdateCategoryPage() {
           variant="outline"
           className="flex-1"
           onClick={() => router.back()}
-          disabled={saving}
+          disabled={busy}
         >
           Cancel
         </Button>
         <Button
           className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white gap-2"
           onClick={handleSave}
-          disabled={saving}
+          disabled={busy}
         >
           {saving ? (
             <><Loader2 className="h-4 w-4 animate-spin" />Saving...</>
@@ -372,6 +399,51 @@ export default function UpdateCategoryPage() {
           )}
         </Button>
       </div>
+
+      {/* ── DELETE (super_admin only) ── */}
+      {canDelete && (
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-red-200
+                        dark:border-red-800 bg-red-50/50 dark:bg-red-950/40 p-4 mb-8">
+          <div>
+            <p className="text-sm font-semibold text-red-700 dark:text-red-300">Delete this category</p>
+            <p className="text-xs text-red-600/80 dark:text-red-400/80">
+              Removes it from the app and ERP. Past orders are not affected.
+            </p>
+          </div>
+          <Button
+            variant="destructive"
+            className="gap-2 shrink-0"
+            onClick={() => setShowDelete(true)}
+            disabled={busy}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete Category
+          </Button>
+        </div>
+      )}
+
+      <AlertDialog open={showDelete} onOpenChange={(o) => !deleting && setShowDelete(o)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete &quot;{categoryName}&quot;?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This category will be removed from {serviceName || 'this service'} and its vendor
+              prices will be deleted. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={(e) => { e.preventDefault(); handleDelete(); }}
+            >
+              {deleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Yes, delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
