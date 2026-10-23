@@ -110,6 +110,7 @@ const navigation: NavEntry[] = [
       { name: 'Quality Check', href: '/dashboard/orders/quality-check/v2', icon: UserCheck },
       { name: 'Wash Pending', href: '/dashboard/orders/wash-pending', icon: UserCheck },
       { name: 'Ironing Pending', href: '/dashboard/orders/ironing-pending', icon: UserCheck },
+      { name: 'Process Pending (All Services)', href: '/dashboard/orders/process-pending', icon: Store },
       { name: 'Process Assigned (Inhouse)', href: '/dashboard/orders/process-assigned', icon: UserCheck },
       { name: 'Vendor Orders', href: '/dashboard/orders/vendor-assigned', icon: Store },
       { name: 'Vendor Outward', href: '/dashboard/orders/vendor-outward', icon: Store },
