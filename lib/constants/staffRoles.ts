@@ -47,6 +47,7 @@ const DEVELOPER_SETTINGS = [
   'app-theme',
   'app-nav-bar',
   'app-home-header',
+  'app-showcase',
   'settings-slot-management',
   'settings-service-duration',
   'settings-attempt-reasons',

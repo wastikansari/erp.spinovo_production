@@ -49,6 +49,7 @@ const ROUTE_PAGE_MAP: [string, string][] = [
   ['/dashboard/app-theme', 'app-theme'],
   ['/dashboard/app-nav-bar', 'app-nav-bar'],
   ['/dashboard/app-home-header', 'app-home-header'],
+  ['/dashboard/app-showcase', 'app-showcase'],
   ['/dashboard/export', 'export'],
   ['/dashboard/revenue', 'revenue'],
   ['/dashboard/daily-report', 'daily-report'],

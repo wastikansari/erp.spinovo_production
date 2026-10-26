@@ -55,6 +55,7 @@ export const ERP_PAGES: ErpPage[] = [
   { key: 'app-theme', label: 'App Theme (festive Splash & Home)', group: 'Comms' },
   { key: 'app-nav-bar', label: 'App Bottom Bar (design & icons)', group: 'Comms' },
   { key: 'app-home-header', label: 'App Home Header (greeting & name)', group: 'Comms' },
+  { key: 'app-showcase', label: 'App Home Showcase (category card sections)', group: 'Comms' },
 
   { key: 'settings-attempt-reasons', label: 'Settings — Attempt Reasons', group: 'Settings' },
   { key: 'settings-service-duration', label: 'Settings — Service Duration', group: 'Settings' },
