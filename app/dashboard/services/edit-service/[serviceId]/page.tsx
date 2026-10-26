@@ -21,6 +21,7 @@ function toFormValues(s: FullServiceCategory): ServiceFormValues {
     home_title: s.home_title ?? '',
     badge_text: s.badge_text ?? '',
     show_on_home: s.show_on_home !== false,
+    coupon_applicable: s.coupon_applicable !== false,
   };
 }
 
@@ -69,6 +70,7 @@ export default function EditServicePage() {
       home_title: values.home_title.trim(),
       badge_text: values.badge_text.trim(),
       show_on_home: values.show_on_home,
+      coupon_applicable: values.coupon_applicable,
     });
     if (!result.success) {
       setSaving(false);

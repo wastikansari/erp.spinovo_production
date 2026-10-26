@@ -36,6 +36,7 @@ export default function AddServicePage() {
       service_code: values.service_code.trim(),
       home_title: values.home_title.trim(),
       badge_text: values.badge_text.trim(),
+      coupon_applicable: values.coupon_applicable,
     });
     if (!created.success || !created.service) {
       setSaving(false);

@@ -403,6 +403,7 @@ export interface Booking extends BaseEntity {
   offer_id: string;
   offer_amount: number;
   offer_removed?: OfferRemoval;
+  offer_qc_check?: OfferQcCheck;
   order_details: any;
   no_of_garemtn_picked: number;
   no_of_garemtn_processed: number;
@@ -487,6 +488,22 @@ export interface BookingListData {
 
 // Coupon dropped at QC completion because the final order amount fell below
 // the coupon's minimum
+// Coupon re-check at QC completion — same rule as checkout on the garments
+// actually picked up
+export interface OfferQcCheck {
+  action: 'kept' | 'increased' | 'reduced' | 'removed';
+  offer_code: string;
+  offer_id: string;
+  before_amount: number;
+  after_amount: number;
+  eligible_before: number;
+  eligible_after: number;
+  min_order_amount: number;
+  reason: string;
+  checked_at: string;
+  checked_by: string;
+}
+
 export interface OfferRemoval {
   offer_code: string;
   offer_amount: number;
@@ -642,6 +659,8 @@ export interface FullServiceCategory {
   // false = only app 1.0.16+ sees it (all services created from ERP).
   show_in_old_app: boolean;
   show_on_home: boolean;
+  // Whether coupon codes can discount this service (off for quick services).
+  coupon_applicable: boolean;
   sort_order: number;
   image_url: string;
   home_title: string;

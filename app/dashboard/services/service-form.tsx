@@ -22,6 +22,7 @@ export interface ServiceFormValues {
   home_title: string;
   badge_text: string;
   show_on_home: boolean;
+  coupon_applicable: boolean;
 }
 
 export const EMPTY_SERVICE_FORM: ServiceFormValues = {
@@ -32,6 +33,8 @@ export const EMPTY_SERVICE_FORM: ServiceFormValues = {
   home_title: '',
   badge_text: '',
   show_on_home: true,
+  // Coupons stay off for a new service until the admin decides.
+  coupon_applicable: false,
 };
 
 // Mirrors deriveServiceCode() in spinovo_api/utils/serviceMeta.js so the
@@ -269,6 +272,28 @@ export function ServiceForm({
               </p>
             </div>
             <Switch checked={values.show_on_home} onCheckedChange={(v) => set('show_on_home', v)} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* COUPONS */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Coupons & offers</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <p className="text-sm font-medium">Coupon codes apply on this service</p>
+              <p className="text-xs text-muted-foreground">
+                Off = no coupon discounts this service, even if an offer selects it (e.g. quick
+                services). In a mixed cart the discount is calculated only on services where this is on.
+              </p>
+            </div>
+            <Switch
+              checked={values.coupon_applicable}
+              onCheckedChange={(v) => set('coupon_applicable', v)}
+            />
           </div>
         </CardContent>
       </Card>

@@ -139,6 +139,7 @@ export interface CreateServicePayload {
   service_code?: string;
   home_title?: string;
   badge_text?: string;
+  coupon_applicable?: boolean;
 }
 
 export interface ServiceSettingsPayload {
@@ -151,6 +152,7 @@ export interface ServiceSettingsPayload {
   sort_order?: number;
   is_active?: boolean;
   show_on_home?: boolean;
+  coupon_applicable?: boolean;
 }
 
 type ServiceResult = { success: boolean; message: string; service?: FullServiceCategory };

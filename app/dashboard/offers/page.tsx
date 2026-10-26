@@ -20,9 +20,13 @@ import {
     Calendar,
     Percent,
     Hash,
+    Pencil,
+    Power,
+    Users,
+    AlertTriangle,
 } from 'lucide-react';
 import { OfferApiService } from '@/lib/api/offer';
-import { Offer } from '@/lib/types/offer';
+import { Offer, OfferLiveState } from '@/lib/types/offer';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -35,6 +39,7 @@ export default function OffersPage() {
     const [totalOffers, setTotalOffers] = useState(0);
     const [error, setError] = useState<string>('');
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [editingOffer, setEditingOffer] = useState<Offer | null>(null);
     const router = useRouter();
     const { toast } = useToast();
 
@@ -75,10 +80,33 @@ export default function OffersPage() {
         fetchOffers();
     }, []);
 
-    const getStatusColor = (status: boolean) => {
-        return status
-            ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
-            : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+    const LIVE_STATE: Record<OfferLiveState, { label: string; className: string }> = {
+        active: { label: 'Active', className: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300' },
+        scheduled: { label: 'Scheduled', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300' },
+        expired: { label: 'Expired', className: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300' },
+        inactive: { label: 'Inactive', className: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300' },
+    };
+    const liveStateOf = (offer: Offer): OfferLiveState =>
+        offer.live_state || (offer.status ? 'active' : 'inactive');
+
+    const toggleStatus = async (offer: Offer) => {
+        try {
+            const response = await OfferApiService.setOfferStatus(offer._id, !offer.status);
+            if (!response.status) throw new Error(response.msg || 'Failed to update status');
+            toast({
+                title: offer.status ? 'Offer deactivated' : 'Offer activated',
+                description: offer.status
+                    ? `${offer.offer_code} is hidden from the app`
+                    : `${offer.offer_code} is live in the app (within its dates)`,
+            });
+            fetchOffers();
+        } catch (err) {
+            toast({
+                title: 'Error',
+                description: err instanceof Error ? err.message : 'Failed to update status',
+                variant: 'destructive',
+            });
+        }
     };
 
     const getOfferTypeText = (type: number) => {
@@ -164,13 +192,41 @@ export default function OffersPage() {
             searchable: false,
         },
         {
+            key: 'usage_limit',
+            header: 'Uses / Customer',
+            render: (offer: Offer) => <span>{offer.usage_limit}</span>,
+            searchable: false,
+        },
+        {
+            key: 'total_uses',
+            header: 'Used',
+            render: (offer: Offer) => (
+                <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <span>
+                        {offer.total_uses ?? 0}
+                        <span className="text-muted-foreground"> · {offer.unique_customers ?? 0} cust.</span>
+                    </span>
+                    {(offer.flagged_orders ?? 0) > 0 && (
+                        <span
+                            title="Orders where the app's discount didn't match the coupon rules"
+                            className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400"
+                        >
+                            <AlertTriangle className="h-3.5 w-3.5" />
+                            {offer.flagged_orders}
+                        </span>
+                    )}
+                </div>
+            ),
+            searchable: false,
+        },
+        {
             key: 'status',
             header: 'Status',
-            render: (offer: Offer) => (
-                <Badge className={getStatusColor(offer.status)}>
-                    {offer.status ? 'Active' : 'Inactive'}
-                </Badge>
-            ),
+            render: (offer: Offer) => {
+                const state = LIVE_STATE[liveStateOf(offer)];
+                return <Badge className={state.className}>{state.label}</Badge>;
+            },
             searchable: false,
         },
     ];
@@ -185,7 +241,15 @@ export default function OffersPage() {
             <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => handleViewDetails(offer._id)}>
                     <Eye className="mr-2 h-4 w-4" />
-                    View Details
+                    View Details & Usage
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setEditingOffer(offer)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toggleStatus(offer)}>
+                    <Power className="mr-2 h-4 w-4" />
+                    {offer.status ? 'Deactivate' : 'Activate'}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -239,6 +303,12 @@ export default function OffersPage() {
             <OfferForm
                 open={showCreateForm}
                 onOpenChange={setShowCreateForm}
+                onSuccess={fetchOffers}
+            />
+            <OfferForm
+                open={Boolean(editingOffer)}
+                offer={editingOffer}
+                onOpenChange={(open) => !open && setEditingOffer(null)}
                 onSuccess={fetchOffers}
             />
         </div>
