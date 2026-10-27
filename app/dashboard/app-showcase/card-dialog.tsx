@@ -140,7 +140,15 @@ export function CardDialog({ open, onOpenChange, item, catalog, imageRatio, onSu
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label>Service</Label>
-              <Select value={values.service_id} onValueChange={(v) => setValues((x) => ({ ...x, service_id: v, category_id: '' }))}>
+              <Select
+                value={values.service_id}
+                onValueChange={(v) => {
+                  // A bundle has just its one virtual category — pick it.
+                  const picked = catalog.find((s) => String(s.service_id) === v);
+                  const only = picked?.is_bundle ? picked.categories[0] : undefined;
+                  setValues((x) => ({ ...x, service_id: v, category_id: only ? String(only.category_id) : '' }));
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Choose a service" />
                 </SelectTrigger>
@@ -173,7 +181,13 @@ export function CardDialog({ open, onOpenChange, item, catalog, imageRatio, onSu
           {service && !service.is_active && (
             <p className="text-xs text-amber-600">This service is inactive — the card stays hidden until it is switched on.</p>
           )}
-          {category && (
+          {category && service?.is_bundle && (
+            <p className="text-xs text-muted-foreground">
+              Price <b>₹{category.price}</b> comes live from the bundle settings. Tapping the card or its button opens the
+              bundle popup in the app (nothing goes in the cart).
+            </p>
+          )}
+          {category && !service?.is_bundle && (
             <p className="text-xs text-muted-foreground">
               Selling price <b>₹{category.price}</b> comes live from ERP → Services. Tapping ADD puts 1 in the cart and
               opens this category.

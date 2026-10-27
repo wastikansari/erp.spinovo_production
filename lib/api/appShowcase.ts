@@ -134,6 +134,9 @@ export interface CatalogService {
   service: string;
   duration: string;
   is_active: boolean;
+  // Bundle services (Home Curtain Bundle) come with one virtual category 0
+  // priced from the bundle settings; the app opens the bundle popup.
+  is_bundle?: boolean;
   categories: { category_id: number; category: string; price: string }[];
 }
 
