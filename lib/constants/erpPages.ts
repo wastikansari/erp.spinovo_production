@@ -27,6 +27,7 @@ export const ERP_PAGES: ErpPage[] = [
   { key: 'order-timeline', label: 'Order Timeline', group: 'Retail' },
   { key: 'otp-requests', label: 'OTP Requests', group: 'Retail' },
   { key: 'bookings', label: 'Bookings', group: 'Retail' },
+  { key: 'bundle-bookings', label: 'Bundle Bookings (home visits)', group: 'Retail' },
   { key: 'customers', label: 'Customers', group: 'Retail' },
   { key: 'feedback', label: 'Feedback', group: 'Retail' },
   { key: 'services', label: 'Services', group: 'Retail' },

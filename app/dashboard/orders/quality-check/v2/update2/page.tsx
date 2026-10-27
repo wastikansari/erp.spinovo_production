@@ -169,9 +169,24 @@ function QCV3Content() {
     const activeSubOrder: SubOrder | undefined = orderData?.subOrders.find(
         (s) => parseInt(s.service_id) === activeServiceId
     );
-    const activeService: FullServiceCategory | undefined = serviceList.find(
-        (s) => s.service_id === activeServiceId
-    );
+    // Orders converted from a bundle home visit can carry custom lines (name +
+    // price typed by the admin, negative category_id) that aren't in the
+    // catalog. Treat them as extra categories of this service so QC can count
+    // them and saving never drops them.
+    const catalogService = serviceList.find((s) => s.service_id === activeServiceId);
+    const customLines: CategoryItem[] = (parseGarmentDetails(activeSubOrder?.garment_details ?? '')?.categorys ?? [])
+        .filter((c: any) => Number(c.category_id) < 0)
+        .map((c: any) => ({
+            _id: `custom${c.category_id}`,
+            category_id: Number(c.category_id),
+            category: c.category,
+            description: '',
+            price: String(c.category_prices),
+            types_of_Clothes: c.types_of_Clothes?.length ? c.types_of_Clothes : [c.category],
+        }));
+    const activeService: FullServiceCategory | undefined = catalogService && customLines.length
+        ? { ...catalogService, category_list: [...catalogService.category_list, ...customLines] }
+        : catalogService;
 
     // Current seg for active service
     const activeSeg: Record<number, Record<string, number>> = segEdits[activeServiceId ?? -1] ?? {};

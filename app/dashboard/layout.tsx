@@ -49,6 +49,7 @@ import {
   PhoneCall,
   IndianRupee,
   Smartphone,
+  Home as HomeIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from 'next-themes';
@@ -100,6 +101,7 @@ const navigation: NavEntry[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
   { name: 'Orders', href: '/dashboard/orders', icon: Package },
+  { name: 'Bundle Bookings', href: '/dashboard/bundle-bookings', icon: HomeIcon },
 
   {
     name: 'Orders Management',

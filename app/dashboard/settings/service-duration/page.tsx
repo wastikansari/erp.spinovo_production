@@ -120,7 +120,8 @@ export default function ServiceDurationPage() {
     setError('');
     try {
       const data = await getServiceCategories();
-      setServices(data);
+      // Bundle services are home visits — no delivery duration to set.
+      setServices(data.filter((svc) => svc.service_type !== 'bundle'));
     } catch (e: any) {
       setError(e.message || 'Failed to load services');
     } finally {
