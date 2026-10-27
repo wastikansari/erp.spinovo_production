@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowDown, ArrowUp, Copy, Loader2, Pencil, Plus, Trash2, AlertTriangle } from 'lucide-react';
+import { Copy, Loader2, Pencil, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { HeaderSection } from '@/components/ui/header-section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,10 +31,10 @@ import {
   deleteSection,
   duplicateSection,
   listSections,
-  reorderSections,
   sectionStatus,
   updateSection,
 } from '@/lib/api/appShowcase';
+import { HomeLayoutCard } from './home-layout';
 
 const STATUS_STYLE: Record<ReturnType<typeof sectionStatus>, { label: string; className: string }> = {
   live: { label: 'Live in app', className: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-900' },
@@ -59,8 +59,8 @@ export default function AppShowcasePage() {
   const [sections, setSections] = useState<ShowcaseSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [orderDirty, setOrderDirty] = useState(false);
-  const [savingOrder, setSavingOrder] = useState(false);
+  // Bumped when sections are added/removed/switched here, so Home Layout reloads.
+  const [layoutKey, setLayoutKey] = useState(0);
   const [toDelete, setToDelete] = useState<ShowcaseSection | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState('');
@@ -72,7 +72,6 @@ export default function AppShowcasePage() {
     const r = await listSections();
     if (r.success && r.data) setSections(r.data.sections);
     else toast({ title: 'Could not load', description: r.message, variant: 'destructive' });
-    setOrderDirty(false);
     setLoading(false);
   }, [toast]);
 
@@ -109,6 +108,7 @@ export default function AppShowcasePage() {
     if (value && !s.items.some((i) => i.is_active && !i.warning))
       toast({ title: 'Section is on', description: 'It has no visible cards yet, so the app still hides it.' });
     await load();
+    setLayoutKey((k) => k + 1);
   }
 
   async function duplicate(s: ShowcaseSection) {
@@ -121,6 +121,7 @@ export default function AppShowcasePage() {
     }
     toast({ title: 'Section copied', description: 'The copy is switched off until you turn it on.' });
     await load();
+    setLayoutKey((k) => k + 1);
   }
 
   async function confirmDelete() {
@@ -133,35 +134,10 @@ export default function AppShowcasePage() {
     }
     toast({ title: 'Section deleted' });
     await load();
+    setLayoutKey((k) => k + 1);
   }
 
-  // ↑↓ move within the same position; the saved order is the flat list.
-  function move(section: ShowcaseSection, delta: -1 | 1) {
-    const group = sections.filter((s) => s.position === section.position);
-    const i = group.findIndex((s) => s._id === section._id);
-    const other = group[i + delta];
-    if (!other) return;
-    const next = [...sections];
-    const a = next.findIndex((s) => s._id === section._id);
-    const b = next.findIndex((s) => s._id === other._id);
-    [next[a], next[b]] = [next[b], next[a]];
-    setSections(next);
-    setOrderDirty(true);
-  }
-
-  async function saveOrder() {
-    setSavingOrder(true);
-    const r = await reorderSections(sections.map((s) => s._id));
-    setSavingOrder(false);
-    if (!r.success) {
-      toast({ title: 'Order not saved', description: r.message, variant: 'destructive' });
-      return;
-    }
-    toast({ title: 'Section order saved — the app shows this order' });
-    setOrderDirty(false);
-  }
-
-  function renderRow(s: ShowcaseSection, index: number, total: number) {
+  function renderRow(s: ShowcaseSection, index: number) {
     const status = STATUS_STYLE[sectionStatus(s)];
     const schedule = scheduleText(s);
     const activeCards = s.items.filter((i) => i.is_active && !i.warning);
@@ -225,19 +201,6 @@ export default function AppShowcasePage() {
             <Switch checked={s.is_active} disabled={busyId === s._id} onCheckedChange={(v) => toggleActive(s, v)} />
           </label>
           <div className="flex gap-1">
-            <Button size="icon" variant="outline" className="h-8 w-8" disabled={index === 0} onClick={() => move(s, -1)} aria-label="Move up">
-              <ArrowUp className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="outline"
-              className="h-8 w-8"
-              disabled={index === total - 1}
-              onClick={() => move(s, 1)}
-              aria-label="Move down"
-            >
-              <ArrowDown className="h-4 w-4" />
-            </Button>
             <Button
               size="icon"
               variant="outline"
@@ -274,7 +237,16 @@ export default function AppShowcasePage() {
 
   return (
     <div className="space-y-6">
-      <HeaderSection title="Home Showcase" handleRefresh={load} loading={loading} />
+      <HeaderSection
+        title="Home Showcase"
+        handleRefresh={() => {
+          load();
+          setLayoutKey((k) => k + 1);
+        }}
+        loading={loading}
+      />
+
+      <HomeLayoutCard reloadKey={layoutKey} onSectionsChanged={load} />
 
       <Card>
         <CardHeader>
@@ -283,16 +255,10 @@ export default function AppShowcasePage() {
               <CardTitle>Home Showcase sections</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 Rows of category cards on the app&apos;s Home screen (app 1.0.17+). Each section has its own look, cards
-                and schedule. Use ↑ ↓ then Save Order.
+                and schedule. Where it sits on Home is set in Home Layout above.
               </p>
             </div>
             <div className="flex gap-2">
-              {orderDirty && (
-                <Button size="sm" variant="outline" onClick={saveOrder} disabled={savingOrder}>
-                  {savingOrder && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                  Save Order
-                </Button>
-              )}
               <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => setCreating(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Section
@@ -308,16 +274,7 @@ export default function AppShowcasePage() {
               No sections yet. Create one, add cards, then switch it on.
             </p>
           ) : (
-            POSITIONS.map((pos) => {
-              const group = sections.filter((s) => s.position === pos);
-              if (!group.length) return null;
-              return (
-                <div key={pos} className="space-y-3">
-                  <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-300">{POSITION_LABELS[pos]}</h4>
-                  {group.map((s, i) => renderRow(s, i, group.length))}
-                </div>
-              );
-            })
+            <div className="space-y-3">{sections.map((s, i) => renderRow(s, i))}</div>
           )}
         </CardContent>
       </Card>
@@ -340,7 +297,7 @@ export default function AppShowcasePage() {
               <p className="text-xs text-muted-foreground">Also used as the first title — you can change it after.</p>
             </div>
             <div className="space-y-2">
-              <Label>Where on Home</Label>
+              <Label>First placed on Home</Label>
               <Select value={newPosition} onValueChange={(v) => setNewPosition(v as ShowcasePosition)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -354,7 +311,7 @@ export default function AppShowcasePage() {
                 </SelectContent>
               </Select>
             </div>
-            <p className="text-xs text-muted-foreground">It starts switched off.</p>
+            <p className="text-xs text-muted-foreground">It starts switched off. Move it anywhere later in Home Layout.</p>
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setCreating(false)} disabled={saving}>

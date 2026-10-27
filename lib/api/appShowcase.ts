@@ -291,3 +291,45 @@ export const SIZE_PRESETS: Record<'compact' | 'standard' | 'large', SizeFields> 
     text: { price_size: 22, mrp_size: 13, off_size: 11, name_size: 16, duration_size: 13, extra_size: 13 },
   },
 };
+
+// ── Home Layout ──
+// Order of everything on Home below the header (app 1.0.17+): the four
+// built-in sections and every showcase section. A built-in carries its own
+// ON/OFF, schedule and box; a showcase only its place and outer margin.
+export type BuiltinKey = 'banner' | 'services' | 'bookings' | 'footer';
+export type BoxBgStyle = 'none' | 'color' | 'gradient';
+
+export interface LayoutBox {
+  padding_top: number;
+  padding_bottom: number;
+  padding_left: number;
+  padding_right: number;
+  bg_style: BoxBgStyle;
+  bg_color: string;
+  gradient_from: string;
+  gradient_to: string;
+  radius: number;
+  border_width: number;
+  border_color: string;
+  shadow: boolean;
+}
+
+export interface LayoutBlock {
+  kind: 'builtin' | 'showcase';
+  key: BuiltinKey | null;
+  section_id: string | null;
+  margin_top: number;
+  margin_bottom: number;
+  is_active: boolean;
+  start_at: string | null;
+  end_at: string | null;
+  box?: LayoutBox;
+  // Display only (sent by the API).
+  label: string;
+  live: boolean;
+  cards?: number;
+}
+
+export const getLayout = () => call<{ blocks: LayoutBlock[] }>('/layout');
+export const saveLayout = (blocks: LayoutBlock[]) =>
+  call<{ blocks: LayoutBlock[] }>('/layout', json('PUT', { blocks }));

@@ -18,7 +18,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -36,7 +35,6 @@ import { useToast } from '@/hooks/use-toast';
 import { cn, appContentImageUrl } from '@/lib/utils';
 import {
   CatalogService,
-  FontWeight,
   ItemFields,
   SIZE_PRESETS,
   LINE_LABELS,
@@ -60,121 +58,7 @@ import { ColorInput } from '../../app-theme/theme-editor';
 import { toLocalInput } from '../../app-content/content-form-dialog';
 import { ShowcasePreview } from '../showcase-preview';
 import { CardDialog } from '../card-dialog';
-
-// ── Small form helpers ─────────────────────────────────────────────────────
-
-function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-[180px_1fr] items-start gap-2 py-2">
-      <div>
-        <Label className="text-sm">{label}</Label>
-        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
-      </div>
-      <div className="flex flex-wrap items-center gap-3">{children}</div>
-    </div>
-  );
-}
-
-// Typing is free; a value in range is applied at once, anything else is
-// pulled into range when the field loses focus.
-function NumberInput({
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  suffix,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  min: number;
-  max: number;
-  step?: number;
-  suffix?: string;
-}) {
-  const [textValue, setTextValue] = useState(String(value));
-  useEffect(() => setTextValue(String(value)), [value]);
-  const fix = (n: number) => {
-    const stepped = Math.round(n / step) * step;
-    return Math.min(max, Math.max(min, Number(stepped.toFixed(2))));
-  };
-  return (
-    <span className="flex items-center gap-1.5">
-      <Input
-        type="number"
-        className="w-20"
-        min={min}
-        max={max}
-        step={step}
-        value={textValue}
-        onChange={(e) => {
-          setTextValue(e.target.value);
-          const n = Number(e.target.value);
-          if (e.target.value !== '' && Number.isFinite(n) && n >= min && n <= max) onChange(fix(n));
-        }}
-        onBlur={() => {
-          const n = Number(textValue);
-          const next = textValue === '' || !Number.isFinite(n) ? value : fix(n);
-          setTextValue(String(next));
-          if (next !== value) onChange(next);
-        }}
-      />
-      {suffix && <span className="text-xs text-muted-foreground">{suffix}</span>}
-    </span>
-  );
-}
-
-const WEIGHT_OPTIONS: { value: FontWeight; label: string }[] = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'semibold', label: 'Semi-bold' },
-  { value: 'bold', label: 'Bold' },
-];
-
-function WeightSelect({ value, onChange }: { value: FontWeight; onChange: (v: FontWeight) => void }) {
-  return (
-    <Select value={value} onValueChange={(v) => onChange(v as FontWeight)}>
-      <SelectTrigger className="w-32">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        {WEIGHT_OPTIONS.map((o) => (
-          <SelectItem key={o.value} value={o.value}>
-            {o.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  );
-}
-
-function Choice<T extends string>({
-  value,
-  onChange,
-  options,
-}: {
-  value: T;
-  onChange: (v: T) => void;
-  options: { value: T; label: string }[];
-}) {
-  return (
-    <div className="inline-flex rounded-md border p-0.5">
-      {options.map((o) => (
-        <button
-          key={o.value}
-          type="button"
-          onClick={() => onChange(o.value)}
-          className={cn(
-            'rounded px-3 py-1 text-sm',
-            value === o.value ? 'bg-indigo-600 text-white' : 'text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800'
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import { Choice, NumberInput, Row, WeightSelect } from '../form-bits';
 
 export default function ShowcaseEditorPage() {
   const { id } = useParams<{ id: string }>();
@@ -189,6 +73,7 @@ export default function ShowcaseEditorPage() {
   const [loading, setLoading] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [turningOn, setTurningOn] = useState(false);
   const [bgBusy, setBgBusy] = useState(false);
   const [cardDialog, setCardDialog] = useState<{ item: ShowcaseItem | null } | null>(null);
   const [cardToDelete, setCardToDelete] = useState<ShowcaseItem | null>(null);
@@ -373,6 +258,19 @@ export default function ShowcaseEditorPage() {
     if (r.success && r.data) takeServer(r.data.section, ['background']);
   }
 
+  // The banner's one-tap switch — saved at once, other unsaved edits stay.
+  async function turnOn() {
+    setTurningOn(true);
+    const r = await updateSection(section._id, { is_active: true });
+    setTurningOn(false);
+    if (!r.success || !r.data) {
+      toast({ title: 'Not updated', description: r.message, variant: 'destructive' });
+      return;
+    }
+    takeServer(r.data.section, ['is_active']);
+    toast({ title: 'Section is on', description: 'The app picks it up on next Home open.' });
+  }
+
   function moveLine(index: number, delta: -1 | 1) {
     const target = index + delta;
     if (target < 0 || target >= section.lines.length) return;
@@ -415,6 +313,19 @@ export default function ShowcaseEditorPage() {
           </Button>
         </div>
       </div>
+
+      {!section.is_active && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+          <span className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            This section is OFF — it is not shown in the app, even with cards switched on.
+          </span>
+          <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white" onClick={turnOn} disabled={turningOn}>
+            {turningOn && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            Turn ON
+          </Button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-6">
         <Tabs defaultValue="cards">
