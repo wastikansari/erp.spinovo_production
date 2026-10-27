@@ -90,7 +90,7 @@ export const STAFF_ROLES: StaffRoleInfo[] = [
     label: 'Customer Support',
     description: 'Handles customer complaints and calls — reads orders and customers, logs calls.',
     defaultPermissions: () => [
-      ...pages('view', ['orders', 'bookings', 'order-timeline', 'customers', 'otp-requests', 'feedback']),
+      ...pages('view', ['orders', 'bookings', 'bundle-bookings', 'order-timeline', 'customers', 'otp-requests', 'feedback']),
       ...pages('edit', ['sales-call']),
     ],
   },
@@ -98,14 +98,18 @@ export const STAFF_ROLES: StaffRoleInfo[] = [
     value: 'operations',
     label: 'Operations Staff',
     description: 'QC, washing and processing team — works on orders and inventory.',
-    defaultPermissions: () => [...pages('all', ['orders', 'inventory']), ...pages('view', ['order-timeline'])],
+    defaultPermissions: () => [
+      ...pages('all', ['orders', 'inventory']),
+      ...pages('edit', ['bundle-bookings']),
+      ...pages('view', ['order-timeline']),
+    ],
   },
   {
     value: 'delivery_manager',
     label: 'Delivery Manager',
     description: 'Manages pickup and delivery riders.',
     defaultPermissions: () => [
-      ...pages('all', ['orders', 'bookings', 'copilots']),
+      ...pages('all', ['orders', 'bookings', 'copilots', 'bundle-bookings']),
       ...pages('view', ['locations', 'order-timeline']),
     ],
   },

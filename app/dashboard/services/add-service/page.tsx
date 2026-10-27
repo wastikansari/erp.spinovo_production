@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Loader2, CheckCircle, AlertCircle, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Loader2, CheckCircle, AlertCircle, PlusCircle, Layers, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { createService, updateServiceSettings, uploadServiceImage } from '@/lib/api/service';
+import { cn } from '@/lib/utils';
 import {
   ServiceForm,
   ServiceFormValues,
@@ -16,12 +17,14 @@ import {
 export default function AddServicePage() {
   const router = useRouter();
   const [values, setValues] = useState<ServiceFormValues>(EMPTY_SERVICE_FORM);
+  const [serviceType, setServiceType] = useState<'regular' | 'bundle'>('regular');
+  const isBundle = serviceType === 'bundle';
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   async function handleCreate() {
-    const invalid = validateServiceForm(values);
+    const invalid = validateServiceForm(values, isBundle);
     if (invalid) {
       setAlert({ type: 'error', message: invalid });
       return;
@@ -31,12 +34,14 @@ export default function AddServicePage() {
 
     const created = await createService({
       service: values.service.trim(),
-      service_duration_hours: Number(values.service_duration_hours),
+      // A bundle is a home visit — the API still wants a duration; 2h is the visit window.
+      service_duration_hours: isBundle ? 2 : Number(values.service_duration_hours),
       description: values.description.trim(),
       service_code: values.service_code.trim(),
       home_title: values.home_title.trim(),
       badge_text: values.badge_text.trim(),
       coupon_applicable: values.coupon_applicable,
+      service_type: serviceType,
     });
     if (!created.success || !created.service) {
       setSaving(false);
@@ -58,9 +63,14 @@ export default function AddServicePage() {
     setSaving(false);
     setAlert({
       type: imageNote ? 'error' : 'success',
-      message: `Service created as Inactive. Now add its categories & prices, then switch it Active.${imageNote}`,
+      message: isBundle
+        ? `Bundle created as Inactive. Now set its price, popup and rules in Bundle settings, then switch it Active.${imageNote}`
+        : `Service created as Inactive. Now add its categories & prices, then switch it Active.${imageNote}`,
     });
-    setTimeout(() => router.push('/dashboard/services'), imageNote ? 3500 : 1800);
+    setTimeout(
+      () => router.push(isBundle ? `/dashboard/services/bundle/${serviceId}` : '/dashboard/services'),
+      imageNote ? 3500 : 1800,
+    );
   }
 
   return (
@@ -95,7 +105,33 @@ export default function AddServicePage() {
         </Alert>
       )}
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {([
+          { key: 'regular', icon: Layers, title: 'Regular service', text: 'Categories & prices, customer adds to cart (e.g. Dry Cleaning).' },
+          { key: 'bundle', icon: Home, title: 'Bundle (home visit)', text: 'One fixed price, popup with rules & agree checkbox (e.g. Home Curtain Bundle).' },
+        ] as const).map((opt) => (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={() => setServiceType(opt.key)}
+            className={cn(
+              'text-left rounded-xl border p-4 space-y-1 transition-colors',
+              serviceType === opt.key
+                ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950'
+                : 'border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900'
+            )}
+          >
+            <span className="flex items-center gap-2 font-medium">
+              <opt.icon className="h-4 w-4 text-indigo-500" />
+              {opt.title}
+            </span>
+            <span className="block text-xs text-muted-foreground">{opt.text}</span>
+          </button>
+        ))}
+      </div>
+
       <ServiceForm
+        isBundle={isBundle}
         values={values}
         onChange={setValues}
         imageFile={imageFile}

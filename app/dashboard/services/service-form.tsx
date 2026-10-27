@@ -51,10 +51,11 @@ export function deriveServiceCode(name: string): string {
 }
 
 // Returns an error message, or null when the form can be submitted.
-export function validateServiceForm(v: ServiceFormValues): string | null {
+// Bundles (home visits) have no turnaround time, so it isn't checked.
+export function validateServiceForm(v: ServiceFormValues, isBundle = false): string | null {
   if (v.service.trim().length < 2) return 'Enter a service name (at least 2 characters).';
   const hours = Number(v.service_duration_hours);
-  if (!Number.isInteger(hours) || hours < 1 || hours > 240)
+  if (!isBundle && (!Number.isInteger(hours) || hours < 1 || hours > 240))
     return 'Enter the duration in whole hours (1–240).';
   if (v.service_code && !/^[A-Za-z0-9]{1,5}$/.test(v.service_code))
     return 'Service code: letters/numbers only, up to 5 characters.';
@@ -69,6 +70,8 @@ interface ServiceFormProps {
   currentImageUrl?: string;
   // Core services (1–6) keep their name and code — order/invoice lookups use them.
   lockNameAndCode?: boolean;
+  // Bundle service: no turnaround time (price/popup live in Bundle settings).
+  isBundle?: boolean;
 }
 
 export function ServiceForm({
@@ -78,6 +81,7 @@ export function ServiceForm({
   onImageChange,
   currentImageUrl,
   lockNameAndCode = false,
+  isBundle = false,
 }: ServiceFormProps) {
   const fileInput = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -131,6 +135,7 @@ export function ServiceForm({
             )}
           </div>
 
+          {!isBundle && (
           <div className="space-y-2">
             <Label>Turnaround time (hours)</Label>
             <div className="flex flex-wrap items-center gap-2">
@@ -168,6 +173,7 @@ export function ServiceForm({
               Delivery is auto-calculated as pickup slot end + these hours.
             </p>
           </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="description">Description (shown in the app)</Label>

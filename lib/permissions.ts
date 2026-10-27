@@ -29,6 +29,7 @@ const ROUTE_PAGE_MAP: [string, string][] = [
   ['/dashboard/b2b-services', 'b2b-services'],
   ['/dashboard/b2b-companies', 'b2b-companies'],
   ['/dashboard/orders', 'orders'],
+  ['/dashboard/bundle-bookings', 'bundle-bookings'],
   ['/dashboard/customers', 'customers'],
   ['/dashboard/inventory', 'inventory'],
   ['/dashboard/feedback', 'feedback'],

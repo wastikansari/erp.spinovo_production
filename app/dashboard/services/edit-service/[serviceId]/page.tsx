@@ -53,7 +53,8 @@ export default function EditServicePage() {
 
   async function handleSave() {
     if (!values || !service) return;
-    const invalid = validateServiceForm(values);
+    const isBundle = service.service_type === 'bundle';
+    const invalid = validateServiceForm(values, isBundle);
     if (invalid) {
       setAlert({ type: 'error', message: invalid });
       return;
@@ -65,7 +66,7 @@ export default function EditServicePage() {
       ...(isCore
         ? {}
         : { service: values.service.trim(), service_code: values.service_code.trim() }),
-      service_duration_hours: Number(values.service_duration_hours),
+      ...(isBundle ? {} : { service_duration_hours: Number(values.service_duration_hours) }),
       description: values.description.trim(),
       home_title: values.home_title.trim(),
       badge_text: values.badge_text.trim(),
@@ -137,6 +138,7 @@ export default function EditServicePage() {
             }}
             currentImageUrl={service.image_url}
             lockNameAndCode={isCore}
+            isBundle={service.service_type === 'bundle'}
           />
 
           <div className="flex gap-3 pb-8">

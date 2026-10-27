@@ -140,6 +140,7 @@ export interface CreateServicePayload {
   home_title?: string;
   badge_text?: string;
   coupon_applicable?: boolean;
+  service_type?: 'regular' | 'bundle';
 }
 
 export interface ServiceSettingsPayload {

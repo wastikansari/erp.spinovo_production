@@ -666,6 +666,9 @@ export interface FullServiceCategory {
   home_title: string;
   badge_text: string;
   service_code: string;
+  // "bundle" = fixed-price home visit (no categories), set up under
+  // Services → Bundle settings. Older API responses omit it (= regular).
+  service_type?: 'regular' | 'bundle';
 }
 
 export interface ServiceCategoryListData {

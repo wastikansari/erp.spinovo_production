@@ -92,12 +92,17 @@ export class BookingApiService extends BaseApiService {
     );
   }
 
-  // FULL SERVICE + CATEGORY LIST
+  // FULL SERVICE + CATEGORY LIST — QC pages only, so bundle services (home
+  // visits, no categories) are left out: they can never be added to an order.
   static async getServiceCategoryList(): Promise<ApiResponse<ServiceCategoryListData>> {
-    return this.makeRequest<ServiceCategoryListData>(
+    const res = await this.makeRequest<ServiceCategoryListData>(
       '/admin/service/category',
       { method: 'GET' }
     );
+    if (res.data?.service) {
+      res.data.service = res.data.service.filter((s) => s.service_type !== 'bundle');
+    }
+    return res;
   }
 
   // MAIN ORDER DETAILS (order + subOrders)

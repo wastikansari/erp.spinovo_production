@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Pencil, Plus, Clock, ImageOff } from 'lucide-react';
+import { Pencil, Plus, Clock, ImageOff, Home, Settings2, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { FullServiceCategory } from '@/lib/types/booking';
@@ -21,6 +21,7 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
   type ToggleField = 'is_active' | 'show_on_home' | 'coupon_applicable';
   const [busy, setBusy] = useState<ToggleField | null>(null);
   const imageUrl = serviceImageUrl(service.image_url);
+  const isBundle = service.service_type === 'bundle';
 
   async function toggle(field: ToggleField, value: boolean) {
     setBusy(field);
@@ -78,6 +79,15 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
               >
                 {service.is_active ? 'Active' : 'Inactive'}
               </span>
+              {isBundle && (
+                <span
+                  title="Fixed-price home visit — opens a popup in the app, no categories"
+                  className="text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-900 flex items-center gap-1"
+                >
+                  <Home className="h-3 w-3" />
+                  Bundle
+                </span>
+              )}
               {!service.show_in_old_app && (
                 <span
                   title="Created in ERP — only customers on the latest app version see it"
@@ -164,6 +174,27 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
         </label>
       </div>
 
+      {isBundle ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Button
+            variant="outline"
+            className="gap-2 border-purple-300 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950"
+            onClick={() => router.push(`/dashboard/services/bundle/${service.service_id}`)}
+          >
+            <Settings2 className="h-4 w-4" />
+            Bundle settings (price, popup, rules)
+          </Button>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => router.push(`/dashboard/bundle-bookings?service_id=${service.service_id}`)}
+          >
+            <ClipboardList className="h-4 w-4" />
+            View bookings
+          </Button>
+        </div>
+      ) : (
+      <>
       {/* CATEGORIES */}
       <div className="space-y-3">
         {service.category_list.map((cat) => (
@@ -235,6 +266,8 @@ export function ServiceCard({ service, onUpdated }: ServiceCardProps) {
         <Plus className="h-4 w-4" />
         Add Category
       </Button>
+      </>
+      )}
     </div>
   );
 }
